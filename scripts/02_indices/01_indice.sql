@@ -1,3 +1,2 @@
--- Indice de muestra ya que el proyecto no permite archivos vacios
-CREATE NONCLUSTERED INDEX IX_Muestra_Cliente_Cedula 
-ON Cliente (cedula);
+-- ARCHIVO DE MUESTRA
+CREATE NONCLUSTERED INDEX IX_MUESTRA_CLIENTE_CEDULA ON CLIENTE (CEDULA);
