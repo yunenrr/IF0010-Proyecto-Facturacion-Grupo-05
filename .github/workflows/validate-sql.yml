@@ -59,7 +59,7 @@ jobs:
 
       - name: Instalar sqlcmd (vía .NET Tool)
         run: |
-          dotnet tool install --global go-sqlcmd
+          dotnet tool install --global microsoft.sqlcmd
           echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
 
       - name: Crear BD de prueba y Ejecutar scripts .sql
