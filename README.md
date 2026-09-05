@@ -2,7 +2,7 @@
 # Sistema de facturación
 
 ## Descripción general
-Este proyecto trata del diseño e implementación del módulo central de facturación comercial en una base de datos Microsoft SQL Server para la empresa "Soluciones Magníficas S.A."[cite: 1]. Este sistema debe cumplir con requisitos técnicos, de negocio y de rendimiento.
+Este proyecto trata del diseño e implementación del módulo central de facturación comercial en una base de datos Microsoft SQL Server para la empresa "Soluciones Magníficas S.A.". Este sistema debe cumplir con requisitos técnicos, de negocio y de rendimiento.
 
 ## Integrantes del grupo
 * Christofer Céspedes Solano - C4EO99
