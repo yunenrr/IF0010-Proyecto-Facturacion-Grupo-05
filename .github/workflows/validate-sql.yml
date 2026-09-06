@@ -57,10 +57,13 @@ jobs:
       - name: Descargar el código del PR
         uses: actions/checkout@v4
 
-      - name: Instalar sqlcmd (vía .NET Tool)
+      - name: Instalar sqlcmd (vía APT Microsoft)
         run: |
-          dotnet tool install --global microsoft.sqlcmd
-          echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+          curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc
+          curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
+          sudo apt-get update
+          sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18
+          echo "/opt/mssql-tools18/bin" >> $GITHUB_PATH
 
       - name: Crear BD de prueba y Ejecutar scripts .sql
         run: |
