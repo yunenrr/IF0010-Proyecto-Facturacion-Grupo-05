@@ -1,0 +1,10 @@
+USE FACTURACIÓN_SA;
+
+-- Permite realizar consultas por estado y tiempo
+
+GO -- INICIO
+
+CREATE NONCLUSTERED INDEX IX_FACTURA_FECHAEMISION
+ON FACTURA (FECHA_EMISION);
+
+GO -- FIN
