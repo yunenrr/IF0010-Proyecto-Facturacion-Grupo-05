@@ -1,8 +1,9 @@
-USE FACTURACIÓN_SA;
-
--- Permite supervisar el comportamiento de un empleado
+USE FACTURACION_SA;
 
 GO -- INICIO
+
+-- Permite consultar las operaciones realizadas
+-- por un usuario responsable.
 
 CREATE NONCLUSTERED INDEX IX_HISTORIAL_USUARIORESPONSABLE
     ON HISTORIAL (USUARIO_RESPONSABLE);
