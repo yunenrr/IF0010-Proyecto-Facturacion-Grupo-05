@@ -1,4 +1,4 @@
-USE Facturacion_SA;
+USE FACTURACION_SA;
 
 GO -- INICIO
 
