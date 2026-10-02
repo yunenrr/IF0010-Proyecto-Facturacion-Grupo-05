@@ -1,0 +1,11 @@
+USE FACTURACION_SA;
+
+GO -- INICIO
+
+-- Permite realizar consultas de facturas
+-- por estado y fecha de emisión.
+
+CREATE NONCLUSTERED INDEX IX_FACTURA_IDESTADOFACTURA_FECHAEMISION
+	ON FACTURA (ID_ESTADO_FACTURA, FECHA_EMISION);
+
+GO -- FIN
