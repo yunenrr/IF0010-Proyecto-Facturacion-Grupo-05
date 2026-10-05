@@ -1,14 +1,14 @@
-USE FACTURACION_SA;
+USE [FACTURACION_SA];
 GO
 
 -- INICIO
-IF EXISTS (SELECT 1 FROM sys.objects WHERE name = 'pr_InsertarProducto' AND type = 'P')
+IF EXISTS (SELECT 1 FROM [sys].[objects] WHERE [name] = 'pr_InsertarProducto' AND [type] = 'P')
 BEGIN
-    DROP PROCEDURE dbo.pr_InsertarProducto;
+    DROP PROCEDURE [dbo].[pr_InsertarProducto];
 END;
 GO
 
-CREATE PROCEDURE dbo.pr_InsertarProducto (
+CREATE PROCEDURE [dbo].[pr_InsertarProducto] (
     @CODIGO VARCHAR(30),
     @DESCRIPCION VARCHAR(70),
     @PRECIO_UNITARIO DECIMAL(18, 2),
@@ -31,7 +31,7 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        -- Validación de parámetros obligatorios
+        -- Validacion de parametros obligatorios
         IF @CODIGO IS NULL
             OR @DESCRIPCION IS NULL
             OR @PRECIO_UNITARIO IS NULL
@@ -41,29 +41,29 @@ BEGIN
             OR @EXISTENCIAS IS NULL
             OR @TIPO_PRODUCTO IS NULL
         BEGIN;
-            THROW 50100, 'Los parámetros obligatorios no pueden ser nulos', 1;
-        END
+            THROW 50100, 'Los parametros obligatorios no pueden ser nulos', 1;
+        END;
 
         IF @EXISTENCIAS < 0
         BEGIN;
             THROW 50101, 'Las existencias no pueden ser menores a cero', 1;
-        END
+        END;
 
         IF @TIPO_PRODUCTO NOT IN ('DIGITAL', 'FISICO')
         BEGIN;
             THROW 50102, 'El tipo de producto debe ser estrictamente DIGITAL o FISICO', 1;
-        END
+        END;
 
-        INSERT INTO dbo.PRODUCTO (
-            CODIGO,
-            DESCRIPCION,
-            PRECIO_UNITARIO,
-            PORCENTAJE_IMPUESTO,
-            ESTADO_ACTIVO,
-            FECHA_CREACION,
-            FECHA_VENCIMIENTO,
-            EXISTENCIAS,
-            TIPO_PRODUCTO
+        INSERT INTO [dbo].[PRODUCTO] (
+            [CODIGO],
+            [DESCRIPCION],
+            [PRECIO_UNITARIO],
+            [PORCENTAJE_IMPUESTO],
+            [ESTADO_ACTIVO],
+            [FECHA_CREACION],
+            [FECHA_VENCIMIENTO],
+            [EXISTENCIAS],
+            [TIPO_PRODUCTO]
         )
         VALUES (
             @CODIGO,
@@ -83,7 +83,7 @@ BEGIN
         IF XACT_STATE() <> 0
         BEGIN
             ROLLBACK TRANSACTION;
-        END
+        END;
 
         SET @CODIGO_ERROR = ERROR_NUMBER();
         SET @MENSAJE_ERROR = ERROR_MESSAGE();
