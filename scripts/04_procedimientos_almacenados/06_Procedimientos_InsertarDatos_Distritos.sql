@@ -1,14 +1,14 @@
-USE FACTURACION_SA;
+USE [FACTURACION_SA];
 GO
 
 -- INICIO
-IF EXISTS (SELECT 1 FROM sys.objects WHERE name = 'pr_InsertarDistrito' AND type = 'P')
+IF EXISTS (SELECT 1 FROM [sys].[objects] WHERE [name] = 'pr_InsertarDistrito' AND [type] = 'P')
 BEGIN
-    DROP PROCEDURE dbo.pr_InsertarDistrito;
+    DROP PROCEDURE [dbo].[pr_InsertarDistrito];
 END;
 GO
 
-CREATE PROCEDURE dbo.pr_InsertarDistrito (
+CREATE PROCEDURE [dbo].[pr_InsertarDistrito] (
     @NOMBRE VARCHAR(30),
     @DETALLE_DISTRITO VARCHAR(100),
     @CODIGO_ERROR INT OUTPUT,
@@ -24,15 +24,15 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        -- Validación de parámetros nulos
+        -- Validacion de parametros nulos
         IF @NOMBRE IS NULL OR @DETALLE_DISTRITO IS NULL
         BEGIN;
-            THROW 50100, 'Parámetros nulos', 1;
-        END
+            THROW 50100, 'Parametros nulos', 1;
+        END;
 
-        INSERT INTO dbo.DISTRITO (
-            NOMBRE,
-            DETALLE_DISTRITO
+        INSERT INTO [dbo].[DISTRITO] (
+            [NOMBRE],
+            [DETALLE_DISTRITO]
         )
         VALUES (
             @NOMBRE,
@@ -45,7 +45,7 @@ BEGIN
         IF XACT_STATE() <> 0
         BEGIN
             ROLLBACK TRANSACTION;
-        END
+        END;
 
         SET @CODIGO_ERROR = ERROR_NUMBER();
         SET @MENSAJE_ERROR = ERROR_MESSAGE();

@@ -1,14 +1,14 @@
-USE FACTURACION_SA;
+USE [FACTURACION_SA];
 GO
 
 -- INICIO
-IF EXISTS (SELECT 1 FROM sys.objects WHERE name = 'pr_InsertarCliente' AND type = 'P')
+IF EXISTS (SELECT 1 FROM [sys].[objects] WHERE [name] = 'pr_InsertarCliente' AND [type] = 'P')
 BEGIN
-    DROP PROCEDURE dbo.pr_InsertarCliente;
+    DROP PROCEDURE [dbo].[pr_InsertarCliente];
 END;
 GO
 
-CREATE PROCEDURE dbo.pr_InsertarCliente (
+CREATE PROCEDURE [dbo].[pr_InsertarCliente] (
     @CEDULA VARCHAR(30),
     @TELEFONO VARCHAR(20),
     @NOMBRE VARCHAR(70),
@@ -30,7 +30,7 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        -- Validamos parámetros nulos
+        -- Validamos parametros nulos
         IF @CEDULA IS NULL
             OR @TELEFONO IS NULL
             OR @NOMBRE IS NULL
@@ -38,17 +38,17 @@ BEGIN
             OR @FECHA_CREACION IS NULL
             OR @ID_DIRECCION IS NULL
         BEGIN;
-            THROW 50100, 'Los parámetros obligatorios no pueden ser nulos', 1;
-        END
+            THROW 50100, 'Los parametros obligatorios no pueden ser nulos', 1;
+        END;
 
-        INSERT INTO dbo.CLIENTE (
-            CEDULA,
-            TELEFONO,
-            NOMBRE,
-            CORREO_ELECTRONICO,
-            FECHA_ULTIMA_ACTUALIZACION,
-            FECHA_CREACION,
-            ID_DIRECCION
+        INSERT INTO [dbo].[CLIENTE] (
+            [CEDULA],
+            [TELEFONO],
+            [NOMBRE],
+            [CORREO_ELECTRONICO],
+            [FECHA_ULTIMA_ACTUALIZACION],
+            [FECHA_CREACION],
+            [ID_DIRECCION]
         )
         VALUES (
             @CEDULA,
@@ -66,7 +66,7 @@ BEGIN
         IF XACT_STATE() <> 0
         BEGIN
             ROLLBACK TRANSACTION;
-        END
+        END;
 
         SET @CODIGO_ERROR = ERROR_NUMBER();
         SET @MENSAJE_ERROR = ERROR_MESSAGE();

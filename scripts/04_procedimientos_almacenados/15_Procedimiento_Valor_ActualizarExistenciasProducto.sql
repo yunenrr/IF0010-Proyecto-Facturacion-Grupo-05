@@ -1,15 +1,14 @@
-USE FACTURACION_SA;
-
-GO --INICIO
-
-IF EXISTS (SELECT 1 FROM sys.objects WHERE name = 'pr_ActualizarExistenciasProducto' AND type = 'P')
-BEGIN
-    DROP PROCEDURE dbo.pr_ActualizarExistenciasProducto;
-END
-
+USE [FACTURACION_SA];
 GO
 
-CREATE PROCEDURE dbo.pr_ActualizarExistenciasProducto (
+-- INICIO
+IF EXISTS (SELECT 1 FROM [sys].[objects] WHERE [name] = 'pr_ActualizarExistenciasProducto' AND [type] = 'P')
+BEGIN
+    DROP PROCEDURE [dbo].[pr_ActualizarExistenciasProducto];
+END;
+GO
+
+CREATE PROCEDURE [dbo].[pr_ActualizarExistenciasProducto] (
     @ID_PRODUCTO INT,
     @CANTIDAD_AJUSTE INT,
     @CODIGO_ERROR INT OUTPUT,
@@ -25,41 +24,51 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        -- Validar que los parámetros no sean nulos
+        -- Validar que los parametros no sean nulos
         IF @ID_PRODUCTO IS NULL
-            THROW 5010, 'El id de producto no puede ser nulo', 1;
+        BEGIN;
+            THROW 50010, 'El id de producto no puede ser nulo', 1;
+        END;
 
         IF @CANTIDAD_AJUSTE IS NULL
-            THROW 5010, 'La cantidad de ajuste no puede ser nula', 1;
+        BEGIN;
+            THROW 50010, 'La cantidad de ajuste no puede ser nula', 1;
+        END;
 
-        -- Validar que el producto exista en el catálogo
-        IF NOT EXISTS (SELECT 1 FROM dbo.PRODUCTO AS P WHERE @ID_PRODUCTO = P.ID)
-            THROW 5004, 'El producto no se encuentra registrado', 1;
+        -- Validar que el producto exista en el catalogo
+        IF NOT EXISTS (SELECT 1 FROM [dbo].[PRODUCTO] AS [P] WHERE @ID_PRODUCTO = [P].[ID])
+        BEGIN;
+            THROW 50004, 'El producto no se encuentra registrado', 1;
+        END;
 
         -- Extraer el stock actual para aplicar la regla de negocio
         DECLARE @EXISTENCIAS_ACTUALES INT;
-        SELECT @EXISTENCIAS_ACTUALES = EXISTENCIAS FROM dbo.PRODUCTO WHERE ID = @ID_PRODUCTO;
+        SELECT @EXISTENCIAS_ACTUALES = [EXISTENCIAS] FROM [dbo].[PRODUCTO] WHERE [ID] = @ID_PRODUCTO;
 
         -- Validar que el ajuste no deje el inventario en negativo
         IF (@EXISTENCIAS_ACTUALES + @CANTIDAD_AJUSTE) < 0
-            THROW 5011, 'Operación inválida: Las existencias resultantes no pueden ser menores a cero', 1;
+        BEGIN;
+            THROW 50011, 'Operacion invalida: Las existencias resultantes no pueden ser menores a cero', 1;
+        END;
 
         -- Actualizar el inventario sumando o restando 
-        UPDATE dbo.PRODUCTO 
-        SET EXISTENCIAS = EXISTENCIAS + @CANTIDAD_AJUSTE
-        WHERE ID = @ID_PRODUCTO;
+        UPDATE [dbo].[PRODUCTO] 
+        SET 
+            [EXISTENCIAS] = [EXISTENCIAS] + @CANTIDAD_AJUSTE
+        WHERE [ID] = @ID_PRODUCTO;
 
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
         IF XACT_STATE() <> 0
+        BEGIN
             ROLLBACK TRANSACTION;
+        END;
 
-        -- mensajes de error
+        -- Mensajes de error
         SET @CODIGO_ERROR = ERROR_NUMBER();
         SET @MENSAJE_ERROR = ERROR_MESSAGE();
-
     END CATCH
-END
-
-GO --FIN
+END;
+GO
+-- FIN
