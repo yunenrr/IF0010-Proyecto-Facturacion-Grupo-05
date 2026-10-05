@@ -1,4 +1,4 @@
-USE FACTURACION_SA;
+USE [FACTURACION_SA];
 GO
 
 -- INICIO
@@ -6,32 +6,32 @@ SET NOCOUNT ON;
 SET XACT_ABORT ON;
 
 -- Variables de control
-DECLARE @Factura INT = 1;
-DECLARE @Err INT;
-DECLARE @Msg VARCHAR(100);
-DECLARE @EstadoActual VARCHAR(25);
-DECLARE @Usuario VARCHAR(100);
+DECLARE @FACTURA INT = 1;
+DECLARE @ERR INT;
+DECLARE @MSG VARCHAR(100);
+DECLARE @ESTADOACTUAL VARCHAR(25);
+DECLARE @USUARIO VARCHAR(100);
 
-WHILE @Factura <= 500
+WHILE @FACTURA <= 500
 BEGIN
-    -- Mapeo circular simple para variabilidad de datos de auditoría
-    SET @EstadoActual = CHOOSE((@Factura % 4) + 1, 'EMITIDA', 'PAGADA', 'ANULADA', 'PENDIENTE');
-    SET @Usuario = CHOOSE((@Factura % 3) + 1, 'admin_sistema', 'operador_caja', 'proceso_automatico');
+    -- Mapeo circular simple para variabilidad de datos de auditoria
+    SET @ESTADOACTUAL = CHOOSE((@FACTURA % 4) + 1, 'EMITIDA', 'PAGADA', 'ANULADA', 'PENDIENTE');
+    SET @USUARIO = CHOOSE((@FACTURA % 3) + 1, 'admin_sistema', 'operador_caja', 'proceso_automatico');
 
-    -- Inserción del registro de trazabilidad
-    EXEC dbo.pr_InsertarHistorial
-        @ID_FACTURA = @Factura,
-        @ID_REGISTRO_AFECTADO = @Factura,
+    -- Insercion del registro de trazabilidad
+    EXEC [dbo].[pr_InsertarHistorial]
+        @ID_FACTURA = @FACTURA,
+        @ID_REGISTRO_AFECTADO = @FACTURA,
         @OPERACION_REALIZADA = 'INSERT',
         @ESTADO_PREVIO = 'N/A',
-        @ESTADO_NUEVO = @EstadoActual,
+        @ESTADO_NUEVO = @ESTADOACTUAL,
         @TABLA_AFECTADA = 'FACTURA',
         @DESCRIPCION = 'Emision inicial de factura registrada en bitacora',
-        @USUARIO_RESPONSABLE = @Usuario,
-        @CODIGO_ERROR = @Err OUTPUT,
-        @MENSAJE_ERROR = @Msg OUTPUT;
+        @USUARIO_RESPONSABLE = @USUARIO,
+        @CODIGO_ERROR = @ERR OUTPUT,
+        @MENSAJE_ERROR = @MSG OUTPUT;
 
-    SET @Factura += 1;
+    SET @FACTURA += 1;
 END;
 GO
 -- FIN
