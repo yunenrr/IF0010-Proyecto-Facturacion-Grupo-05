@@ -1,29 +1,29 @@
-USE FACTURACION_SA;
+USE [FACTURACION_SA];
 GO
 
 -- INICIO
-DECLARE @Paso INT = 1;
-DECLARE @Id_Provincia INT;
-DECLARE @Id_Canton INT;
-DECLARE @Id_Distrito INT;
-DECLARE @Detalle VARCHAR(100);
-DECLARE @Error INT;
-DECLARE @Mensaje VARCHAR(100);
-DECLARE @Distancia VARCHAR(10);
-DECLARE @PuntoReferencia VARCHAR(50);
-DECLARE @Orientacion VARCHAR(20);
-DECLARE @Estructura VARCHAR(50);
+DECLARE @PASO INT = 1;
+DECLARE @ID_PROVINCIA INT;
+DECLARE @ID_CANTON INT;
+DECLARE @ID_DISTRITO INT;
+DECLARE @DETALLE VARCHAR(100);
+DECLARE @ERROR INT;
+DECLARE @MENSAJE VARCHAR(100);
+DECLARE @DISTANCIA VARCHAR(10);
+DECLARE @PUNTOREFERENCIA VARCHAR(50);
+DECLARE @ORIENTACION VARCHAR(20);
+DECLARE @ESTRUCTURA VARCHAR(50);
 
-WHILE @Paso <= 50
+WHILE @PASO <= 50
 BEGIN
     -- Para datos aleatorios
-    SET @Id_Provincia = (@Paso % 7) + 1;
-    SET @Id_Canton = (@Paso % 10) + 1;
-    SET @Id_Distrito = (@Paso % 15) + 1;
-    SET @Distancia = CAST(((@Paso % 8) + 1) * 25 AS VARCHAR(10));
+    SET @ID_PROVINCIA = (@PASO % 7) + 1;
+    SET @ID_CANTON = (@PASO % 10) + 1;
+    SET @ID_DISTRITO = (@PASO % 15) + 1;
+    SET @DISTANCIA = CAST(((@PASO % 8) + 1) * 25 AS VARCHAR(10));
 
-    SET @PuntoReferencia = CHOOSE(
-        (@Paso % 7) + 1,
+    SET @PUNTOREFERENCIA = CHOOSE(
+        (@PASO % 7) + 1,
         'la Iglesia Catolica',
         'la Escuela Publica',
         'la Municipalidad',
@@ -33,16 +33,16 @@ BEGIN
         'la Pulperia del barrio'
     );
 
-    SET @Orientacion = CHOOSE(
-        (@Paso % 4) + 1,
+    SET @ORIENTACION = CHOOSE(
+        (@PASO % 4) + 1,
         'Norte',
         'Sur',
         'Este',
         'Oeste'
     );
 
-    SET @Estructura = CHOOSE(
-        (@Paso % 6) + 1,
+    SET @ESTRUCTURA = CHOOSE(
+        (@PASO % 6) + 1,
         'casa color blanca',
         'casa color azul',
         'edificio de dos plantas',
@@ -51,27 +51,27 @@ BEGIN
         'condominio esquinero'
     );
 
-    SET @Detalle = CONCAT(
-        @Distancia,
+    SET @DETALLE = CONCAT(
+        @DISTANCIA,
         ' metros al ',
-        @Orientacion,
+        @ORIENTACION,
         ' de ',
-        @PuntoReferencia,
+        @PUNTOREFERENCIA,
         ', ',
-        @Estructura,
+        @ESTRUCTURA,
         ', Codigo interno: ',
-        @Paso
+        @PASO
     );
 
-    EXEC dbo.pr_InsertarDireccion
-        @ID_PROVINCIA = @Id_Provincia,
-        @ID_CANTON = @Id_Canton,
-        @ID_DISTRITO = @Id_Distrito,
-        @DETALLE_DIRECCION = @Detalle,
-        @CODIGO_ERROR = @Error OUTPUT,
-        @MENSAJE_ERROR = @Mensaje OUTPUT;
+    EXEC [dbo].[pr_InsertarDireccion]
+        @ID_PROVINCIA = @ID_PROVINCIA,
+        @ID_CANTON = @ID_CANTON,
+        @ID_DISTRITO = @ID_DISTRITO,
+        @DETALLE_DIRECCION = @DETALLE,
+        @CODIGO_ERROR = @ERROR OUTPUT,
+        @MENSAJE_ERROR = @MENSAJE OUTPUT;
 
-    SET @Paso += 1;
+    SET @PASO += 1;
 END;
 GO
 -- FIN
