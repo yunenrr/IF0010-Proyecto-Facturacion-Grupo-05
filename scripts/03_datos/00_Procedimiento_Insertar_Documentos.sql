@@ -1,18 +1,18 @@
-USE FACTURACION_SA;
+USE [FACTURACION_SA];
 GO
 
 -- Inicio
-DECLARE @CodigoError INT;
-DECLARE @MensajeError VARCHAR(100);
+DECLARE @CODIGOERROR INT;
+DECLARE @MENSAJEERROR VARCHAR(100);
 
-EXEC dbo.pr_InsertarDocumento
+EXEC [dbo].[pr_InsertarDocumento]
     @DESCRIPCION = 'Factura Electronica',
-    @CODIGO_ERROR = @CodigoError OUTPUT,
-    @MENSAJE_ERROR = @MensajeError OUTPUT;
+    @CODIGO_ERROR = @CODIGOERROR OUTPUT,
+    @MENSAJE_ERROR = @MENSAJEERROR OUTPUT;
 
-EXEC dbo.pr_InsertarDocumento
+EXEC [dbo].[pr_InsertarDocumento]
     @DESCRIPCION = 'Tiquete Electronica',
-    @CODIGO_ERROR = @CodigoError OUTPUT,
-    @MENSAJE_ERROR = @MensajeError OUTPUT;
+    @CODIGO_ERROR = @CODIGOERROR OUTPUT,
+    @MENSAJE_ERROR = @MENSAJEERROR OUTPUT;
 GO
 -- FIN
