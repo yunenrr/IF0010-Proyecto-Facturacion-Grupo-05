@@ -1,44 +1,44 @@
-USE FACTURACION_SA;
+USE [FACTURACION_SA];
 GO
 
 -- INICIO
-DECLARE @Paso INT = 1;
-DECLARE @Cedula VARCHAR(30);
-DECLARE @RazonSocial VARCHAR(50);
-DECLARE @Nombre VARCHAR(50);
-DECLARE @Correo VARCHAR(70);
-DECLARE @Telefono VARCHAR(20);
-DECLARE @Fecha DATE;
-DECLARE @EstadoActivo BIT = 1;
-DECLARE @IdDireccion INT;
-DECLARE @Error INT;
-DECLARE @Mensaje VARCHAR(100);
+DECLARE @PASO INT = 1;
+DECLARE @CEDULA VARCHAR(30);
+DECLARE @RAZONSOCIAL VARCHAR(50);
+DECLARE @NOMBRE VARCHAR(50);
+DECLARE @CORREO VARCHAR(70);
+DECLARE @TELEFONO VARCHAR(20);
+DECLARE @FECHA DATE;
+DECLARE @ESTADOACTIVO BIT = 1;
+DECLARE @IDDIRECCION INT;
+DECLARE @ERROR INT;
+DECLARE @MENSAJE VARCHAR(100);
 
-WHILE @Paso <= 100
+WHILE @PASO <= 100
 BEGIN
-    SET @Cedula = CONCAT('3-101-', RIGHT('000000' + CAST(@Paso AS VARCHAR(10)), 6));
-    SET @RazonSocial = CONCAT('Empresa Sociedad Anonima ', @Paso);
-    SET @Nombre = CONCAT('EmpresaSA', @Paso);
-    SET @Correo = CONCAT('empresa', @Paso, '@gmail.com');
-    SET @Telefono = CONCAT('8', RIGHT('0000000' + CAST(@Paso AS VARCHAR(10)), 7));
-    SET @Fecha = DATEADD(DAY, -@Paso, CAST(GETDATE() AS DATE));
+    SET @CEDULA = CONCAT('3-101-', RIGHT('000000' + CAST(@PASO AS VARCHAR(10)), 6));
+    SET @RAZONSOCIAL = CONCAT('Empresa Sociedad Anonima ', @PASO);
+    SET @NOMBRE = CONCAT('EmpresaSA', @PASO);
+    SET @CORREO = CONCAT('empresa', @PASO, '@gmail.com');
+    SET @TELEFONO = CONCAT('8', RIGHT('0000000' + CAST(@PASO AS VARCHAR(10)), 7));
+    SET @FECHA = DATEADD(DAY, -@PASO, CAST(GETDATE() AS DATE));
 
     -- Se usa el 50 porque los datos de direcciones cuentan hasta ese ID
-    SET @IdDireccion = ((@Paso - 1) % 50) + 1;
+    SET @IDDIRECCION = ((@PASO - 1) % 50) + 1;
 
-    EXEC dbo.pr_InsertarEmpresa
-        @CEDULA_JURIDICA = @Cedula,
-        @RAZON_SOCIAL = @RazonSocial,
-        @NOMBRE = @Nombre,
-        @CORREO_ELECTRONICO = @Correo,
-        @TELEFONO = @Telefono,
-        @FECHA_CREACION = @Fecha,
-        @PERMISO_OPERAR = @EstadoActivo,
-        @ID_DIRECCION = @IdDireccion,
-        @CODIGO_ERROR = @Error OUTPUT,
-        @MENSAJE_ERROR = @Mensaje OUTPUT;
+    EXEC [dbo].[pr_InsertarEmpresa]
+        @CEDULA_JURIDICA = @CEDULA,
+        @RAZON_SOCIAL = @RAZONSOCIAL,
+        @NOMBRE = @NOMBRE,
+        @CORREO_ELECTRONICO = @CORREO,
+        @TELEFONO = @TELEFONO,
+        @FECHA_CREACION = @FECHA,
+        @PERMISO_OPERAR = @ESTADOACTIVO,
+        @ID_DIRECCION = @IDDIRECCION,
+        @CODIGO_ERROR = @ERROR OUTPUT,
+        @MENSAJE_ERROR = @MENSAJE OUTPUT;
 
-    SET @Paso += 1;
+    SET @PASO += 1;
 END;
 GO
 -- FIN
