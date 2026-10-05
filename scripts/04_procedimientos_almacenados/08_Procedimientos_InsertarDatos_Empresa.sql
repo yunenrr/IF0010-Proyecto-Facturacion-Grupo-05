@@ -1,14 +1,14 @@
-USE FACTURACION_SA;
+USE [FACTURACION_SA];
 GO
 
 -- INICIO
-IF EXISTS (SELECT 1 FROM sys.objects WHERE name = 'pr_InsertarEmpresa' AND type = 'P')
+IF EXISTS (SELECT 1 FROM [sys].[objects] WHERE [name] = 'pr_InsertarEmpresa' AND [type] = 'P')
 BEGIN
-    DROP PROCEDURE dbo.pr_InsertarEmpresa;
+    DROP PROCEDURE [dbo].[pr_InsertarEmpresa];
 END;
 GO
 
-CREATE PROCEDURE dbo.pr_InsertarEmpresa (
+CREATE PROCEDURE [dbo].[pr_InsertarEmpresa] (
     @CEDULA_JURIDICA VARCHAR(30),
     @RAZON_SOCIAL VARCHAR(50),
     @NOMBRE VARCHAR(50),
@@ -30,7 +30,7 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        -- Validamos parámetros nulos
+        -- Validamos parametros nulos
         IF @CEDULA_JURIDICA IS NULL
             OR @RAZON_SOCIAL IS NULL
             OR @NOMBRE IS NULL
@@ -40,18 +40,18 @@ BEGIN
             OR @PERMISO_OPERAR IS NULL
             OR @ID_DIRECCION IS NULL
         BEGIN;
-            THROW 50100, 'Los parámetros obligatorios no pueden ser nulos', 1;
-        END
+            THROW 50100, 'Los parametros obligatorios no pueden ser nulos', 1;
+        END;
 
-        INSERT INTO dbo.EMPRESA (
-            CEDULA_JURIDICA,
-            RAZON_SOCIAL,
-            NOMBRE,
-            CORREO_ELECTRONICO,
-            TELEFONO,
-            FECHA_CREACION,
-            PERMISO_OPERAR,
-            ID_DIRECCION
+        INSERT INTO [dbo].[EMPRESA] (
+            [CEDULA_JURIDICA],
+            [RAZON_SOCIAL],
+            [NOMBRE],
+            [CORREO_ELECTRONICO],
+            [TELEFONO],
+            [FECHA_CREACION],
+            [PERMISO_OPERAR],
+            [ID_DIRECCION]
         )
         VALUES (
             @CEDULA_JURIDICA,
@@ -70,7 +70,7 @@ BEGIN
         IF XACT_STATE() <> 0
         BEGIN
             ROLLBACK TRANSACTION;
-        END
+        END;
 
         SET @CODIGO_ERROR = ERROR_NUMBER();
         SET @MENSAJE_ERROR = ERROR_MESSAGE();
