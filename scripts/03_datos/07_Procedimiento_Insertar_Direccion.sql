@@ -1,4 +1,4 @@
-USE [FACTURACION_SA];
+USE FACTURACION_SA;
 GO
 
 -- INICIO
@@ -63,7 +63,7 @@ BEGIN
         @PASO
     );
 
-    EXEC [dbo].[pr_InsertarDireccion]
+    EXEC dbo.pr_InsertarDireccion
         @ID_PROVINCIA = @ID_PROVINCIA,
         @ID_CANTON = @ID_CANTON,
         @ID_DISTRITO = @ID_DISTRITO,
