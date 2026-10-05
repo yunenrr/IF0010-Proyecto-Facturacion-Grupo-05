@@ -33,30 +33,10 @@ BEGIN
     SET @MENSAJE_ERROR = 'Exitoso';
 
     DECLARE @IdFactura INT;
-    DECLARE @LineasTotales INT;
-    DECLARE @Linea INT = 1;
-    DECLARE @IdProd INT;
-    DECLARE @Cant INT;
-    DECLARE @PrecioUnit DECIMAL(18, 2);
-    DECLARE @ImpPct DECIMAL(5, 2);
-    DECLARE @DescLinea DECIMAL(18, 2);
-    DECLARE @SubtotalLinea DECIMAL(18, 2);
-    DECLARE @ImpuestoLinea DECIMAL(18, 2);
+    DECLARE @LineasTotales INT = ((@NUMERO_CONSECUTIVO % 3) + 3);
 
     BEGIN TRY
-        -- Validaciones de parametros
-        IF @NUMERO_CONSECUTIVO IS NULL THROW 50100, 'El numero consecutivo es nulo', 1;
-        IF @SUBTOTAL IS NULL THROW 50100, 'El subtotal no puede ser nulo', 1;
-        IF @TOTAL_DESCUENTO IS NULL THROW 50100, 'El total descuento no puede ser nulo', 1;
-        IF @TOTAL_IMPUESTOS IS NULL THROW 50100, 'El numero de impuestos no puede ser nulo', 1;
-        IF @MONTO_TOTAL IS NULL THROW 50100, 'El monto total no puede ser nulo', 1;
-        IF @CODIGO_MONEDA IS NULL THROW 50100, 'El codigo de moneda no puede ser nulo', 1;
-        IF @ID_ESTADO_FACTURA IS NULL THROW 50100, 'El estado de factura no puede ser nulo', 1;
-        IF @ID_EMPRESA IS NULL THROW 50100, 'El id de empresa no puede ser nulo', 1;
-        IF @ID_CLIENTE IS NULL THROW 50100, 'El id de cliente no puede ser nulo', 1;
-        IF @CODIGO_DOCUMENTO IS NULL THROW 50100, 'El codigo de documento no puede ser nulo', 1;
-
-        -- Insercion Factura
+        
         INSERT INTO dbo.FACTURA (
             NUMERO_CONSECUTIVO,
             FECHA_CREACION,
@@ -78,10 +58,10 @@ BEGIN
             ISNULL(@FECHA_CREACION, CAST(GETDATE() AS DATE)),
             ISNULL(@FECHA_MODIFICACION, CAST(GETDATE() AS DATE)),
             ISNULL(@FECHA_EMISION, CAST(GETDATE() AS DATE)),
-            @SUBTOTAL,
+            0.00,
             @TOTAL_DESCUENTO,
-            @TOTAL_IMPUESTOS,
-            @MONTO_TOTAL,
+            0.00,
+            0.00,
             ISNULL(@OBSERVACIONES, 'N/A'),
             @CODIGO_MONEDA,
             @ID_ESTADO_FACTURA,
@@ -90,50 +70,58 @@ BEGIN
             @CODIGO_DOCUMENTO
         );
 
-        -- Id Factura
+        -- Obtener el ID 
         SET @IdFactura = SCOPE_IDENTITY();
 
-        -- Insercion detalles
-        SET @LineasTotales = ((@NUMERO_CONSECUTIVO % 3) + 3);
+        INSERT INTO dbo.DETALLE_FACTURA (
+            ID_FACTURA,
+            NUMERO_LINEA,
+            ID_PRODUCTO,
+            CANTIDAD,
+            PRECIO_UNITARIO_VENTA,
+            MONTO_DESCUENTO,
+            MONTO_SUBTOTAL,
+            MONTO_IMPUESTO,
+            DESCRIPCION
+        )
+        SELECT 
+            @IdFactura,
+            numeroLinea.Linea,
+            CalculoLinea.IdProd,
+            CalculoLinea.Cant,
+            ISNULL(P.PRECIO_UNITARIO, 1000.00),
+            ROUND((@TOTAL_DESCUENTO / @LineasTotales), 2),
+            (ISNULL(P.PRECIO_UNITARIO, 1000.00) * CalculoLinea.Cant),
+            ((ISNULL(P.PRECIO_UNITARIO, 1000.00) * CalculoLinea.Cant) * (ISNULL(P.PORCENTAJE_IMPUESTO, 13.00) / 100.0)),
+            'Detalle generado automaticamente'
+        FROM (
+            SELECT 1 AS Linea UNION ALL SELECT 2 UNION ALL SELECT 3
+            UNION ALL SELECT 4 WHERE @LineasTotales >= 4
+            UNION ALL SELECT 5 WHERE @LineasTotales >= 5
+        ) numeroLinea
+        CROSS APPLY (
+            SELECT 
+                ((((@NUMERO_CONSECUTIVO * 5 + numeroLinea.Linea) - 1) % 1000) + 1) AS IdProd,
+                (((@NUMERO_CONSECUTIVO + numeroLinea.Linea) % 5) + 1) AS Cant
+        ) CalculoLinea
+        LEFT JOIN dbo.PRODUCTO P ON P.ID = CalculoLinea.IdProd;
 
-        WHILE @Linea <= @LineasTotales
-        BEGIN
-            SET @IdProd = (((@NUMERO_CONSECUTIVO * 5 + @Linea) - 1) % 1000) + 1;
-            SET @Cant = ((@NUMERO_CONSECUTIVO + @Linea) % 5) + 1;
-
-            SELECT @PrecioUnit = PRECIO_UNITARIO, @ImpPct = PORCENTAJE_IMPUESTO
-            FROM dbo.PRODUCTO
-            WHERE ID = @IdProd;
-
-            SET @DescLinea = ROUND((@TOTAL_DESCUENTO / @LineasTotales), 2);
-            SET @SubtotalLinea = ISNULL(@PrecioUnit, 1000.00) * @Cant;
-            SET @ImpuestoLinea = @SubtotalLinea * (ISNULL(@ImpPct, 13.00) / 100.0);
-
-            INSERT INTO dbo.DETALLE_FACTURA (
+        -- Actualizacion de totales
+        UPDATE Factura
+        SET 
+            SUBTOTAL = totalDetalles.SubtotalSum,
+            TOTAL_IMPUESTO = totalDetalles.ImpuestoSum,
+            MONTO_TOTAL = totalDetalles.SubtotalSum - Factura.TOTAL_DESCUENTO + totalDetalles.ImpuestoSum
+        FROM dbo.FACTURA Factura
+        INNER JOIN (
+            SELECT 
                 ID_FACTURA,
-                NUMERO_LINEA,
-                ID_PRODUCTO,
-                CANTIDAD,
-                PRECIO_UNITARIO_VENTA,
-                MONTO_DESCUENTO,
-                MONTO_SUBTOTAL,
-                MONTO_IMPUESTO,
-                DESCRIPCION
-            )
-            VALUES (
-                @IdFactura,
-                @Linea,
-                @IdProd,
-                @Cant,
-                ISNULL(@PrecioUnit, 1000.00),
-                @DescLinea,
-                @SubtotalLinea,
-                @ImpuestoLinea,
-                'Detalle generado automaticamente'
-            );
-
-            SET @Linea += 1;
-        END;
+                SUM(MONTO_SUBTOTAL) AS SubtotalSum,
+                SUM(MONTO_IMPUESTO) AS ImpuestoSum
+            FROM dbo.DETALLE_FACTURA
+            WHERE ID_FACTURA = @IdFactura
+            GROUP BY ID_FACTURA
+        ) AS totalDetalles ON Factura.ID = totalDetalles.ID_FACTURA;
 
     END TRY
     BEGIN CATCH
