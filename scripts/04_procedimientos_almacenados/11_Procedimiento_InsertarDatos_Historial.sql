@@ -1,13 +1,14 @@
-USE FACTURACION_SA;
-
-
-IF EXISTS (SELECT 1 FROM sys.objects WHERE name = 'pr_InsertarHistorial' AND type = 'P')
-BEGIN
-    DROP PROCEDURE dbo.pr_InsertarHistorial;
-END
+USE [FACTURACION_SA];
 GO
 
-CREATE PROCEDURE dbo.pr_InsertarHistorial (
+-- INICIO
+IF EXISTS (SELECT 1 FROM [sys].[objects] WHERE [name] = 'pr_InsertarHistorial' AND [type] = 'P')
+BEGIN
+    DROP PROCEDURE [dbo].[pr_InsertarHistorial];
+END;
+GO
+
+CREATE PROCEDURE [dbo].[pr_InsertarHistorial] (
     @ID_FACTURA INT,
     @ID_REGISTRO_AFECTADO INT,
     @OPERACION_REALIZADA VARCHAR(30),
@@ -28,30 +29,27 @@ BEGIN
     SET @MENSAJE_ERROR = 'Exitoso';
 
     BEGIN TRY
-
         BEGIN TRANSACTION;
 
-        
-        IF @ID_FACTURA IS NULL OR
-           @ID_REGISTRO_AFECTADO IS NULL OR
-           @OPERACION_REALIZADA IS NULL OR
-           @TABLA_AFECTADA IS NULL OR
-           @USUARIO_RESPONSABLE IS NULL
+        IF @ID_FACTURA IS NULL
+            OR @ID_REGISTRO_AFECTADO IS NULL
+            OR @OPERACION_REALIZADA IS NULL
+            OR @TABLA_AFECTADA IS NULL
+            OR @USUARIO_RESPONSABLE IS NULL
         BEGIN;
             THROW 50010, 'Los parametros obligatorios no pueden ser nulos', 1;
-        END
+        END;
 
-  
-        INSERT INTO dbo.HISTORIAL (
-            ID_FACTURA,
-            ID_REGISTRO_AFECTADO,
-            OPERACION_REALIZADA,
-            ESTADO_PREVIO,
-            ESTADO_NUEVO,
-            FECHA_HORA,
-            TABLA_AFECTADA,
-            DESCRIPCION,
-            USUARIO_RESPONSABLE
+        INSERT INTO [dbo].[HISTORIAL] (
+            [ID_FACTURA],
+            [ID_REGISTRO_AFECTADO],
+            [OPERACION_REALIZADA],
+            [ESTADO_PREVIO],
+            [ESTADO_NUEVO],
+            [FECHA_HORA],
+            [TABLA_AFECTADA],
+            [DESCRIPCION],
+            [USUARIO_RESPONSABLE]
         )
         VALUES (
             @ID_FACTURA,
@@ -66,21 +64,16 @@ BEGIN
         );
 
         COMMIT TRANSACTION;
-
     END TRY
-
     BEGIN CATCH
-
         IF XACT_STATE() <> 0
         BEGIN
             ROLLBACK TRANSACTION;
-        END
+        END;
 
         SET @CODIGO_ERROR = ERROR_NUMBER();
         SET @MENSAJE_ERROR = ERROR_MESSAGE();
-
     END CATCH
-END
-
-
-GO --Fin
+END;
+GO
+-- FIN
