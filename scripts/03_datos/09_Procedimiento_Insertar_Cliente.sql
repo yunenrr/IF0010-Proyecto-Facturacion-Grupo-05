@@ -1,40 +1,40 @@
-USE FACTURACION_SA;
+USE [FACTURACION_SA];
 GO
 
 -- INICIO
-DECLARE @Paso INT = 1;
-DECLARE @Cedula VARCHAR(30);
-DECLARE @Telefono VARCHAR(20);
-DECLARE @Nombre VARCHAR(70);
-DECLARE @Correo VARCHAR(100);
-DECLARE @Fecha DATE;
-DECLARE @IdDireccion INT;
-DECLARE @Error INT;
-DECLARE @Mensaje VARCHAR(100);
+DECLARE @PASO INT = 1;
+DECLARE @CEDULA VARCHAR(30);
+DECLARE @TELEFONO VARCHAR(20);
+DECLARE @NOMBRE VARCHAR(70);
+DECLARE @CORREO VARCHAR(100);
+DECLARE @FECHA DATE;
+DECLARE @IDDIRECCION INT;
+DECLARE @ERROR INT;
+DECLARE @MENSAJE VARCHAR(100);
 
 BEGIN TRANSACTION;
 
-WHILE @Paso <= 50000
+WHILE @PASO <= 50000
 BEGIN
-    SET @Cedula = CONCAT('1', RIGHT('00000000' + CAST(@Paso AS VARCHAR(10)), 8));
-    SET @Telefono = CONCAT('8', RIGHT('0000000' + CAST(@Paso AS VARCHAR(10)), 7));
-    SET @Nombre = CONCAT('Cliente', @Paso);
-    SET @Correo = CONCAT('cliente', @Paso, '@gmail.com');
-    SET @Fecha = DATEADD(DAY, -(@Paso % 3000), CAST(GETDATE() AS DATE));
-    SET @IdDireccion = ((@Paso - 1) % 50) + 1;
+    SET @CEDULA = CONCAT('1', RIGHT('00000000' + CAST(@PASO AS VARCHAR(10)), 8));
+    SET @TELEFONO = CONCAT('8', RIGHT('0000000' + CAST(@PASO AS VARCHAR(10)), 7));
+    SET @NOMBRE = CONCAT('Cliente', @PASO);
+    SET @CORREO = CONCAT('cliente', @PASO, '@gmail.com');
+    SET @FECHA = DATEADD(DAY, -(@PASO % 3000), CAST(GETDATE() AS DATE));
+    SET @IDDIRECCION = ((@PASO - 1) % 50) + 1;
 
-    EXEC dbo.pr_InsertarCliente
-        @CEDULA = @Cedula,
-        @TELEFONO = @Telefono,
-        @NOMBRE = @Nombre,
-        @CORREO_ELECTRONICO = @Correo,
-        @FECHA_CREACION = @Fecha,
-        @FECHA_ULTIMA_ACTUALIZACION = @Fecha,
-        @ID_DIRECCION = @IdDireccion,
-        @CODIGO_ERROR = @Error OUTPUT,
-        @MENSAJE_ERROR = @Mensaje OUTPUT;
+    EXEC [dbo].[pr_InsertarCliente]
+        @CEDULA = @CEDULA,
+        @TELEFONO = @TELEFONO,
+        @NOMBRE = @NOMBRE,
+        @CORREO_ELECTRONICO = @CORREO,
+        @FECHA_CREACION = @FECHA,
+        @FECHA_ULTIMA_ACTUALIZACION = @FECHA,
+        @ID_DIRECCION = @IDDIRECCION,
+        @CODIGO_ERROR = @ERROR OUTPUT,
+        @MENSAJE_ERROR = @MENSAJE OUTPUT;
 
-    SET @Paso += 1;
+    SET @PASO += 1;
 END;
 
 COMMIT TRANSACTION;
