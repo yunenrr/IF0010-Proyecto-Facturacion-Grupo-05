@@ -1,4 +1,4 @@
-USE [FACTURACION_SA];
+USE FACTURACION_SA;
 GO
 
 -- INICIO
@@ -68,7 +68,7 @@ BEGIN
         SET @FECHA_VENCIMIENTO = DATEADD(DAY, 30 + (@PASO % 500), GETDATE());
     END;
 
-    EXEC [dbo].[pr_InsertarProducto]
+    EXEC dbo.pr_InsertarProducto
         @CODIGO = @CODIGO,
         @DESCRIPCION = @DESCRIPCION,
         @PRECIO_UNITARIO = @PRECIO,
