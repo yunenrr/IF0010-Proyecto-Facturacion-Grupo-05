@@ -2,10 +2,11 @@ USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF EXISTS (
-    SELECT 1
-    FROM SYS.OBJECTS
-    WHERE NAME = 'pr_InsertarCliente'
+IF 
+    EXISTS (
+        SELECT 1
+        FROM SYS.OBJECTS
+        WHERE NAME = 'pr_InsertarCliente'
         AND TYPE = 'P'
 )
 BEGIN
@@ -36,13 +37,14 @@ BEGIN
         BEGIN TRANSACTION;
 
         -- Validaciones de parametros nulos
-        IF @CEDULA IS NULL
+        IF 
+            @CEDULA IS NULL
             OR @TELEFONO IS NULL
             OR @NOMBRE IS NULL
             OR @CORREO_ELECTRONICO IS NULL
             OR @FECHA_CREACION IS NULL
             OR @ID_DIRECCION IS NULL
-        BEGIN;
+        BEGIN
             THROW 50100, 'Los parametros obligatorios no pueden ser nulos', 1;
         END;
 
