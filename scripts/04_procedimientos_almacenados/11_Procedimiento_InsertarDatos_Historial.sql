@@ -4,16 +4,16 @@ GO
 -- INICIO
 IF EXISTS (
     SELECT 1
-    FROM sys.objects
-    WHERE name = 'pr_InsertarHistorial'
-        AND type = 'P'
+    FROM SYS.OBJECTS
+    WHERE NAME = 'pr_InsertarHistorial'
+        AND TYPE = 'P'
 )
 BEGIN
-    DROP PROCEDURE dbo.pr_InsertarHistorial;
+    DROP PROCEDURE DBO.PR_INSERTARHISTORIAL;
 END;
 GO
 
-CREATE PROCEDURE dbo.pr_InsertarHistorial (
+CREATE PROCEDURE DBO.PR_INSERTARHISTORIAL (
     @ID_FACTURA INT,
     @ID_REGISTRO_AFECTADO INT,
     @OPERACION_REALIZADA VARCHAR(30),
@@ -45,7 +45,7 @@ BEGIN
             THROW 50010, 'Los parametros obligatorios no pueden ser nulos', 1;
         END;
 
-        INSERT INTO dbo.HISTORIAL (
+        INSERT INTO DBO.HISTORIAL (
             ID_FACTURA,
             ID_REGISTRO_AFECTADO,
             OPERACION_REALIZADA,
