@@ -2,16 +2,17 @@ USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF EXISTS (
-    SELECT 1
-    FROM SYS.OBJECTS
-    WHERE
-        NAME = 'PR_INSERTAREMPRESA'
-        AND TYPE = 'P'
-)
-BEGIN
-    DROP PROCEDURE DBO.PR_INSERTAREMPRESA;
-END;
+IF
+    EXISTS (
+        SELECT 1
+        FROM SYS.OBJECTS
+        WHERE
+            NAME = 'PR_INSERTAREMPRESA'
+            AND TYPE = 'P'
+    )
+    BEGIN
+        DROP PROCEDURE DBO.PR_INSERTAREMPRESA;
+    END;
 GO
 
 CREATE PROCEDURE DBO.PR_INSERTAREMPRESA (
@@ -46,9 +47,9 @@ BEGIN
             OR @FECHA_CREACION IS NULL
             OR @PERMISO_OPERAR IS NULL
             OR @ID_DIRECCION IS NULL
-        BEGIN
-            THROW 50100, 'Los parametros obligatorios no pueden ser nulos', 1;
-        END;
+            BEGIN
+                THROW 50100, 'Los parametros obligatorios no pueden ser nulos', 1; -- noqa: LT05
+            END;
 
         INSERT INTO DBO.EMPRESA (
             CEDULA_JURIDICA,
@@ -75,9 +76,9 @@ BEGIN
     END TRY
     BEGIN CATCH
         IF XACT_STATE() <> 0
-        BEGIN
-            ROLLBACK TRANSACTION;
-        END;
+            BEGIN
+                ROLLBACK TRANSACTION;
+            END;
 
         SET @CODIGO_ERROR = ERROR_NUMBER();
         SET @MENSAJE_ERROR = ERROR_MESSAGE();
