@@ -2,12 +2,14 @@ USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF EXISTS (
-    SELECT 1
-    FROM SYS.OBJECTS
-    WHERE NAME = 'pr_EmitirFacturaConDetalle'
-        AND TYPE = 'P'
-)
+IF
+    EXISTS (
+        SELECT 1
+        FROM SYS.OBJECTS
+        WHERE
+            NAME = 'PR_EMITIRFACTURACONDETALLE'
+            AND TYPE = 'P'
+    )
 BEGIN
     DROP PROCEDURE DBO.PR_EMITIRFACTURACONDETALLE;
 END;
@@ -46,7 +48,8 @@ BEGIN
         BEGIN TRANSACTION;
 
         -- Validacion de nulos
-        IF @NUMERO_CONSECUTIVO IS NULL
+        IF
+            @NUMERO_CONSECUTIVO IS NULL
             OR @CODIGO_MONEDA IS NULL
             OR @ID_ESTADO_FACTURA IS NULL
             OR @ID_EMPRESA IS NULL
@@ -56,51 +59,56 @@ BEGIN
             OR @CANTIDAD IS NULL
             OR @PORCENTAJE_DESCUENTO IS NULL
             OR @USUARIO_RESPONSABLE IS NULL
-        BEGIN;
+        BEGIN
             THROW 50010, 'Los parametros obligatorios no pueden ser nulos', 1;
-        END;
+        END
 
-        IF @CANTIDAD <= 0
-        BEGIN;
+        IF
+            @CANTIDAD <= 0
+        BEGIN
             THROW 50011, 'La cantidad del producto debe ser mayor a cero', 1;
-        END;
+        END
 
         -- Validaciones de Integridad Referencial
-        IF NOT EXISTS (
-            SELECT 1
-            FROM DBO.MONEDA
-            WHERE CODIGO = @CODIGO_MONEDA
-        )
-        BEGIN;
+        IF
+            NOT EXISTS (
+                SELECT 1
+                FROM DBO.MONEDA
+                WHERE CODIGO = @CODIGO_MONEDA
+            )
+        BEGIN
             THROW 50001, 'El codigo de la moneda no es valido', 1;
-        END;
+        END
 
-        IF NOT EXISTS (
-            SELECT 1
-            FROM DBO.ESTADO_FACTURA
-            WHERE ID = @ID_ESTADO_FACTURA
-        )
-        BEGIN;
+        IF
+            NOT EXISTS (
+                SELECT 1
+                FROM DBO.ESTADO_FACTURA
+                WHERE ID = @ID_ESTADO_FACTURA
+            )
+        BEGIN
             THROW 50002, 'El estado de factura no es valido', 1;
-        END;
+        END
 
-        IF NOT EXISTS (
-            SELECT 1
-            FROM DBO.CLIENTE
-            WHERE ID = @ID_CLIENTE
-        )
-        BEGIN;
+        IF
+            NOT EXISTS (
+                SELECT 1
+                FROM DBO.CLIENTE
+                WHERE ID = @ID_CLIENTE
+            )
+        BEGIN
             THROW 50004, 'El cliente no se encuentra registrado', 1;
-        END;
+        END
 
-        IF NOT EXISTS (
-            SELECT 1
-            FROM DBO.PRODUCTO
-            WHERE ID = @ID_PRODUCTO
-        )
-        BEGIN;
+        IF
+            NOT EXISTS (
+                SELECT 1
+                FROM DBO.PRODUCTO
+                WHERE ID = @ID_PRODUCTO
+            )
+        BEGIN
             THROW 50007, 'El producto no se encuentra registrado', 1;
-        END;
+        END
 
         -- Extraccion de datos del producto
         DECLARE @PRECIO_UNITARIO DECIMAL(18, 2);
@@ -114,10 +122,11 @@ BEGIN
         FROM DBO.PRODUCTO
         WHERE ID = @ID_PRODUCTO;
 
-        IF @CANTIDAD > @EXISTENCIAS_ACTUALES
-        BEGIN;
+        IF
+            @CANTIDAD > @EXISTENCIAS_ACTUALES
+        BEGIN
             THROW 50012, 'Existencias insuficientes para emitir factura', 1;
-        END;
+        END
 
         -- Calculos de importes separando asignaciones para respetar 80 chars
         DECLARE @MONTO_SUBTOTAL DECIMAL(18, 2);
@@ -242,7 +251,7 @@ BEGIN
         IF XACT_STATE() <> 0
         BEGIN
             ROLLBACK TRANSACTION;
-        END;
+        END
 
         -- Setear mensaje de error
         SET @CODIGO_ERROR = ERROR_NUMBER();
