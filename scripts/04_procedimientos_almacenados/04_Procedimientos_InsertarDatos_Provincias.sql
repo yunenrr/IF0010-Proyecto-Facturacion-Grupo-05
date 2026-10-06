@@ -10,9 +10,9 @@ IF
             NAME = 'pr_InsertarProvincia'
             AND TYPE = 'P'
     )
-        BEGIN
-            DROP PROCEDURE DBO.PR_INSERTARPROVINCIA;
-        END;
+    BEGIN
+        DROP PROCEDURE DBO.PR_INSERTARPROVINCIA;
+    END;
 GO
 
 CREATE PROCEDURE DBO.PR_INSERTARPROVINCIA (
@@ -35,9 +35,9 @@ BEGIN
         IF
             @NOMBRE IS NULL
             OR @DETALLE_PROVINCIA IS NULL
-                BEGIN
-                    THROW 50100, 'Parametros nulos', 1;
-                END;
+            BEGIN
+                THROW 50100, 'Parametros nulos', 1;
+            END;
 
         INSERT INTO DBO.PROVINCIA (
             NOMBRE,
