@@ -4,16 +4,16 @@ GO
 -- INICIO
 IF EXISTS (
     SELECT 1
-    FROM sys.objects
-    WHERE name = 'pr_InsertarEmpresa'
-        AND type = 'P'
+    FROM SYS.OBJECTS
+    WHERE NAME = 'pr_InsertarEmpresa'
+        AND TYPE = 'P'
 )
 BEGIN
-    DROP PROCEDURE dbo.pr_InsertarEmpresa;
+    DROP PROCEDURE DBO.PR_INSERTAREMPRESA;
 END;
 GO
 
-CREATE PROCEDURE dbo.pr_InsertarEmpresa (
+CREATE PROCEDURE DBO.PR_INSERTAREMPRESA (
     @CEDULA_JURIDICA VARCHAR(30),
     @RAZON_SOCIAL VARCHAR(50),
     @NOMBRE VARCHAR(50),
@@ -48,7 +48,7 @@ BEGIN
             THROW 50100, 'Los parametros obligatorios no pueden ser nulos', 1;
         END;
 
-        INSERT INTO dbo.EMPRESA (
+        INSERT INTO DBO.EMPRESA (
             CEDULA_JURIDICA,
             RAZON_SOCIAL,
             NOMBRE,
