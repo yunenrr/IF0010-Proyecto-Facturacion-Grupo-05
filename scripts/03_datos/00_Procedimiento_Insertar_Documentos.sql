@@ -5,14 +5,14 @@ GO
 DECLARE @CODIGOERROR INT;
 DECLARE @MENSAJEERROR VARCHAR(100);
 
-EXEC dbo.pr_InsertarDocumento
-    @DESCRIPCION = 'Factura Electronica',
-    @CODIGO_ERROR = @CODIGOERROR OUTPUT,
-    @MENSAJE_ERROR = @MENSAJEERROR OUTPUT;
+EXEC DBO.pr_InsertarDocumento
+        @DESCRIPCION = 'Factura Electronica',
+        @CODIGO_ERROR = @CODIGOERROR OUTPUT,
+        @MENSAJE_ERROR = @MENSAJEERROR OUTPUT;
 
-EXEC dbo.pr_InsertarDocumento
-    @DESCRIPCION = 'Tiquete Electronico',
-    @CODIGO_ERROR = @CODIGOERROR OUTPUT,
-    @MENSAJE_ERROR = @MENSAJEERROR OUTPUT;
+EXEC DBO.pr_InsertarDocumento
+        @DESCRIPCION = 'Tiquete Electronico',
+        @CODIGO_ERROR = @CODIGOERROR OUTPUT,
+        @MENSAJE_ERROR = @MENSAJEERROR OUTPUT;
 GO
 -- FIN
