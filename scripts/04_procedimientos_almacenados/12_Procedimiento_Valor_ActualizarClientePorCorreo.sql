@@ -2,13 +2,13 @@ USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF EXISTS (
-    SELECT 1
-    FROM SYS.OBJECTS
-    WHERE
-        NAME = 'PR_ACTUALIZARCORREOCLIENTE'
-        AND TYPE = 'P'
-)
+IF
+    EXISTS (
+        SELECT 1
+        FROM SYS.OBJECTS
+        WHERE NAME = 'PR_ACTUALIZARCORREOCLIENTE'
+            AND TYPE = 'P'
+    )
 BEGIN
     DROP PROCEDURE DBO.PR_ACTUALIZARCORREOCLIENTE;
 END;
@@ -51,23 +51,24 @@ BEGIN
         END;
 
         -- Validar que el cliente exista
-        IF NOT EXISTS (
-            SELECT 1
-            FROM DBO.CLIENTE AS C
-            WHERE @ID_CLIENTE = C.ID
-        )
+        IF
+            NOT EXISTS (
+                SELECT 1
+                FROM DBO.CLIENTE AS C
+                WHERE @ID_CLIENTE = C.ID
+            )
         BEGIN
             THROW 50102, 'El cliente no se encuentra registrado', 1;
         END;
 
         -- Validamos que el correo a actualizar no este inscrito
-        IF EXISTS (
-            SELECT 1
-            FROM DBO.CLIENTE AS CL
-            WHERE
-                CL.CORREO_ELECTRONICO = @CORREO_ELECTRONICO_ACTUALIZAR
-                AND CL.ID <> @ID_CLIENTE
-        )
+        IF
+            EXISTS (
+                SELECT 1
+                FROM DBO.CLIENTE AS CL
+                WHERE CL.CORREO_ELECTRONICO = @CORREO_ELECTRONICO_ACTUALIZAR
+                    AND CL.ID <> @ID_CLIENTE
+            )
         BEGIN
             THROW 50103, 'No se puede actualizar el correo, ya existe', 1;
         END;
@@ -92,4 +93,5 @@ BEGIN
     END CATCH;
 END;
 GO
+
 -- FIN
