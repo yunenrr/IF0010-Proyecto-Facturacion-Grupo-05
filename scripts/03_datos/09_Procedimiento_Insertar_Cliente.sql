@@ -20,18 +20,18 @@ BEGIN
         '1',
         RIGHT('00000000' + CAST(@PASO AS VARCHAR(10)), 8)
     );
-    
+
     SET @TELEFONO = CONCAT(
         '8',
         RIGHT('0000000' + CAST(@PASO AS VARCHAR(10)), 7)
     );
-    
+
     SET @NOMBRE = CONCAT('Cliente', @PASO);
     SET @CORREO = CONCAT('cliente', @PASO, '@gmail.com');
     SET @FECHA = DATEADD(DAY, -(@PASO % 3000), CAST(GETDATE() AS DATE));
     SET @IDDIRECCION = ((@PASO - 1) % 50) + 1;
 
-    EXEC dbo.pr_InsertarCliente
+    EXEC DBO.PR_INSERTARCLIENTE
         @CEDULA = @CEDULA,
         @TELEFONO = @TELEFONO,
         @NOMBRE = @NOMBRE,
