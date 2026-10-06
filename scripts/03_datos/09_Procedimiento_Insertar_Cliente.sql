@@ -15,35 +15,35 @@ DECLARE @MENSAJE VARCHAR(100);
 BEGIN TRANSACTION;
 
 WHILE @PASO <= 50000
-BEGIN
-    SET @CEDULA = CONCAT(
-        '1',
-        RIGHT('00000000' + CAST(@PASO AS VARCHAR(10)), 8)
-    );
+    BEGIN
+        SET @CEDULA = CONCAT(
+            '1',
+            RIGHT('00000000' + CAST(@PASO AS VARCHAR(10)), 8)
+        );
 
-    SET @TELEFONO = CONCAT(
-        '8',
-        RIGHT('0000000' + CAST(@PASO AS VARCHAR(10)), 7)
-    );
+        SET @TELEFONO = CONCAT(
+            '8',
+            RIGHT('0000000' + CAST(@PASO AS VARCHAR(10)), 7)
+        );
 
-    SET @NOMBRE = CONCAT('Cliente', @PASO);
-    SET @CORREO = CONCAT('cliente', @PASO, '@gmail.com');
-    SET @FECHA = DATEADD(DAY, -(@PASO % 3000), CAST(GETDATE() AS DATE));
-    SET @IDDIRECCION = ((@PASO - 1) % 50) + 1;
+        SET @NOMBRE = CONCAT('Cliente', @PASO);
+        SET @CORREO = CONCAT('cliente', @PASO, '@gmail.com');
+        SET @FECHA = DATEADD(DAY, -(@PASO % 3000), CAST(GETDATE() AS DATE));
+        SET @IDDIRECCION = ((@PASO - 1) % 50) + 1;
 
-    EXEC DBO.PR_INSERTARCLIENTE
-        @CEDULA = @CEDULA,
-        @TELEFONO = @TELEFONO,
-        @NOMBRE = @NOMBRE,
-        @CORREO_ELECTRONICO = @CORREO,
-        @FECHA_CREACION = @FECHA,
-        @FECHA_ULTIMA_ACTUALIZACION = @FECHA,
-        @ID_DIRECCION = @IDDIRECCION,
-        @CODIGO_ERROR = @ERROR OUTPUT,
-        @MENSAJE_ERROR = @MENSAJE OUTPUT;
+        EXEC DBO.PR_INSERTARCLIENTE
+            @CEDULA = @CEDULA,
+            @TELEFONO = @TELEFONO,
+            @NOMBRE = @NOMBRE,
+            @CORREO_ELECTRONICO = @CORREO,
+            @FECHA_CREACION = @FECHA,
+            @FECHA_ULTIMA_ACTUALIZACION = @FECHA,
+            @ID_DIRECCION = @IDDIRECCION,
+            @CODIGO_ERROR = @ERROR OUTPUT,
+            @MENSAJE_ERROR = @MENSAJE OUTPUT;
 
-    SET @PASO += 1;
-END;
+        SET @PASO += 1;
+    END;
 
 COMMIT TRANSACTION;
 GO
