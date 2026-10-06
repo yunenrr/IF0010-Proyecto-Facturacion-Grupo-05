@@ -4,16 +4,16 @@ GO
 -- INICIO
 IF EXISTS (
     SELECT 1
-    FROM sys.objects
-    WHERE name = 'pr_ActualizarExistenciasProducto'
-        AND type = 'P'
+    FROM SYS.OBJECTS
+    WHERE NAME = 'pr_ActualizarExistenciasProducto'
+        AND TYPE = 'P'
 )
 BEGIN
-    DROP PROCEDURE dbo.pr_ActualizarExistenciasProducto;
+    DROP PROCEDURE DBO.PR_ACTUALIZAREXISTENCIASPRODUCTO;
 END;
 GO
 
-CREATE PROCEDURE dbo.pr_ActualizarExistenciasProducto (
+CREATE PROCEDURE DBO.PR_ACTUALIZAREXISTENCIASPRODUCTO (
     @ID_PRODUCTO INT,
     @CANTIDAD_AJUSTE INT,
     @CODIGO_ERROR INT OUTPUT,
@@ -25,7 +25,7 @@ BEGIN
     SET XACT_ABORT ON;
     SET @CODIGO_ERROR = 0;
     SET @MENSAJE_ERROR = 'Exitoso';
-    
+
     BEGIN TRY
         BEGIN TRANSACTION;
 
@@ -43,7 +43,7 @@ BEGIN
         -- Validar que el producto exista en el catalogo
         IF NOT EXISTS (
             SELECT 1
-            FROM dbo.PRODUCTO AS P
+            FROM DBO.PRODUCTO AS P
             WHERE @ID_PRODUCTO = P.ID
         )
         BEGIN;
@@ -52,9 +52,9 @@ BEGIN
 
         -- Extraer el stock actual para aplicar la regla de negocio
         DECLARE @EXISTENCIAS_ACTUALES INT;
-        
-        SELECT @EXISTENCIAS_ACTUALES = EXISTENCIAS 
-        FROM dbo.PRODUCTO 
+
+        SELECT @EXISTENCIAS_ACTUALES = EXISTENCIAS
+        FROM DBO.PRODUCTO
         WHERE ID = @ID_PRODUCTO;
 
         -- Validar que el ajuste no deje el inventario en negativo
@@ -63,9 +63,9 @@ BEGIN
             THROW 50011, 'Las existencias no pueden quedar en negativo', 1;
         END;
 
-        -- Actualizar el inventario sumando o restando 
-        UPDATE dbo.PRODUCTO 
-        SET 
+        -- Actualizar el inventario sumando o restando
+        UPDATE DBO.PRODUCTO
+        SET
             EXISTENCIAS = EXISTENCIAS + @CANTIDAD_AJUSTE
         WHERE ID = @ID_PRODUCTO;
 
