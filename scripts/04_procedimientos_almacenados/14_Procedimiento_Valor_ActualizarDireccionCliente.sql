@@ -1,14 +1,19 @@
-USE [FACTURACION_SA];
+USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF EXISTS (SELECT 1 FROM [sys].[objects] WHERE [name] = 'pr_ActualizarDireccionCliente' AND [type] = 'P')
+IF EXISTS (
+    SELECT 1
+    FROM sys.objects
+    WHERE name = 'pr_ActualizarDireccionCliente'
+        AND type = 'P'
+)
 BEGIN
-    DROP PROCEDURE [dbo].[pr_ActualizarDireccionCliente];
+    DROP PROCEDURE dbo.pr_ActualizarDireccionCliente;
 END;
 GO
 
-CREATE PROCEDURE [dbo].[pr_ActualizarDireccionCliente] (
+CREATE PROCEDURE dbo.pr_ActualizarDireccionCliente (
     @ID_CLIENTE INT,
     @ID_DIRECCION_ACTUALIZAR INT,
     @CODIGO_ERROR INT OUTPUT,
@@ -36,22 +41,30 @@ BEGIN
         END;
 
         -- Validar que el cliente exista
-        IF NOT EXISTS (SELECT 1 FROM [dbo].[CLIENTE] AS [C] WHERE @ID_CLIENTE = [C].[ID])
+        IF NOT EXISTS (
+            SELECT 1
+            FROM dbo.CLIENTE AS C
+            WHERE @ID_CLIENTE = C.ID
+        )
         BEGIN;
             THROW 50004, 'El cliente no se encuentra registrado', 1;
         END;
 
         -- Validar que la direccion a actualizar exista en el catalogo
-        IF NOT EXISTS (SELECT 1 FROM [dbo].[DIRECCION] AS [D] WHERE @ID_DIRECCION_ACTUALIZAR = [D].[ID_DIRECCION])
+        IF NOT EXISTS (
+            SELECT 1
+            FROM dbo.DIRECCION AS D
+            WHERE @ID_DIRECCION_ACTUALIZAR = D.ID_DIRECCION
+        )
         BEGIN;
-            THROW 50006, 'La direccion proporcionada no se encuentra registrada', 1;
+            THROW 50006, 'Direccion a actualizar no esta registrada', 1;
         END;
 
-        UPDATE [dbo].[CLIENTE] 
+        UPDATE dbo.CLIENTE 
         SET 
-            [ID_DIRECCION] = @ID_DIRECCION_ACTUALIZAR,
-            [FECHA_ULTIMA_ACTUALIZACION] = CAST(GETDATE() AS DATE) 
-        WHERE [ID] = @ID_CLIENTE;
+            ID_DIRECCION = @ID_DIRECCION_ACTUALIZAR,
+            FECHA_ULTIMA_ACTUALIZACION = CAST(GETDATE() AS DATE) 
+        WHERE ID = @ID_CLIENTE;
 
         COMMIT TRANSACTION;
     END TRY
