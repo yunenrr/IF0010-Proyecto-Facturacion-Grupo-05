@@ -10,9 +10,9 @@ IF
             NAME = 'pr_InsertarMoneda'
             AND TYPE = 'P'
     )
-        BEGIN
-            DROP PROCEDURE DBO.PR_INSERTARMONEDA;
-        END;
+    BEGIN
+        DROP PROCEDURE DBO.PR_INSERTARMONEDA;
+    END;
 GO
 
 CREATE PROCEDURE DBO.PR_INSERTARMONEDA (
@@ -37,9 +37,9 @@ BEGIN
             @CODIGO IS NULL
             OR @DESCRIPCION IS NULL
             OR @SIMBOLO IS NULL
-                BEGIN
-                    THROW 50100, 'Los parametros obligatorios no pueden ser nulos', 1;
-                END;
+            BEGIN
+                THROW 50100, 'Los parametros obligatorios no pueden ser nulos', 1; -- noqa: LT05
+            END;
 
         INSERT INTO DBO.MONEDA (
             CODIGO,
