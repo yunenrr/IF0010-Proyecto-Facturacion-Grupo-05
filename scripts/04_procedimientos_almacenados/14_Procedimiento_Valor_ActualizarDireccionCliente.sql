@@ -1,6 +1,6 @@
 USE FACTURACION_SA;
 GO
- 
+
 -- INICIO
 IF
     EXISTS (
@@ -14,7 +14,7 @@ IF
         DROP PROCEDURE DBO.PR_ACTUALIZARDIRECCIONCLIENTE;
     END;
 GO
- 
+
 CREATE PROCEDURE DBO.PR_ACTUALIZARDIRECCIONCLIENTE (
     @ID_CLIENTE INT,
     @ID_DIRECCION_ACTUALIZAR INT,
@@ -27,21 +27,21 @@ BEGIN
     SET XACT_ABORT ON;
     SET @CODIGO_ERROR = 0;
     SET @MENSAJE_ERROR = 'Exitoso';
- 
+
     BEGIN TRY
         BEGIN TRANSACTION;
- 
+
         -- Validar que los datos no sean nulos
         IF @ID_CLIENTE IS NULL
             BEGIN
                 THROW 50010, 'El id de cliente no puede ser nulo', 1;
             END;
- 
+
         IF @ID_DIRECCION_ACTUALIZAR IS NULL
             BEGIN
                 THROW 50010, 'El id de la direccion no puede ser nulo', 1;
             END;
- 
+
         -- Validar que el cliente exista
         IF
             NOT EXISTS (
@@ -52,7 +52,7 @@ BEGIN
             BEGIN
                 THROW 50004, 'El cliente no se encuentra registrado', 1;
             END;
- 
+
         -- Validar que la direccion a actualizar exista en el catalogo
         IF
             NOT EXISTS (
@@ -63,13 +63,13 @@ BEGIN
             BEGIN
                 THROW 50006, 'Direccion a actualizar no esta registrada', 1;
             END;
- 
+
         UPDATE DBO.CLIENTE
         SET
             ID_DIRECCION = @ID_DIRECCION_ACTUALIZAR,
             FECHA_ULTIMA_ACTUALIZACION = CAST(GETDATE() AS DATE)
         WHERE ID = @ID_CLIENTE;
- 
+
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
@@ -77,13 +77,12 @@ BEGIN
             BEGIN
                 ROLLBACK TRANSACTION;
             END;
- 
+
         -- Mensaje de error
         SET @CODIGO_ERROR = ERROR_NUMBER();
         SET @MENSAJE_ERROR = ERROR_MESSAGE();
     END CATCH;
 END;
 GO
- 
+
 -- FIN
- 
