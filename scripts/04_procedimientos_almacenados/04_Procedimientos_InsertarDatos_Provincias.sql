@@ -4,16 +4,16 @@ GO
 -- INICIO
 IF EXISTS (
     SELECT 1
-    FROM sys.objects
-    WHERE name = 'pr_InsertarProvincia'
-        AND type = 'P'
+    FROM SYS.OBJECTS
+    WHERE NAME = 'pr_InsertarProvincia'
+        AND TYPE = 'P'
 )
 BEGIN
-    DROP PROCEDURE dbo.pr_InsertarProvincia;
+    DROP PROCEDURE DBO.PR_INSERTARPROVINCIA;
 END;
 GO
 
-CREATE PROCEDURE dbo.pr_InsertarProvincia (
+CREATE PROCEDURE DBO.PR_INSERTARPROVINCIA (
     @NOMBRE VARCHAR(30),
     @DETALLE_PROVINCIA VARCHAR(100),
     @CODIGO_ERROR INT OUTPUT,
@@ -30,13 +30,12 @@ BEGIN
         BEGIN TRANSACTION;
 
         -- Validacion de parametros nulos
-        IF @NOMBRE IS NULL
-            OR @DETALLE_PROVINCIA IS NULL
+        IF @NOMBRE IS NULL OR @DETALLE_PROVINCIA IS NULL
         BEGIN;
             THROW 50100, 'Parametros nulos', 1;
         END;
 
-        INSERT INTO dbo.PROVINCIA (
+        INSERT INTO DBO.PROVINCIA (
             NOMBRE,
             DETALLE_PROVINCIA
         )
