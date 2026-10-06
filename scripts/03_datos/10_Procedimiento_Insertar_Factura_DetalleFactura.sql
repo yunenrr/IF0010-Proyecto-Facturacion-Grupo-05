@@ -33,7 +33,7 @@ BEGIN
     SET @MONEDA = CASE WHEN (@FACTURA % 2) = 0 THEN 'USD' ELSE 'CRC' END;
 
     -- Insercion llamando al procedimiento simplificado
-    EXEC dbo.pr_EmitirFactura
+    EXEC DBO.PR_EMITIRFACTURA
         @NUMERO_CONSECUTIVO = @NUMEROCONSECUTIVO,
         @FECHA_CREACION = @FECHA,
         @FECHA_MODIFICACION = @FECHA,
