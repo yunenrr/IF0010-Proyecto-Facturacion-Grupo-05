@@ -4,16 +4,16 @@ GO
 -- INICIO
 IF EXISTS (
     SELECT 1
-    FROM sys.objects
-    WHERE name = 'pr_InsertarProducto'
-        AND type = 'P'
+    FROM SYS.OBJECTS
+    WHERE NAME = 'pr_InsertarProducto'
+        AND TYPE = 'P'
 )
 BEGIN
-    DROP PROCEDURE dbo.pr_InsertarProducto;
+    DROP PROCEDURE DBO.PR_INSERTARPRODUCTO;
 END;
 GO
 
-CREATE PROCEDURE dbo.pr_InsertarProducto (
+CREATE PROCEDURE DBO.PR_INSERTARPRODUCTO (
     @CODIGO VARCHAR(30),
     @DESCRIPCION VARCHAR(70),
     @PRECIO_UNITARIO DECIMAL(18, 2),
@@ -46,7 +46,7 @@ BEGIN
             OR @EXISTENCIAS IS NULL
             OR @TIPO_PRODUCTO IS NULL
         BEGIN;
-            THROW 50100, 'Los parametros obligatorios no pueden ser nulos', 1;
+            THROW 50100, 'Parametros obligatorios no pueden ser nulos', 1;
         END;
 
         IF @EXISTENCIAS < 0
@@ -56,10 +56,10 @@ BEGIN
 
         IF @TIPO_PRODUCTO NOT IN ('DIGITAL', 'FISICO')
         BEGIN;
-            THROW 50102, 'El tipo de producto debe ser estrictamente DIGITAL o FISICO', 1;
+            THROW 50102, 'Tipo de producto debe ser DIGITAL o FISICO', 1;
         END;
 
-        INSERT INTO dbo.PRODUCTO (
+        INSERT INTO DBO.PRODUCTO (
             CODIGO,
             DESCRIPCION,
             PRECIO_UNITARIO,
