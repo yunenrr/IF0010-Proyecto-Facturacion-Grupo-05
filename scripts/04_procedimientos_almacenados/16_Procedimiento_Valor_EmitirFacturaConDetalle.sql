@@ -60,12 +60,16 @@ BEGIN
             OR @PORCENTAJE_DESCUENTO IS NULL
             OR @USUARIO_RESPONSABLE IS NULL
             BEGIN
-                THROW 50010, 'Los parametros obligatorios no pueden ser nulos', 1;
+                THROW 50010,
+                'Los parametros obligatorios no pueden ser nulos',
+                1;
             END
  
         IF @CANTIDAD <= 0
             BEGIN
-                THROW 50011, 'La cantidad del producto debe ser mayor a cero', 1;
+                THROW 50011,
+                'La cantidad del producto debe ser mayor a cero',
+                1;
             END
  
         -- Validaciones de Integridad Referencial
@@ -123,7 +127,9 @@ BEGIN
  
         IF @CANTIDAD > @EXISTENCIAS_ACTUALES
             BEGIN
-                THROW 50012, 'Existencias insuficientes para emitir factura', 1;
+                THROW 50012,
+                'Existencias insuficientes para emitir factura',
+                1;
             END
  
         -- Calculos de importes separando asignaciones
@@ -263,4 +269,3 @@ END;
 GO
  
 -- FIN
- 
