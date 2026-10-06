@@ -1,4 +1,4 @@
-USE [FACTURACION_SA];
+USE FACTURACION_SA;
 GO
 
 -- INICIO
@@ -16,17 +16,23 @@ DECLARE @MENSAJE VARCHAR(100);
 
 WHILE @PASO <= 100
 BEGIN
-    SET @CEDULA = CONCAT('3-101-', RIGHT('000000' + CAST(@PASO AS VARCHAR(10)), 6));
+    SET @CEDULA = CONCAT(
+        '3-101-',
+        RIGHT('000000' + CAST(@PASO AS VARCHAR(10)), 6)
+    );
     SET @RAZONSOCIAL = CONCAT('Empresa Sociedad Anonima ', @PASO);
     SET @NOMBRE = CONCAT('EmpresaSA', @PASO);
     SET @CORREO = CONCAT('empresa', @PASO, '@gmail.com');
-    SET @TELEFONO = CONCAT('8', RIGHT('0000000' + CAST(@PASO AS VARCHAR(10)), 7));
+    SET @TELEFONO = CONCAT(
+        '8',
+        RIGHT('0000000' + CAST(@PASO AS VARCHAR(10)), 7)
+    );
     SET @FECHA = DATEADD(DAY, -@PASO, CAST(GETDATE() AS DATE));
 
     -- Se usa el 50 porque los datos de direcciones cuentan hasta ese ID
     SET @IDDIRECCION = ((@PASO - 1) % 50) + 1;
 
-    EXEC [dbo].[pr_InsertarEmpresa]
+    EXEC dbo.pr_InsertarEmpresa
         @CEDULA_JURIDICA = @CEDULA,
         @RAZON_SOCIAL = @RAZONSOCIAL,
         @NOMBRE = @NOMBRE,
