@@ -29,7 +29,7 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        -- Validacion de parametros nulos
+        -- Validar  parametros nulos
         IF @ESTADO_FACTURA IS NULL
             OR @DESCRIPCION IS NULL
         BEGIN;
