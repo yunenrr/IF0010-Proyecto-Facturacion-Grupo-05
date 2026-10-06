@@ -29,7 +29,7 @@ BEGIN
     );
     SET @FECHA = DATEADD(DAY, -@PASO, CAST(GETDATE() AS DATE));
 
-    -- Se usa el 50 porque los datos de direcciones cuentan hasta ese ID
+    -- Se usan el 50 porque los datos de direcciones cuentan hasta ese ID
     SET @IDDIRECCION = ((@PASO - 1) % 50) + 1;
 
     EXEC DBO.PR_INSERTAREMPRESA
