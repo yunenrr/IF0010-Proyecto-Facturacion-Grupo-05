@@ -4,16 +4,16 @@ GO
 -- INICIO
 IF EXISTS (
     SELECT 1
-    FROM sys.objects
-    WHERE name = 'pr_InsertarMoneda'
-        AND type = 'P'
+    FROM SYS.OBJECTS
+    WHERE NAME = 'pr_InsertarMoneda'
+        AND TYPE = 'P'
 )
 BEGIN
-    DROP PROCEDURE dbo.pr_InsertarMoneda;
+    DROP PROCEDURE DBO.PR_INSERTARMONEDA;
 END;
 GO
 
-CREATE PROCEDURE dbo.pr_InsertarMoneda (
+CREATE PROCEDURE DBO.PR_INSERTARMONEDA (
     @CODIGO CHAR(3),
     @DESCRIPCION VARCHAR(100),
     @SIMBOLO VARCHAR(6),
@@ -31,14 +31,12 @@ BEGIN
         BEGIN TRANSACTION;
 
         -- Validacion de parametros nulos
-        IF @CODIGO IS NULL
-            OR @DESCRIPCION IS NULL
-            OR @SIMBOLO IS NULL
+        IF @CODIGO IS NULL OR @DESCRIPCION IS NULL OR @SIMBOLO IS NULL
         BEGIN;
             THROW 50100, 'Los parametros obligatorios no pueden ser nulos', 1;
         END;
 
-        INSERT INTO dbo.MONEDA (
+        INSERT INTO DBO.MONEDA (
             CODIGO,
             DESCRIPCION,
             SIMBOLO
