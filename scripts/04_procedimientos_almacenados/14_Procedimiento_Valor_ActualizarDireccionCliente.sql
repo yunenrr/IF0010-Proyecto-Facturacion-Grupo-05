@@ -4,16 +4,16 @@ GO
 -- INICIO
 IF EXISTS (
     SELECT 1
-    FROM sys.objects
-    WHERE name = 'pr_ActualizarDireccionCliente'
-        AND type = 'P'
+    FROM SYS.OBJECTS
+    WHERE NAME = 'pr_ActualizarDireccionCliente'
+        AND TYPE = 'P'
 )
 BEGIN
-    DROP PROCEDURE dbo.pr_ActualizarDireccionCliente;
+    DROP PROCEDURE DBO.PR_ACTUALIZARDIRECCIONCLIENTE;
 END;
 GO
 
-CREATE PROCEDURE dbo.pr_ActualizarDireccionCliente (
+CREATE PROCEDURE DBO.PR_ACTUALIZARDIRECCIONCLIENTE (
     @ID_CLIENTE INT,
     @ID_DIRECCION_ACTUALIZAR INT,
     @CODIGO_ERROR INT OUTPUT,
@@ -25,7 +25,7 @@ BEGIN
     SET XACT_ABORT ON;
     SET @CODIGO_ERROR = 0;
     SET @MENSAJE_ERROR = 'Exitoso';
-    
+
     BEGIN TRY
         BEGIN TRANSACTION;
 
@@ -43,7 +43,7 @@ BEGIN
         -- Validar que el cliente exista
         IF NOT EXISTS (
             SELECT 1
-            FROM dbo.CLIENTE AS C
+            FROM DBO.CLIENTE AS C
             WHERE @ID_CLIENTE = C.ID
         )
         BEGIN;
@@ -53,17 +53,17 @@ BEGIN
         -- Validar que la direccion a actualizar exista en el catalogo
         IF NOT EXISTS (
             SELECT 1
-            FROM dbo.DIRECCION AS D
+            FROM DBO.DIRECCION AS D
             WHERE @ID_DIRECCION_ACTUALIZAR = D.ID_DIRECCION
         )
         BEGIN;
             THROW 50006, 'Direccion a actualizar no esta registrada', 1;
         END;
 
-        UPDATE dbo.CLIENTE 
-        SET 
+        UPDATE DBO.CLIENTE
+        SET
             ID_DIRECCION = @ID_DIRECCION_ACTUALIZAR,
-            FECHA_ULTIMA_ACTUALIZACION = CAST(GETDATE() AS DATE) 
+            FECHA_ULTIMA_ACTUALIZACION = CAST(GETDATE() AS DATE)
         WHERE ID = @ID_CLIENTE;
 
         COMMIT TRANSACTION;
