@@ -36,7 +36,7 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        -- Validacion de parametros obligatorios
+        -- Validar parametros obligatorios
         IF @CODIGO IS NULL
             OR @DESCRIPCION IS NULL
             OR @PRECIO_UNITARIO IS NULL
