@@ -2,12 +2,14 @@ USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF EXISTS (
-    SELECT 1
-    FROM SYS.OBJECTS
-    WHERE NAME = 'pr_InsertarHistorial'
-        AND TYPE = 'P'
-)
+IF
+    EXISTS (
+        SELECT 1
+        FROM SYS.OBJECTS
+        WHERE
+            NAME = 'PR_INSERTARHISTORIAL'
+            AND TYPE = 'P'
+    )
 BEGIN
     DROP PROCEDURE DBO.PR_INSERTARHISTORIAL;
 END;
@@ -36,14 +38,15 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        IF @ID_FACTURA IS NULL
+        IF
+            @ID_FACTURA IS NULL
             OR @ID_REGISTRO_AFECTADO IS NULL
             OR @OPERACION_REALIZADA IS NULL
             OR @TABLA_AFECTADA IS NULL
             OR @USUARIO_RESPONSABLE IS NULL
-        BEGIN;
+        BEGIN
             THROW 50010, 'Los parametros obligatorios no pueden ser nulos', 1;
-        END;
+        END
 
         INSERT INTO DBO.HISTORIAL (
             ID_FACTURA,
@@ -74,7 +77,7 @@ BEGIN
         IF XACT_STATE() <> 0
         BEGIN
             ROLLBACK TRANSACTION;
-        END;
+        END
 
         SET @CODIGO_ERROR = ERROR_NUMBER();
         SET @MENSAJE_ERROR = ERROR_MESSAGE();
