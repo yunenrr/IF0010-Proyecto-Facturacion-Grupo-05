@@ -10,9 +10,9 @@ IF
             NAME = 'pr_InsertarDistrito'
             AND TYPE = 'P'
     )
-        BEGIN
-            DROP PROCEDURE DBO.PR_INSERTARDISTRITO;
-        END;
+    BEGIN
+        DROP PROCEDURE DBO.PR_INSERTARDISTRITO;
+    END;
 GO
 
 CREATE PROCEDURE DBO.PR_INSERTARDISTRITO (
@@ -35,9 +35,9 @@ BEGIN
         IF
             @NOMBRE IS NULL
             OR @DETALLE_DISTRITO IS NULL
-                BEGIN
-                    THROW 50100, 'Parametros nulos', 1;
-                END;
+            BEGIN
+                THROW 50100, 'Parametros nulos', 1;
+            END;
 
         INSERT INTO DBO.DISTRITO (
             NOMBRE,
