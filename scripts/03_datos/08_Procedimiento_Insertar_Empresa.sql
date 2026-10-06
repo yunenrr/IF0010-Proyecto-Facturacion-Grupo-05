@@ -32,7 +32,7 @@ BEGIN
     -- Se usa el 50 porque los datos de direcciones cuentan hasta ese ID
     SET @IDDIRECCION = ((@PASO - 1) % 50) + 1;
 
-    EXEC dbo.pr_InsertarEmpresa
+    EXEC DBO.PR_INSERTAREMPRESA
         @CEDULA_JURIDICA = @CEDULA,
         @RAZON_SOCIAL = @RAZONSOCIAL,
         @NOMBRE = @NOMBRE,
