@@ -1,6 +1,7 @@
-USE [FACTURACION_SA];
+USE FACTURACION_SA;
 GO
 
+-- INICIO
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
 
@@ -31,8 +32,8 @@ BEGIN
     SET @DESCUENTO = CAST((@FACTURA % 101) AS DECIMAL(10, 2));
     SET @MONEDA = CASE WHEN (@FACTURA % 2) = 0 THEN 'USD' ELSE 'CRC' END;
 
-    -- Inserción llamando al procedimiento simplificado
-    EXEC [dbo].[pr_EmitirFactura]
+    -- Insercion llamando al procedimiento simplificado
+    EXEC dbo.pr_EmitirFactura
         @NUMERO_CONSECUTIVO = @NUMEROCONSECUTIVO,
         @FECHA_CREACION = @FECHA,
         @FECHA_MODIFICACION = @FECHA,
@@ -50,7 +51,7 @@ BEGIN
         @CODIGO_ERROR = @ERR OUTPUT,
         @MENSAJE_ERROR = @MSG OUTPUT;
 
-    -- Control de transacciones en bloques de 10,000
+    -- Control de transacciones en bloques de 10000
     IF @FACTURA % @TAMBLOQUE = 0
     BEGIN
         COMMIT TRANSACTION;
@@ -65,3 +66,4 @@ BEGIN
     COMMIT TRANSACTION;
 END;
 GO
+-- FIN
