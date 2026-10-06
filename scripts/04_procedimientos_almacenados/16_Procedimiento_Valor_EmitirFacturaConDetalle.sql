@@ -128,7 +128,7 @@ BEGIN
             THROW 50012, 'Existencias insuficientes para emitir factura', 1;
         END
 
-        -- Calculos de importes separando asignaciones para respetar 80 chars
+        -- Calculos de importes separando asignaciones
         DECLARE @MONTO_SUBTOTAL DECIMAL(18, 2);
         SET @MONTO_SUBTOTAL = @PRECIO_UNITARIO * @CANTIDAD;
 
@@ -183,7 +183,8 @@ BEGIN
         );
 
         -- Capturar el ID de la factura que se acaba de crear
-        DECLARE @ID_NUEVA_FACTURA INT = SCOPE_IDENTITY();
+        DECLARE @ID_NUEVA_FACTURA INT;
+        SET @ID_NUEVA_FACTURA = SCOPE_IDENTITY();
 
         -- Insercion de Detalle de Factura
         INSERT INTO DBO.DETALLE_FACTURA (
