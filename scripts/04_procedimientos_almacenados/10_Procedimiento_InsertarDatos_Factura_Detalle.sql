@@ -2,16 +2,17 @@ USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF EXISTS (
-    SELECT 1
-    FROM SYS.OBJECTS
-    WHERE
-        NAME = 'PR_EMITIRFACTURA'
-        AND TYPE = 'P'
-)
-BEGIN
-    DROP PROCEDURE DBO.PR_EMITIRFACTURA;
-END;
+IF
+    EXISTS (
+        SELECT 1
+        FROM SYS.OBJECTS
+        WHERE
+            NAME = 'PR_EMITIRFACTURA'
+            AND TYPE = 'P'
+    )
+    BEGIN
+        DROP PROCEDURE DBO.PR_EMITIRFACTURA;
+    END;
 GO
 
 CREATE PROCEDURE DBO.PR_EMITIRFACTURA (
@@ -96,7 +97,7 @@ BEGIN
 
         CALCULOLINEABASE AS (
             SELECT
-                NUMEROLINEA.LINEA AS LINEA,
+                NUMEROLINEA.LINEA,
                 (
                     ((@NUMERO_CONSECUTIVO * 5 + NUMEROLINEA.LINEA) - 1) % 1000
                 ) + 1 AS IDPROD,
@@ -116,7 +117,7 @@ BEGIN
             DESCRIPCION
         )
         SELECT
-            @IDFACTURA,
+            @IDFACTURA AS ID_FACTURA,
             CALCULOLINEABASE.LINEA,
             CALCULOLINEABASE.IDPROD,
             CALCULOLINEABASE.CANT,
