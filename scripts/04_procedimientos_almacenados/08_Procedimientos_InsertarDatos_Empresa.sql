@@ -35,7 +35,7 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        -- Validamos parametros nulos
+        -- Validar parametros nulos
         IF @CEDULA_JURIDICA IS NULL
             OR @RAZON_SOCIAL IS NULL
             OR @NOMBRE IS NULL
