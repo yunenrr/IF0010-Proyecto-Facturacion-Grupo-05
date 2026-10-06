@@ -5,8 +5,7 @@ GO
 IF EXISTS (
     SELECT 1
     FROM SYS.OBJECTS
-    WHERE
-        NAME = 'PR_ACTUALIZARTELEFONOCLIENTE'
+    WHERE NAME = 'PR_ACTUALIZARTELEFONOCLIENTE'
         AND TYPE = 'P'
 )
 BEGIN
@@ -37,8 +36,7 @@ BEGIN
         END;
 
         -- Regla de negocio: telefono max 8 digitos (CR) y solo numeros
-        IF
-            @TELEFONO_ACTUALIZAR IS NULL
+        IF @TELEFONO_ACTUALIZAR IS NULL
             OR LEN(@TELEFONO_ACTUALIZAR) > 8
             OR @TELEFONO_ACTUALIZAR LIKE '%[^0-9]%'
         BEGIN
@@ -59,8 +57,7 @@ BEGIN
         IF EXISTS (
             SELECT 1
             FROM DBO.CLIENTE AS CL
-            WHERE
-                CL.TELEFONO = @TELEFONO_ACTUALIZAR
+            WHERE CL.TELEFONO = @TELEFONO_ACTUALIZAR
                 AND CL.ID <> @ID_CLIENTE
         )
         BEGIN
@@ -87,4 +84,5 @@ BEGIN
     END CATCH;
 END;
 GO
+
 -- FIN
