@@ -30,7 +30,7 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        -- Validacion de parametros nulos
+        -- Validar parametros nulos
         IF @CODIGO IS NULL
             OR @DESCRIPCION IS NULL
             OR @SIMBOLO IS NULL
