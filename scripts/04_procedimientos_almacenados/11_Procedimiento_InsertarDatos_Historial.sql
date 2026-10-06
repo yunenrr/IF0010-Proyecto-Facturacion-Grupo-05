@@ -1,14 +1,19 @@
-USE [FACTURACION_SA];
+USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF EXISTS (SELECT 1 FROM [sys].[objects] WHERE [name] = 'pr_InsertarHistorial' AND [type] = 'P')
+IF EXISTS (
+    SELECT 1
+    FROM sys.objects
+    WHERE name = 'pr_InsertarHistorial'
+        AND type = 'P'
+)
 BEGIN
-    DROP PROCEDURE [dbo].[pr_InsertarHistorial];
+    DROP PROCEDURE dbo.pr_InsertarHistorial;
 END;
 GO
 
-CREATE PROCEDURE [dbo].[pr_InsertarHistorial] (
+CREATE PROCEDURE dbo.pr_InsertarHistorial (
     @ID_FACTURA INT,
     @ID_REGISTRO_AFECTADO INT,
     @OPERACION_REALIZADA VARCHAR(30),
@@ -40,16 +45,16 @@ BEGIN
             THROW 50010, 'Los parametros obligatorios no pueden ser nulos', 1;
         END;
 
-        INSERT INTO [dbo].[HISTORIAL] (
-            [ID_FACTURA],
-            [ID_REGISTRO_AFECTADO],
-            [OPERACION_REALIZADA],
-            [ESTADO_PREVIO],
-            [ESTADO_NUEVO],
-            [FECHA_HORA],
-            [TABLA_AFECTADA],
-            [DESCRIPCION],
-            [USUARIO_RESPONSABLE]
+        INSERT INTO dbo.HISTORIAL (
+            ID_FACTURA,
+            ID_REGISTRO_AFECTADO,
+            OPERACION_REALIZADA,
+            ESTADO_PREVIO,
+            ESTADO_NUEVO,
+            FECHA_HORA,
+            TABLA_AFECTADA,
+            DESCRIPCION,
+            USUARIO_RESPONSABLE
         )
         VALUES (
             @ID_FACTURA,
