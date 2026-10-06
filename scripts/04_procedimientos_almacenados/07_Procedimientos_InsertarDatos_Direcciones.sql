@@ -1,14 +1,19 @@
-USE [FACTURACION_SA];
+USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF EXISTS (SELECT 1 FROM [sys].[objects] WHERE [name] = 'pr_InsertarDireccion' AND [type] = 'P')
+IF EXISTS (
+    SELECT 1
+    FROM sys.objects
+    WHERE name = 'pr_InsertarDireccion'
+        AND type = 'P'
+)
 BEGIN
-    DROP PROCEDURE [dbo].[pr_InsertarDireccion];
+    DROP PROCEDURE dbo.pr_InsertarDireccion;
 END;
 GO
 
-CREATE PROCEDURE [dbo].[pr_InsertarDireccion] (
+CREATE PROCEDURE dbo.pr_InsertarDireccion (
     @ID_PROVINCIA INT,
     @ID_CANTON INT,
     @ID_DISTRITO INT,
@@ -35,11 +40,11 @@ BEGIN
             THROW 50100, 'Parametros nulos', 1;
         END;
 
-        INSERT INTO [dbo].[DIRECCION] (
-            [ID_PROVINCIA],
-            [ID_CANTON],
-            [ID_DISTRITO],
-            [DETALLE_DIRECCION]
+        INSERT INTO dbo.DIRECCION (
+            ID_PROVINCIA,
+            ID_CANTON,
+            ID_DISTRITO,
+            DETALLE_DIRECCION
         )
         VALUES (
             @ID_PROVINCIA,
