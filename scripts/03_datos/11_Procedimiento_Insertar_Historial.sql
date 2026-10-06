@@ -5,7 +5,7 @@ GO
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
 
--- Variables de control
+-- Variable de control
 DECLARE @FACTURA INT = 1;
 DECLARE @ERR INT;
 DECLARE @MSG VARCHAR(100);
