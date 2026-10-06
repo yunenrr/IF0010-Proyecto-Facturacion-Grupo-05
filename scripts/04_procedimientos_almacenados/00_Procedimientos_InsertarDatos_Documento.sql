@@ -1,14 +1,19 @@
-USE [FACTURACION_SA];
+USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF EXISTS (SELECT 1 FROM [sys].[objects] WHERE [name] = 'pr_InsertarDocumento' AND [type] = 'P')
+IF EXISTS (
+    SELECT 1
+    FROM sys.objects
+    WHERE name = 'pr_InsertarDocumento'
+        AND type = 'P'
+)
 BEGIN
-    DROP PROCEDURE [dbo].[pr_InsertarDocumento];
+    DROP PROCEDURE dbo.pr_InsertarDocumento;
 END;
 GO
 
-CREATE PROCEDURE [dbo].[pr_InsertarDocumento] (
+CREATE PROCEDURE dbo.pr_InsertarDocumento (
     @DESCRIPCION VARCHAR(70),
     @CODIGO_ERROR INT OUTPUT,
     @MENSAJE_ERROR VARCHAR(100) OUTPUT
@@ -22,14 +27,18 @@ BEGIN
 
     BEGIN TRY
         BEGIN TRANSACTION;
-        
+
         IF @DESCRIPCION IS NULL
         BEGIN;
             THROW 50100, 'El parametro obligatorio no puede ser nulo', 1;
         END;
 
-        INSERT INTO [dbo].[DOCUMENTO] ([DESCRIPCION])
-        VALUES (@DESCRIPCION);
+        INSERT INTO dbo.DOCUMENTO (
+            DESCRIPCION
+        )
+        VALUES (
+            @DESCRIPCION
+        );
 
         COMMIT TRANSACTION;
     END TRY
