@@ -30,7 +30,8 @@ BEGIN
         BEGIN TRANSACTION;
 
         -- Validacion de parametros nulos
-        IF @NOMBRE IS NULL OR @DETALLE_CANTON IS NULL
+        IF @NOMBRE IS NULL
+            OR @DETALLE_CANTON IS NULL
         BEGIN;
             THROW 50100, 'Parametros nulos', 1;
         END;
