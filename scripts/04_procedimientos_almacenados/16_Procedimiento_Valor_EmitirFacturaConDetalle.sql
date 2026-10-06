@@ -1,14 +1,19 @@
-USE [FACTURACION_SA];
+USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF EXISTS (SELECT 1 FROM [sys].[objects] WHERE [name] = 'pr_EmitirFacturaConDetalle' AND [type] = 'P')
+IF EXISTS (
+    SELECT 1
+    FROM sys.objects
+    WHERE name = 'pr_EmitirFacturaConDetalle'
+        AND type = 'P'
+)
 BEGIN
-    DROP PROCEDURE [dbo].[pr_EmitirFacturaConDetalle];
+    DROP PROCEDURE dbo.pr_EmitirFacturaConDetalle;
 END;
 GO
 
-CREATE PROCEDURE [dbo].[pr_EmitirFacturaConDetalle] (
+CREATE PROCEDURE dbo.pr_EmitirFacturaConDetalle (
     -- Parametros de la Factura
     @NUMERO_CONSECUTIVO INT,
     @CODIGO_MONEDA CHAR(3),
@@ -17,7 +22,7 @@ CREATE PROCEDURE [dbo].[pr_EmitirFacturaConDetalle] (
     @ID_CLIENTE INT,
     @CODIGO_DOCUMENTO INT,
     @OBSERVACIONES VARCHAR(100),
-    @PORCENTAJE_DESCUENTO DECIMAL(10,2), 
+    @PORCENTAJE_DESCUENTO DECIMAL(10, 2), 
     
     -- Parametros del Detalle
     @ID_PRODUCTO INT,
@@ -41,10 +46,16 @@ BEGIN
         BEGIN TRANSACTION;
 
         -- Validacion de nulos
-        IF @NUMERO_CONSECUTIVO IS NULL OR @CODIGO_MONEDA IS NULL OR @ID_ESTADO_FACTURA IS NULL OR 
-           @ID_EMPRESA IS NULL OR @ID_CLIENTE IS NULL OR @CODIGO_DOCUMENTO IS NULL OR 
-           @ID_PRODUCTO IS NULL OR @CANTIDAD IS NULL OR @PORCENTAJE_DESCUENTO IS NULL OR
-           @USUARIO_RESPONSABLE IS NULL
+        IF @NUMERO_CONSECUTIVO IS NULL
+            OR @CODIGO_MONEDA IS NULL
+            OR @ID_ESTADO_FACTURA IS NULL
+            OR @ID_EMPRESA IS NULL
+            OR @ID_CLIENTE IS NULL
+            OR @CODIGO_DOCUMENTO IS NULL
+            OR @ID_PRODUCTO IS NULL
+            OR @CANTIDAD IS NULL
+            OR @PORCENTAJE_DESCUENTO IS NULL
+            OR @USUARIO_RESPONSABLE IS NULL
         BEGIN;
             THROW 50010, 'Los parametros obligatorios no pueden ser nulos', 1;
         END;
@@ -55,90 +66,174 @@ BEGIN
         END;
 
         -- Validaciones de Integridad Referencial
-        IF NOT EXISTS (SELECT 1 FROM [dbo].[MONEDA] WHERE [CODIGO] = @CODIGO_MONEDA)
+        IF NOT EXISTS (
+            SELECT 1
+            FROM dbo.MONEDA
+            WHERE CODIGO = @CODIGO_MONEDA
+        )
         BEGIN;
             THROW 50001, 'El codigo de la moneda no es valido', 1;
         END;
 
-        IF NOT EXISTS (SELECT 1 FROM [dbo].[ESTADO_FACTURA] WHERE [ID] = @ID_ESTADO_FACTURA)
+        IF NOT EXISTS (
+            SELECT 1
+            FROM dbo.ESTADO_FACTURA
+            WHERE ID = @ID_ESTADO_FACTURA
+        )
         BEGIN;
-            THROW 50002, 'El estado de factura proporcionado no es valido', 1;
+            THROW 50002, 'El estado de factura no es valido', 1;
         END;
 
-        IF NOT EXISTS (SELECT 1 FROM [dbo].[CLIENTE] WHERE [ID] = @ID_CLIENTE)
+        IF NOT EXISTS (
+            SELECT 1
+            FROM dbo.CLIENTE
+            WHERE ID = @ID_CLIENTE
+        )
         BEGIN;
             THROW 50004, 'El cliente no se encuentra registrado', 1;
         END;
 
-        IF NOT EXISTS (SELECT 1 FROM [dbo].[PRODUCTO] WHERE [ID] = @ID_PRODUCTO)
+        IF NOT EXISTS (
+            SELECT 1
+            FROM dbo.PRODUCTO
+            WHERE ID = @ID_PRODUCTO
+        )
         BEGIN;
             THROW 50007, 'El producto no se encuentra registrado', 1;
         END;
 
         -- Extraccion de datos del producto 
-        DECLARE @PRECIO_UNITARIO DECIMAL(18,2);
-        DECLARE @PORCENTAJE_IMPUESTO DECIMAL(5,2);
+        DECLARE @PRECIO_UNITARIO DECIMAL(18, 2);
+        DECLARE @PORCENTAJE_IMPUESTO DECIMAL(5, 2);
         DECLARE @EXISTENCIAS_ACTUALES INT;
 
         SELECT 
-            @PRECIO_UNITARIO = [PRECIO_UNITARIO],
-            @PORCENTAJE_IMPUESTO = [PORCENTAJE_IMPUESTO],
-            @EXISTENCIAS_ACTUALES = [EXISTENCIAS]
-        FROM [dbo].[PRODUCTO] 
-        WHERE [ID] = @ID_PRODUCTO;
+            @PRECIO_UNITARIO = PRECIO_UNITARIO,
+            @PORCENTAJE_IMPUESTO = PORCENTAJE_IMPUESTO,
+            @EXISTENCIAS_ACTUALES = EXISTENCIAS
+        FROM dbo.PRODUCTO 
+        WHERE ID = @ID_PRODUCTO;
 
         IF @CANTIDAD > @EXISTENCIAS_ACTUALES
         BEGIN;
-            THROW 50012, 'No hay suficientes existencias del producto para emitir la factura', 1;
+            THROW 50012, 'Existencias insuficientes para emitir factura', 1;
         END;
 
-        DECLARE @MONTO_SUBTOTAL DECIMAL(18,2) = @PRECIO_UNITARIO * @CANTIDAD;
-        DECLARE @MONTO_DESCUENTO_CALCULADO DECIMAL(18,2) = @MONTO_SUBTOTAL * (@PORCENTAJE_DESCUENTO / 100.0);
-        DECLARE @BASE_IMPONIBLE DECIMAL(18,2) = @MONTO_SUBTOTAL - @MONTO_DESCUENTO_CALCULADO;
-        DECLARE @MONTO_IMPUESTO_CALCULADO DECIMAL(18,2) = @BASE_IMPONIBLE * (@PORCENTAJE_IMPUESTO / 100.0);
-        DECLARE @MONTO_TOTAL_FACTURA DECIMAL(19,2) = @BASE_IMPONIBLE + @MONTO_IMPUESTO_CALCULADO;
+        -- Calculos de importes separando asignaciones para respetar 80 chars
+        DECLARE @MONTO_SUBTOTAL DECIMAL(18, 2);
+        SET @MONTO_SUBTOTAL = @PRECIO_UNITARIO * @CANTIDAD;
+
+        DECLARE @MONTO_DESCUENTO_CALCULADO DECIMAL(18, 2);
+        SET @MONTO_DESCUENTO_CALCULADO = @MONTO_SUBTOTAL 
+            * (@PORCENTAJE_DESCUENTO / 100.0);
+
+        DECLARE @BASE_IMPONIBLE DECIMAL(18, 2);
+        SET @BASE_IMPONIBLE = @MONTO_SUBTOTAL 
+            - @MONTO_DESCUENTO_CALCULADO;
+
+        DECLARE @MONTO_IMPUESTO_CALCULADO DECIMAL(18, 2);
+        SET @MONTO_IMPUESTO_CALCULADO = @BASE_IMPONIBLE 
+            * (@PORCENTAJE_IMPUESTO / 100.0);
+
+        DECLARE @MONTO_TOTAL_FACTURA DECIMAL(19, 2);
+        SET @MONTO_TOTAL_FACTURA = @BASE_IMPONIBLE 
+            + @MONTO_IMPUESTO_CALCULADO;
 
         -- Insercion de Factura
-        INSERT INTO [dbo].[FACTURA] ( 
-            [NUMERO_CONSECUTIVO], [FECHA_CREACION], [FECHA_MODIFICACION], [FECHA_EMISION],
-            [SUBTOTAL], [TOTAL_DESCUENTO], [TOTAL_IMPUESTO], [MONTO_TOTAL], 
-            [OBSERVACIONES_ADICIONALES], [CODIGO_MONEDA], [ID_ESTADO_FACTURA], 
-            [ID_EMPRESA], [ID_CLIENTE], [CODIGO_IDENTIFICADOR_DOCUMENTO]
-        ) VALUES (
-            @NUMERO_CONSECUTIVO, CAST(GETDATE() AS DATE), CAST(GETDATE() AS DATE), CAST(GETDATE() AS DATE),
-            @MONTO_SUBTOTAL, @PORCENTAJE_DESCUENTO, @MONTO_IMPUESTO_CALCULADO, @MONTO_TOTAL_FACTURA, 
-            ISNULL(@OBSERVACIONES, 'N/A'), @CODIGO_MONEDA, @ID_ESTADO_FACTURA, 
-            @ID_EMPRESA, @ID_CLIENTE, @CODIGO_DOCUMENTO
+        INSERT INTO dbo.FACTURA ( 
+            NUMERO_CONSECUTIVO,
+            FECHA_CREACION,
+            FECHA_MODIFICACION,
+            FECHA_EMISION,
+            SUBTOTAL,
+            TOTAL_DESCUENTO,
+            TOTAL_IMPUESTO,
+            MONTO_TOTAL, 
+            OBSERVACIONES_ADICIONALES,
+            CODIGO_MONEDA,
+            ID_ESTADO_FACTURA, 
+            ID_EMPRESA,
+            ID_CLIENTE,
+            CODIGO_IDENTIFICADOR_DOCUMENTO
+        )
+        VALUES (
+            @NUMERO_CONSECUTIVO,
+            CAST(GETDATE() AS DATE),
+            CAST(GETDATE() AS DATE),
+            CAST(GETDATE() AS DATE),
+            @MONTO_SUBTOTAL,
+            @PORCENTAJE_DESCUENTO,
+            @MONTO_IMPUESTO_CALCULADO,
+            @MONTO_TOTAL_FACTURA, 
+            ISNULL(@OBSERVACIONES, 'N/A'),
+            @CODIGO_MONEDA,
+            @ID_ESTADO_FACTURA, 
+            @ID_EMPRESA,
+            @ID_CLIENTE,
+            @CODIGO_DOCUMENTO
         );
 
         -- Capturar el ID de la factura que se acaba de crear 
         DECLARE @ID_NUEVA_FACTURA INT = SCOPE_IDENTITY();
 
         -- Insercion de Detalle de Factura
-        INSERT INTO [dbo].[DETALLE_FACTURA] (
-            [ID_FACTURA], [NUMERO_LINEA], [ID_PRODUCTO], [CANTIDAD], [PRECIO_UNITARIO_VENTA],
-            [MONTO_DESCUENTO], [MONTO_SUBTOTAL], [MONTO_IMPUESTO], [DESCRIPCION]
-        ) VALUES (
-            @ID_NUEVA_FACTURA, 1, @ID_PRODUCTO, @CANTIDAD, @PRECIO_UNITARIO,
-            @MONTO_DESCUENTO_CALCULADO, @MONTO_SUBTOTAL, @MONTO_IMPUESTO_CALCULADO, 'Linea generada por sistema'
+        INSERT INTO dbo.DETALLE_FACTURA (
+            ID_FACTURA,
+            NUMERO_LINEA,
+            ID_PRODUCTO,
+            CANTIDAD,
+            PRECIO_UNITARIO_VENTA,
+            MONTO_DESCUENTO,
+            MONTO_SUBTOTAL,
+            MONTO_IMPUESTO,
+            DESCRIPCION
+        )
+        VALUES (
+            @ID_NUEVA_FACTURA,
+            1,
+            @ID_PRODUCTO,
+            @CANTIDAD,
+            @PRECIO_UNITARIO,
+            @MONTO_DESCUENTO_CALCULADO,
+            @MONTO_SUBTOTAL,
+            @MONTO_IMPUESTO_CALCULADO,
+            'Linea generada por sistema'
         );
 
         -- Actualizacion del inventario
-        UPDATE [dbo].[PRODUCTO] 
+        UPDATE dbo.PRODUCTO 
         SET 
-            [EXISTENCIAS] = [EXISTENCIAS] - @CANTIDAD
-        WHERE [ID] = @ID_PRODUCTO;
+            EXISTENCIAS = EXISTENCIAS - @CANTIDAD
+        WHERE ID = @ID_PRODUCTO;
 
         -- Registro de Auditoria en la tabla Historial
         DECLARE @NOMBRE_ESTADO VARCHAR(25);
-        SELECT @NOMBRE_ESTADO = [ESTADO_FACTURA] FROM [dbo].[ESTADO_FACTURA] WHERE [ID] = @ID_ESTADO_FACTURA;
+        
+        SELECT @NOMBRE_ESTADO = ESTADO_FACTURA 
+        FROM dbo.ESTADO_FACTURA 
+        WHERE ID = @ID_ESTADO_FACTURA;
 
-        INSERT INTO [dbo].[HISTORIAL] (
-            [ID_FACTURA], [ID_REGISTRO_AFECTADO], [OPERACION_REALIZADA], [ESTADO_PREVIO], 
-            [ESTADO_NUEVO], [FECHA_HORA], [TABLA_AFECTADA], [DESCRIPCION], [USUARIO_RESPONSABLE]
-        ) VALUES (
-            @ID_NUEVA_FACTURA, @ID_NUEVA_FACTURA, 'EMISION', NULL, 
-            @NOMBRE_ESTADO, GETDATE(), 'FACTURA Y DETALLE', 'Emision de factura con rebajo de inventario', @USUARIO_RESPONSABLE
+        INSERT INTO dbo.HISTORIAL (
+            ID_FACTURA,
+            ID_REGISTRO_AFECTADO,
+            OPERACION_REALIZADA,
+            ESTADO_PREVIO, 
+            ESTADO_NUEVO,
+            FECHA_HORA,
+            TABLA_AFECTADA,
+            DESCRIPCION,
+            USUARIO_RESPONSABLE
+        )
+        VALUES (
+            @ID_NUEVA_FACTURA,
+            @ID_NUEVA_FACTURA,
+            'EMISION',
+            NULL, 
+            @NOMBRE_ESTADO,
+            GETDATE(),
+            'FACTURA Y DETALLE',
+            'Emision de factura con rebajo de inventario',
+            @USUARIO_RESPONSABLE
         );
 
         COMMIT TRANSACTION;
