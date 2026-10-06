@@ -29,7 +29,7 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        -- Validacion de parametros nulos
+        -- Validar parametros nulos
         IF @NOMBRE IS NULL
             OR @DETALLE_PROVINCIA IS NULL
         BEGIN;
