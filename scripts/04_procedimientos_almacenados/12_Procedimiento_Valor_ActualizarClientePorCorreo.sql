@@ -4,16 +4,16 @@ GO
 -- INICIO
 IF EXISTS (
     SELECT 1
-    FROM sys.objects
-    WHERE name = 'pr_ActualizarCorreoCliente'
-        AND type = 'P'
+    FROM SYS.OBJECTS
+    WHERE NAME = 'pr_ActualizarCorreoCliente'
+        AND TYPE = 'P'
 )
 BEGIN
-    DROP PROCEDURE dbo.pr_ActualizarCorreoCliente;
+    DROP PROCEDURE DBO.PR_ACTUALIZARCORREOCLIENTE;
 END;
 GO
 
-CREATE PROCEDURE dbo.pr_ActualizarCorreoCliente (
+CREATE PROCEDURE DBO.PR_ACTUALIZARCORREOCLIENTE (
     @ID_CLIENTE INT,
     @CORREO_ELECTRONICO_ACTUALIZAR VARCHAR(100),
     @CODIGO_ERROR INT OUTPUT,
@@ -51,7 +51,7 @@ BEGIN
         -- Validar que el cliente exista
         IF NOT EXISTS (
             SELECT 1
-            FROM dbo.CLIENTE AS C
+            FROM DBO.CLIENTE AS C
             WHERE @ID_CLIENTE = C.ID
         )
         BEGIN;
@@ -61,7 +61,7 @@ BEGIN
         -- Validamos que el correo a actualizar no este inscrito
         IF EXISTS (
             SELECT 1
-            FROM dbo.CLIENTE AS CL
+            FROM DBO.CLIENTE AS CL
             WHERE CL.CORREO_ELECTRONICO = @CORREO_ELECTRONICO_ACTUALIZAR
                 AND CL.ID <> @ID_CLIENTE
         )
@@ -69,7 +69,7 @@ BEGIN
             THROW 50103, 'No se puede actualizar el correo, ya existe', 1;
         END;
 
-        UPDATE dbo.CLIENTE
+        UPDATE DBO.CLIENTE
         SET
             CORREO_ELECTRONICO = @CORREO_ELECTRONICO_ACTUALIZAR,
             FECHA_ULTIMA_ACTUALIZACION = CAST(GETDATE() AS DATE)
