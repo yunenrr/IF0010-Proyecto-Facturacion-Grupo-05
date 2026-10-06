@@ -36,7 +36,7 @@ BEGIN
         END;
 
         -- Regla: el correo debe tener uno de los siguientes dominios:
-        -- @ucr.ac.cr, @gmail.com, @hotmail.com, @outlook.com
+        -- @ucr.ac.cr, @gmail.com, @hotmail.com, @outlook.co
         IF @CORREO_ELECTRONICO_ACTUALIZAR IS NULL
             OR NOT (
                 @CORREO_ELECTRONICO_ACTUALIZAR LIKE '%ucr.ac.cr'
