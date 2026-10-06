@@ -2,11 +2,11 @@ USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF 
-    EXISTS (
-        SELECT 1
-        FROM SYS.OBJECTS
-        WHERE NAME = 'pr_InsertarEmpresa'
+IF EXISTS (
+    SELECT 1
+    FROM SYS.OBJECTS
+    WHERE
+        NAME = 'PR_INSERTAREMPRESA'
         AND TYPE = 'P'
 )
 BEGIN
@@ -37,7 +37,7 @@ BEGIN
         BEGIN TRANSACTION;
 
         -- Validar parametros nulos
-        IF 
+        IF
             @CEDULA_JURIDICA IS NULL
             OR @RAZON_SOCIAL IS NULL
             OR @NOMBRE IS NULL
@@ -48,7 +48,7 @@ BEGIN
             OR @ID_DIRECCION IS NULL
         BEGIN
             THROW 50100, 'Los parametros obligatorios no pueden ser nulos', 1;
-        END
+        END;
 
         INSERT INTO DBO.EMPRESA (
             CEDULA_JURIDICA,
@@ -77,11 +77,11 @@ BEGIN
         IF XACT_STATE() <> 0
         BEGIN
             ROLLBACK TRANSACTION;
-        END
+        END;
 
         SET @CODIGO_ERROR = ERROR_NUMBER();
         SET @MENSAJE_ERROR = ERROR_MESSAGE();
-    END CATCH
+    END CATCH;
 END;
 GO
 -- FIN
