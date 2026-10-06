@@ -4,16 +4,16 @@ GO
 -- INICIO
 IF EXISTS (
     SELECT 1
-    FROM sys.objects
-    WHERE name = 'pr_EmitirFactura'
-        AND type = 'P'
+    FROM SYS.OBJECTS
+    WHERE NAME = 'pr_EmitirFactura'
+        AND TYPE = 'P'
 )
 BEGIN
-    DROP PROCEDURE dbo.pr_EmitirFactura;
+    DROP PROCEDURE DBO.PR_EMITIRFACTURA;
 END;
 GO
 
-CREATE PROCEDURE dbo.pr_EmitirFactura (
+CREATE PROCEDURE DBO.PR_EMITIRFACTURA (
     @NUMERO_CONSECUTIVO INT,
     @FECHA_CREACION DATE,
     @FECHA_MODIFICACION DATE,
@@ -42,8 +42,8 @@ BEGIN
     DECLARE @LINEASTOTALES INT = ((@NUMERO_CONSECUTIVO % 3) + 3);
 
     BEGIN TRY
-        
-        INSERT INTO dbo.FACTURA (
+
+        INSERT INTO DBO.FACTURA (
             NUMERO_CONSECUTIVO,
             FECHA_CREACION,
             FECHA_MODIFICACION,
@@ -76,10 +76,23 @@ BEGIN
             @CODIGO_DOCUMENTO
         );
 
-        -- Obtener el ID 
+        -- Obtener el ID
         SET @IDFACTURA = SCOPE_IDENTITY();
 
-        INSERT INTO dbo.DETALLE_FACTURA (
+        WITH NUMEROLINEA AS (
+            SELECT 1 AS LINEA
+            UNION ALL
+            SELECT 2 AS LINEA
+            UNION ALL
+            SELECT 3 AS LINEA
+            UNION ALL
+            SELECT 4 AS LINEA
+            WHERE @LINEASTOTALES >= 4
+            UNION ALL
+            SELECT 5 AS LINEA
+            WHERE @LINEASTOTALES >= 5
+        )
+        INSERT INTO DBO.DETALLE_FACTURA (
             ID_FACTURA,
             NUMERO_LINEA,
             ID_PRODUCTO,
@@ -90,7 +103,7 @@ BEGIN
             MONTO_IMPUESTO,
             DESCRIPCION
         )
-        SELECT 
+        SELECT
             @IDFACTURA,
             NUMEROLINEA.LINEA,
             CALCULOLINEA.IDPROD,
@@ -98,51 +111,43 @@ BEGIN
             ISNULL(P.PRECIO_UNITARIO, 1000.00),
             ROUND((@TOTAL_DESCUENTO / @LINEASTOTALES), 2),
             (ISNULL(P.PRECIO_UNITARIO, 1000.00) * CALCULOLINEA.CANT),
-            ((ISNULL(P.PRECIO_UNITARIO, 1000.00) * CALCULOLINEA.CANT) 
-                * (ISNULL(P.PORCENTAJE_IMPUESTO, 13.00) / 100.0)),
+            (
+                (ISNULL(P.PRECIO_UNITARIO, 1000.00) * CALCULOLINEA.CANT)
+                * (ISNULL(P.PORCENTAJE_IMPUESTO, 13.00) / 100.0)
+            ),
             'Detalle generado automaticamente'
-        FROM (
-            SELECT 1 AS LINEA 
-            UNION ALL 
-            SELECT 2 
-            UNION ALL 
-            SELECT 3
-            UNION ALL 
-            SELECT 4 
-            WHERE @LINEASTOTALES >= 4
-            UNION ALL 
-            SELECT 5 
-            WHERE @LINEASTOTALES >= 5
-        ) AS NUMEROLINEA
+        FROM NUMEROLINEA
         CROSS APPLY (
-            SELECT 
+            SELECT
                 (
-                    ((@NUMERO_CONSECUTIVO * 5 + NUMEROLINEA.LINEA) - 1) 
+                    ((@NUMERO_CONSECUTIVO * 5 + NUMEROLINEA.LINEA) - 1)
                     % 1000
                 ) + 1 AS IDPROD,
                 ((@NUMERO_CONSECUTIVO + NUMEROLINEA.LINEA) % 5) + 1 AS CANT
         ) AS CALCULOLINEA
-        LEFT JOIN dbo.PRODUCTO AS P 
-            ON P.ID = CALCULOLINEA.IDPROD;
+        LEFT JOIN DBO.PRODUCTO AS P
+            ON CALCULOLINEA.IDPROD = P.ID;
 
         -- Actualizacion de totales
         UPDATE FACTURA
-        SET 
+        SET
             SUBTOTAL = TOTALDETALLES.SUBTOTALSUM,
             TOTAL_IMPUESTO = TOTALDETALLES.IMPUESTOSUM,
-            MONTO_TOTAL = TOTALDETALLES.SUBTOTALSUM 
-                - FACTURA.TOTAL_DESCUENTO 
+            MONTO_TOTAL = (
+                TOTALDETALLES.SUBTOTALSUM
+                - FACTURA.TOTAL_DESCUENTO
                 + TOTALDETALLES.IMPUESTOSUM
-        FROM dbo.FACTURA AS FACTURA
+            )
+        FROM DBO.FACTURA AS FACTURA
         INNER JOIN (
-            SELECT 
+            SELECT
                 ID_FACTURA,
                 SUM(MONTO_SUBTOTAL) AS SUBTOTALSUM,
                 SUM(MONTO_IMPUESTO) AS IMPUESTOSUM
-            FROM dbo.DETALLE_FACTURA
+            FROM DBO.DETALLE_FACTURA
             WHERE ID_FACTURA = @IDFACTURA
             GROUP BY ID_FACTURA
-        ) AS TOTALDETALLES 
+        ) AS TOTALDETALLES
             ON FACTURA.ID = TOTALDETALLES.ID_FACTURA;
 
     END TRY
