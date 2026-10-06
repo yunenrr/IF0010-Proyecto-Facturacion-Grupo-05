@@ -4,16 +4,16 @@ GO
 -- INICIO
 IF EXISTS (
     SELECT 1
-    FROM sys.objects
-    WHERE name = 'pr_InsertarCliente'
-        AND type = 'P'
+    FROM SYS.OBJECTS
+    WHERE NAME = 'pr_InsertarCliente'
+        AND TYPE = 'P'
 )
 BEGIN
-    DROP PROCEDURE dbo.pr_InsertarCliente;
+    DROP PROCEDURE DBO.PR_INSERTARCLIENTE;
 END;
 GO
 
-CREATE PROCEDURE dbo.pr_InsertarCliente (
+CREATE PROCEDURE DBO.PR_INSERTARCLIENTE (
     @CEDULA VARCHAR(30),
     @TELEFONO VARCHAR(20),
     @NOMBRE VARCHAR(70),
@@ -46,7 +46,7 @@ BEGIN
             THROW 50100, 'Los parametros obligatorios no pueden ser nulos', 1;
         END;
 
-        INSERT INTO dbo.CLIENTE (
+        INSERT INTO DBO.CLIENTE (
             CEDULA,
             TELEFONO,
             NOMBRE,
