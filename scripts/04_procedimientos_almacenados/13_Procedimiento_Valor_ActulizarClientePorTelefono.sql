@@ -2,14 +2,13 @@ USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF
-    EXISTS (
-        SELECT 1
-        FROM SYS.OBJECTS
-        WHERE
-            NAME = 'PR_ACTUALIZARTELEFONOCLIENTE'
-            AND TYPE = 'P'
-    )
+IF EXISTS (
+    SELECT 1
+    FROM SYS.OBJECTS
+    WHERE
+        NAME = 'PR_ACTUALIZARTELEFONOCLIENTE'
+        AND TYPE = 'P'
+)
 BEGIN
     DROP PROCEDURE DBO.PR_ACTUALIZARTELEFONOCLIENTE;
 END;
@@ -32,11 +31,10 @@ BEGIN
         BEGIN TRANSACTION;
 
         -- Validamos que los datos no sean nulos
-        IF
-            @ID_CLIENTE IS NULL
+        IF @ID_CLIENTE IS NULL
         BEGIN
             THROW 50010, 'El id de cliente no puede ser nulo', 1;
-        END
+        END;
 
         -- Regla de negocio: telefono max 8 digitos (CR) y solo numeros
         IF
@@ -45,31 +43,29 @@ BEGIN
             OR @TELEFONO_ACTUALIZAR LIKE '%[^0-9]%'
         BEGIN
             THROW 50011, 'Telefono invalido: maximo 8 digitos numericos', 1;
-        END
+        END;
 
         -- Validar que el cliente exista
-        IF
-            NOT EXISTS (
-                SELECT 1
-                FROM DBO.CLIENTE AS C
-                WHERE @ID_CLIENTE = C.ID
-            )
+        IF NOT EXISTS (
+            SELECT 1
+            FROM DBO.CLIENTE AS C
+            WHERE @ID_CLIENTE = C.ID
+        )
         BEGIN
             THROW 50004, 'El cliente no se encuentra registrado', 1;
-        END
+        END;
 
         -- Validamos que el numero a actualizar no este registrado
-        IF
-            EXISTS (
-                SELECT 1
-                FROM DBO.CLIENTE AS CL
-                WHERE
-                    CL.TELEFONO = @TELEFONO_ACTUALIZAR
-                    AND CL.ID <> @ID_CLIENTE
-            )
+        IF EXISTS (
+            SELECT 1
+            FROM DBO.CLIENTE AS CL
+            WHERE
+                CL.TELEFONO = @TELEFONO_ACTUALIZAR
+                AND CL.ID <> @ID_CLIENTE
+        )
         BEGIN
             THROW 50005, 'No se puede actualizar un numero ya registrado', 1;
-        END
+        END;
 
         UPDATE DBO.CLIENTE
         SET
@@ -83,12 +79,12 @@ BEGIN
         IF XACT_STATE() <> 0
         BEGIN
             ROLLBACK TRANSACTION;
-        END
+        END;
 
         -- Seteamos los mensajes obtenido
         SET @CODIGO_ERROR = ERROR_NUMBER();
         SET @MENSAJE_ERROR = ERROR_MESSAGE();
-    END CATCH
+    END CATCH;
 END;
 GO
 -- FIN
