@@ -15,36 +15,36 @@ DECLARE @ERROR INT;
 DECLARE @MENSAJE VARCHAR(100);
 
 WHILE @PASO <= 100
-BEGIN
-    SET @CEDULA = CONCAT(
-        '3-101-',
-        RIGHT('000000' + CAST(@PASO AS VARCHAR(10)), 6)
-    );
-    SET @RAZONSOCIAL = CONCAT('Empresa Sociedad Anonima ', @PASO);
-    SET @NOMBRE = CONCAT('EmpresaSA', @PASO);
-    SET @CORREO = CONCAT('empresa', @PASO, '@gmail.com');
-    SET @TELEFONO = CONCAT(
-        '8',
-        RIGHT('0000000' + CAST(@PASO AS VARCHAR(10)), 7)
-    );
-    SET @FECHA = DATEADD(DAY, -@PASO, CAST(GETDATE() AS DATE));
+    BEGIN
+        SET @CEDULA = CONCAT(
+            '3-101-',
+            RIGHT('000000' + CAST(@PASO AS VARCHAR(10)), 6)
+        );
+        SET @RAZONSOCIAL = CONCAT('Empresa Sociedad Anonima ', @PASO);
+        SET @NOMBRE = CONCAT('EmpresaSA', @PASO);
+        SET @CORREO = CONCAT('empresa', @PASO, '@gmail.com');
+        SET @TELEFONO = CONCAT(
+            '8',
+            RIGHT('0000000' + CAST(@PASO AS VARCHAR(10)), 7)
+        );
+        SET @FECHA = DATEADD(DAY, -@PASO, CAST(GETDATE() AS DATE));
 
-    -- Se usan el 50 porque los datos de direcciones cuentan hasta ese ID
-    SET @IDDIRECCION = ((@PASO - 1) % 50) + 1;
+        -- Se usan el 50 porque los datos de direcciones cuentan hasta ese ID
+        SET @IDDIRECCION = ((@PASO - 1) % 50) + 1;
 
-    EXEC DBO.PR_INSERTAREMPRESA
-        @CEDULA_JURIDICA = @CEDULA,
-        @RAZON_SOCIAL = @RAZONSOCIAL,
-        @NOMBRE = @NOMBRE,
-        @CORREO_ELECTRONICO = @CORREO,
-        @TELEFONO = @TELEFONO,
-        @FECHA_CREACION = @FECHA,
-        @PERMISO_OPERAR = @ESTADOACTIVO,
-        @ID_DIRECCION = @IDDIRECCION,
-        @CODIGO_ERROR = @ERROR OUTPUT,
-        @MENSAJE_ERROR = @MENSAJE OUTPUT;
+        EXEC DBO.PR_INSERTAREMPRESA
+            @CEDULA_JURIDICA = @CEDULA,
+            @RAZON_SOCIAL = @RAZONSOCIAL,
+            @NOMBRE = @NOMBRE,
+            @CORREO_ELECTRONICO = @CORREO,
+            @TELEFONO = @TELEFONO,
+            @FECHA_CREACION = @FECHA,
+            @PERMISO_OPERAR = @ESTADOACTIVO,
+            @ID_DIRECCION = @IDDIRECCION,
+            @CODIGO_ERROR = @ERROR OUTPUT,
+            @MENSAJE_ERROR = @MENSAJE OUTPUT;
 
-    SET @PASO += 1;
-END;
+        SET @PASO += 1;
+    END;
 GO
 -- FIN
