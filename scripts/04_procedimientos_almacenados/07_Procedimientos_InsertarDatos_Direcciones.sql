@@ -31,7 +31,7 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        -- Validacion de parametros nulos
+        -- Validar de parametros nulos
         IF @ID_PROVINCIA IS NULL
             OR @ID_CANTON IS NULL
             OR @ID_DISTRITO IS NULL
