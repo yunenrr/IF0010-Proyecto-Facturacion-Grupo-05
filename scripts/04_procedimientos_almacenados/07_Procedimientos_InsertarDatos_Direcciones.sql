@@ -10,9 +10,9 @@ IF
             NAME = 'pr_InsertarDireccion'
             AND TYPE = 'P'
     )
-BEGIN
-    DROP PROCEDURE DBO.PR_INSERTARDIRECCION;
-END;
+    BEGIN
+        DROP PROCEDURE DBO.PR_INSERTARDIRECCION;
+    END;
 GO
 
 CREATE PROCEDURE DBO.PR_INSERTARDIRECCION (
@@ -34,14 +34,14 @@ BEGIN
         BEGIN TRANSACTION;
 
         -- Validación de parámetros nulos
-        IF 
+        IF
             @ID_PROVINCIA IS NULL
             OR @ID_CANTON IS NULL
             OR @ID_DISTRITO IS NULL
             OR @DETALLE_DIRECCION IS NULL
-        BEGIN
-            THROW 50100, 'Parámetros nulos', 1;
-        END
+            BEGIN
+                THROW 50100, 'Parámetros nulos', 1;
+            END
 
         INSERT INTO DBO.DIRECCION (
             ID_PROVINCIA,
@@ -60,9 +60,9 @@ BEGIN
     END TRY
     BEGIN CATCH
         IF XACT_STATE() <> 0
-        BEGIN
-            ROLLBACK TRANSACTION;
-        END
+            BEGIN
+                ROLLBACK TRANSACTION;
+            END
 
         SET @CODIGO_ERROR = ERROR_NUMBER();
         SET @MENSAJE_ERROR = ERROR_MESSAGE();
