@@ -63,7 +63,7 @@ BEGIN
         @PASO
     );
 
-    EXEC dbo.pr_InsertarDireccion
+    EXEC DBO.PR_INSERTARDIRECCION
         @ID_PROVINCIA = @ID_PROVINCIA,
         @ID_CANTON = @ID_CANTON,
         @ID_DISTRITO = @ID_DISTRITO,
