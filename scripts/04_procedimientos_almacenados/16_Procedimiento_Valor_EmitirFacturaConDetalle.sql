@@ -4,16 +4,16 @@ GO
 -- INICIO
 IF EXISTS (
     SELECT 1
-    FROM sys.objects
-    WHERE name = 'pr_EmitirFacturaConDetalle'
-        AND type = 'P'
+    FROM SYS.OBJECTS
+    WHERE NAME = 'pr_EmitirFacturaConDetalle'
+        AND TYPE = 'P'
 )
 BEGIN
-    DROP PROCEDURE dbo.pr_EmitirFacturaConDetalle;
+    DROP PROCEDURE DBO.PR_EMITIRFACTURACONDETALLE;
 END;
 GO
 
-CREATE PROCEDURE dbo.pr_EmitirFacturaConDetalle (
+CREATE PROCEDURE DBO.PR_EMITIRFACTURACONDETALLE (
     -- Parametros de la Factura
     @NUMERO_CONSECUTIVO INT,
     @CODIGO_MONEDA CHAR(3),
@@ -68,7 +68,7 @@ BEGIN
         -- Validaciones de Integridad Referencial
         IF NOT EXISTS (
             SELECT 1
-            FROM dbo.MONEDA
+            FROM DBO.MONEDA
             WHERE CODIGO = @CODIGO_MONEDA
         )
         BEGIN;
@@ -77,7 +77,7 @@ BEGIN
 
         IF NOT EXISTS (
             SELECT 1
-            FROM dbo.ESTADO_FACTURA
+            FROM DBO.ESTADO_FACTURA
             WHERE ID = @ID_ESTADO_FACTURA
         )
         BEGIN;
@@ -86,7 +86,7 @@ BEGIN
 
         IF NOT EXISTS (
             SELECT 1
-            FROM dbo.CLIENTE
+            FROM DBO.CLIENTE
             WHERE ID = @ID_CLIENTE
         )
         BEGIN;
@@ -95,7 +95,7 @@ BEGIN
 
         IF NOT EXISTS (
             SELECT 1
-            FROM dbo.PRODUCTO
+            FROM DBO.PRODUCTO
             WHERE ID = @ID_PRODUCTO
         )
         BEGIN;
@@ -111,7 +111,7 @@ BEGIN
             @PRECIO_UNITARIO = PRECIO_UNITARIO,
             @PORCENTAJE_IMPUESTO = PORCENTAJE_IMPUESTO,
             @EXISTENCIAS_ACTUALES = EXISTENCIAS
-        FROM dbo.PRODUCTO 
+        FROM DBO.PRODUCTO 
         WHERE ID = @ID_PRODUCTO;
 
         IF @CANTIDAD > @EXISTENCIAS_ACTUALES
@@ -140,7 +140,7 @@ BEGIN
             + @MONTO_IMPUESTO_CALCULADO;
 
         -- Insercion de Factura
-        INSERT INTO dbo.FACTURA ( 
+        INSERT INTO DBO.FACTURA ( 
             NUMERO_CONSECUTIVO,
             FECHA_CREACION,
             FECHA_MODIFICACION,
@@ -177,7 +177,7 @@ BEGIN
         DECLARE @ID_NUEVA_FACTURA INT = SCOPE_IDENTITY();
 
         -- Insercion de Detalle de Factura
-        INSERT INTO dbo.DETALLE_FACTURA (
+        INSERT INTO DBO.DETALLE_FACTURA (
             ID_FACTURA,
             NUMERO_LINEA,
             ID_PRODUCTO,
@@ -201,7 +201,7 @@ BEGIN
         );
 
         -- Actualizacion del inventario
-        UPDATE dbo.PRODUCTO 
+        UPDATE DBO.PRODUCTO 
         SET 
             EXISTENCIAS = EXISTENCIAS - @CANTIDAD
         WHERE ID = @ID_PRODUCTO;
@@ -210,10 +210,10 @@ BEGIN
         DECLARE @NOMBRE_ESTADO VARCHAR(25);
         
         SELECT @NOMBRE_ESTADO = ESTADO_FACTURA 
-        FROM dbo.ESTADO_FACTURA 
+        FROM DBO.ESTADO_FACTURA 
         WHERE ID = @ID_ESTADO_FACTURA;
 
-        INSERT INTO dbo.HISTORIAL (
+        INSERT INTO DBO.HISTORIAL (
             ID_FACTURA,
             ID_REGISTRO_AFECTADO,
             OPERACION_REALIZADA,
