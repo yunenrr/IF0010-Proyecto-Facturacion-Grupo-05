@@ -91,6 +91,13 @@ BEGIN
             UNION ALL
             SELECT 5 AS LINEA
             WHERE @LINEASTOTALES >= 5
+        ),
+        CALCULOLINEABASE AS (
+            SELECT
+                NUMEROLINEA.LINEA,
+                (((@NUMERO_CONSECUTIVO * 5 + NUMEROLINEA.LINEA) - 1) % 1000) + 1 AS IDPROD,
+                ((@NUMERO_CONSECUTIVO + NUMEROLINEA.LINEA) % 5) + 1 AS CANT
+            FROM NUMEROLINEA
         )
         INSERT INTO DBO.DETALLE_FACTURA (
             ID_FACTURA,
@@ -105,30 +112,31 @@ BEGIN
         )
         SELECT
             @IDFACTURA,
-            NUMEROLINEA.LINEA,
-            CALCULOLINEA.IDPROD,
-            CALCULOLINEA.CANT,
-            ISNULL(P.PRECIO_UNITARIO, 1000.00),
-            ROUND((@TOTAL_DESCUENTO / @LINEASTOTALES), 2),
-            (ISNULL(P.PRECIO_UNITARIO, 1000.00) * CALCULOLINEA.CANT),
+            CALCULOLINEABASE.LINEA,
+            CALCULOLINEABASE.IDPROD,
+            CALCULOLINEABASE.CANT,
+            ISNULL(P.PRECIO_UNITARIO, 1000.00) AS PRECIO_UNITARIO_VENTA,
+            ROUND((@TOTAL_DESCUENTO / @LINEASTOTALES), 2) AS MONTO_DESCUENTO,
+            (ISNULL(P.PRECIO_UNITARIO, 1000.00) * CALCULOLINEABASE.CANT) AS MONTO_SUBTOTAL,
             (
-                (ISNULL(P.PRECIO_UNITARIO, 1000.00) * CALCULOLINEA.CANT)
+                (ISNULL(P.PRECIO_UNITARIO, 1000.00) * CALCULOLINEABASE.CANT)
                 * (ISNULL(P.PORCENTAJE_IMPUESTO, 13.00) / 100.0)
-            ),
-            'Detalle generado automaticamente'
-        FROM NUMEROLINEA
-        CROSS APPLY (
-            SELECT
-                (
-                    ((@NUMERO_CONSECUTIVO * 5 + NUMEROLINEA.LINEA) - 1)
-                    % 1000
-                ) + 1 AS IDPROD,
-                ((@NUMERO_CONSECUTIVO + NUMEROLINEA.LINEA) % 5) + 1 AS CANT
-        ) AS CALCULOLINEA
+            ) AS MONTO_IMPUESTO,
+            'Detalle generado automaticamente' AS DESCRIPCION
+        FROM CALCULOLINEABASE
         LEFT JOIN DBO.PRODUCTO AS P
-            ON CALCULOLINEA.IDPROD = P.ID;
+            ON CALCULOLINEABASE.IDPROD = P.ID;
 
         -- Actualizacion de totales
+        WITH TOTALDETALLES AS (
+            SELECT
+                ID_FACTURA,
+                SUM(MONTO_SUBTOTAL) AS SUBTOTALSUM,
+                SUM(MONTO_IMPUESTO) AS IMPUESTOSUM
+            FROM DBO.DETALLE_FACTURA
+            WHERE ID_FACTURA = @IDFACTURA
+            GROUP BY ID_FACTURA
+        )
         UPDATE FACTURA
         SET
             SUBTOTAL = TOTALDETALLES.SUBTOTALSUM,
@@ -139,15 +147,7 @@ BEGIN
                 + TOTALDETALLES.IMPUESTOSUM
             )
         FROM DBO.FACTURA AS FACTURA
-        INNER JOIN (
-            SELECT
-                ID_FACTURA,
-                SUM(MONTO_SUBTOTAL) AS SUBTOTALSUM,
-                SUM(MONTO_IMPUESTO) AS IMPUESTOSUM
-            FROM DBO.DETALLE_FACTURA
-            WHERE ID_FACTURA = @IDFACTURA
-            GROUP BY ID_FACTURA
-        ) AS TOTALDETALLES
+        INNER JOIN TOTALDETALLES
             ON FACTURA.ID = TOTALDETALLES.ID_FACTURA;
 
     END TRY
