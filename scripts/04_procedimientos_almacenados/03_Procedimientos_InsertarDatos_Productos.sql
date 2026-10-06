@@ -1,14 +1,19 @@
-USE [FACTURACION_SA];
+USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF EXISTS (SELECT 1 FROM [sys].[objects] WHERE [name] = 'pr_InsertarProducto' AND [type] = 'P')
+IF EXISTS (
+    SELECT 1
+    FROM sys.objects
+    WHERE name = 'pr_InsertarProducto'
+        AND type = 'P'
+)
 BEGIN
-    DROP PROCEDURE [dbo].[pr_InsertarProducto];
+    DROP PROCEDURE dbo.pr_InsertarProducto;
 END;
 GO
 
-CREATE PROCEDURE [dbo].[pr_InsertarProducto] (
+CREATE PROCEDURE dbo.pr_InsertarProducto (
     @CODIGO VARCHAR(30),
     @DESCRIPCION VARCHAR(70),
     @PRECIO_UNITARIO DECIMAL(18, 2),
@@ -54,16 +59,16 @@ BEGIN
             THROW 50102, 'El tipo de producto debe ser estrictamente DIGITAL o FISICO', 1;
         END;
 
-        INSERT INTO [dbo].[PRODUCTO] (
-            [CODIGO],
-            [DESCRIPCION],
-            [PRECIO_UNITARIO],
-            [PORCENTAJE_IMPUESTO],
-            [ESTADO_ACTIVO],
-            [FECHA_CREACION],
-            [FECHA_VENCIMIENTO],
-            [EXISTENCIAS],
-            [TIPO_PRODUCTO]
+        INSERT INTO dbo.PRODUCTO (
+            CODIGO,
+            DESCRIPCION,
+            PRECIO_UNITARIO,
+            PORCENTAJE_IMPUESTO,
+            ESTADO_ACTIVO,
+            FECHA_CREACION,
+            FECHA_VENCIMIENTO,
+            EXISTENCIAS,
+            TIPO_PRODUCTO
         )
         VALUES (
             @CODIGO,
