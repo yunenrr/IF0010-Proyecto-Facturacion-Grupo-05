@@ -10,9 +10,9 @@ IF
             NAME = 'pr_InsertarProducto'
             AND TYPE = 'P'
     )
-        BEGIN
-            DROP PROCEDURE DBO.PR_INSERTARPRODUCTO;
-        END;
+    BEGIN
+        DROP PROCEDURE DBO.PR_INSERTARPRODUCTO;
+    END;
 GO
 
 CREATE PROCEDURE DBO.PR_INSERTARPRODUCTO (
@@ -48,9 +48,9 @@ BEGIN
             OR @FECHA_CREACION IS NULL
             OR @EXISTENCIAS IS NULL
             OR @TIPO_PRODUCTO IS NULL
-                BEGIN
-                    THROW 50100, 'Parametros obligatorios no pueden ser nulos', 1;
-                END;
+            BEGIN
+                THROW 50100, 'Parametros obligatorios no pueden ser nulos', 1;
+            END;
 
         IF @EXISTENCIAS < 0
             BEGIN
