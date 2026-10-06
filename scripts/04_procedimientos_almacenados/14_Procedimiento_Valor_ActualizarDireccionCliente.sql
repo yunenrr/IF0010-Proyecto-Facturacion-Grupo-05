@@ -2,14 +2,13 @@ USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF
-    EXISTS (
-        SELECT 1
-        FROM SYS.OBJECTS
-        WHERE
-            NAME = 'PR_ACTUALIZARDIRECCIONCLIENTE'
-            AND TYPE = 'P'
-    )
+IF EXISTS (
+    SELECT 1
+    FROM SYS.OBJECTS
+    WHERE
+        NAME = 'PR_ACTUALIZARDIRECCIONCLIENTE'
+        AND TYPE = 'P'
+)
 BEGIN
     DROP PROCEDURE DBO.PR_ACTUALIZARDIRECCIONCLIENTE;
 END;
@@ -32,39 +31,35 @@ BEGIN
         BEGIN TRANSACTION;
 
         -- Validar que los datos no sean nulos
-        IF
-            @ID_CLIENTE IS NULL
+        IF @ID_CLIENTE IS NULL
         BEGIN
             THROW 50010, 'El id de cliente no puede ser nulo', 1;
-        END
+        END;
 
-        IF
-            @ID_DIRECCION_ACTUALIZAR IS NULL
+        IF @ID_DIRECCION_ACTUALIZAR IS NULL
         BEGIN
             THROW 50010, 'El id de la direccion no puede ser nulo', 1;
-        END
+        END;
 
         -- Validar que el cliente exista
-        IF
-            NOT EXISTS (
-                SELECT 1
-                FROM DBO.CLIENTE AS C
-                WHERE @ID_CLIENTE = C.ID
-            )
+        IF NOT EXISTS (
+            SELECT 1
+            FROM DBO.CLIENTE AS C
+            WHERE @ID_CLIENTE = C.ID
+        )
         BEGIN
             THROW 50004, 'El cliente no se encuentra registrado', 1;
-        END
+        END;
 
         -- Validar que la direccion a actualizar exista en el catalogo
-        IF
-            NOT EXISTS (
-                SELECT 1
-                FROM DBO.DIRECCION AS D
-                WHERE @ID_DIRECCION_ACTUALIZAR = D.ID_DIRECCION
-            )
+        IF NOT EXISTS (
+            SELECT 1
+            FROM DBO.DIRECCION AS D
+            WHERE @ID_DIRECCION_ACTUALIZAR = D.ID_DIRECCION
+        )
         BEGIN
             THROW 50006, 'Direccion a actualizar no esta registrada', 1;
-        END
+        END;
 
         UPDATE DBO.CLIENTE
         SET
@@ -78,12 +73,12 @@ BEGIN
         IF XACT_STATE() <> 0
         BEGIN
             ROLLBACK TRANSACTION;
-        END
+        END;
 
         -- Mensaje de error
         SET @CODIGO_ERROR = ERROR_NUMBER();
         SET @MENSAJE_ERROR = ERROR_MESSAGE();
-    END CATCH
+    END CATCH;
 END;
 GO
 -- FIN
