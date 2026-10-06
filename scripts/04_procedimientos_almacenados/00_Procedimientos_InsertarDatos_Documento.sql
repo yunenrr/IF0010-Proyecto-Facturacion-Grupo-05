@@ -10,9 +10,9 @@ IF
             NAME = 'pr_InsertarDocumento'
             AND TYPE = 'P'
     )
-        BEGIN
-            DROP PROCEDURE DBO.PR_INSERTARDOCUMENTO;
-        END;
+    BEGIN
+        DROP PROCEDURE DBO.PR_INSERTARDOCUMENTO;
+    END;
 GO
 
 CREATE PROCEDURE DBO.PR_INSERTARDOCUMENTO (
