@@ -78,7 +78,7 @@ BEGIN
             ROLLBACK TRANSACTION;
         END;
 
-        -- Seteamos los mensajes obtenidos
+        -- Seteamos los mensajes obtenido
         SET @CODIGO_ERROR = ERROR_NUMBER();
         SET @MENSAJE_ERROR = ERROR_MESSAGE();
     END CATCH
