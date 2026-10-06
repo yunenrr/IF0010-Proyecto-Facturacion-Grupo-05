@@ -10,9 +10,9 @@ IF
             NAME = 'pr_InsertarEstadoFactura'
             AND TYPE = 'P'
     )
-        BEGIN
-            DROP PROCEDURE DBO.PR_INSERTARESTADOFACTURA;
-        END;
+    BEGIN
+        DROP PROCEDURE DBO.PR_INSERTARESTADOFACTURA;
+    END;
 GO
 
 CREATE PROCEDURE DBO.PR_INSERTARESTADOFACTURA (
@@ -35,9 +35,9 @@ BEGIN
         IF
             @ESTADO_FACTURA IS NULL
             OR @DESCRIPCION IS NULL
-                BEGIN
-                    THROW 50100, 'Los parametros obligatorios no pueden ser nulos', 1;
-                END;
+            BEGIN
+                THROW 50100, 'Los parametros obligatorios no pueden ser nulos', 1; -- noqa: LT05
+            END;
 
         INSERT INTO DBO.ESTADO_FACTURA (
             ESTADO_FACTURA,
