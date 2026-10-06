@@ -22,15 +22,15 @@ CREATE PROCEDURE DBO.PR_EMITIRFACTURACONDETALLE (
     @ID_CLIENTE INT,
     @CODIGO_DOCUMENTO INT,
     @OBSERVACIONES VARCHAR(100),
-    @PORCENTAJE_DESCUENTO DECIMAL(10, 2), 
-    
+    @PORCENTAJE_DESCUENTO DECIMAL(10, 2),
+
     -- Parametros del Detalle
     @ID_PRODUCTO INT,
     @CANTIDAD INT,
-    
+
     -- Parametro Auditoria
     @USUARIO_RESPONSABLE VARCHAR(100),
-    
+
     -- Parametros de Salida
     @CODIGO_ERROR INT OUTPUT,
     @MENSAJE_ERROR VARCHAR(100) OUTPUT
@@ -41,7 +41,7 @@ BEGIN
     SET XACT_ABORT ON;
     SET @CODIGO_ERROR = 0;
     SET @MENSAJE_ERROR = 'Exitoso';
-    
+
     BEGIN TRY
         BEGIN TRANSACTION;
 
@@ -102,16 +102,16 @@ BEGIN
             THROW 50007, 'El producto no se encuentra registrado', 1;
         END;
 
-        -- Extraccion de datos del producto 
+        -- Extraccion de datos del producto
         DECLARE @PRECIO_UNITARIO DECIMAL(18, 2);
         DECLARE @PORCENTAJE_IMPUESTO DECIMAL(5, 2);
         DECLARE @EXISTENCIAS_ACTUALES INT;
 
-        SELECT 
+        SELECT
             @PRECIO_UNITARIO = PRECIO_UNITARIO,
             @PORCENTAJE_IMPUESTO = PORCENTAJE_IMPUESTO,
             @EXISTENCIAS_ACTUALES = EXISTENCIAS
-        FROM DBO.PRODUCTO 
+        FROM DBO.PRODUCTO
         WHERE ID = @ID_PRODUCTO;
 
         IF @CANTIDAD > @EXISTENCIAS_ACTUALES
@@ -124,23 +124,23 @@ BEGIN
         SET @MONTO_SUBTOTAL = @PRECIO_UNITARIO * @CANTIDAD;
 
         DECLARE @MONTO_DESCUENTO_CALCULADO DECIMAL(18, 2);
-        SET @MONTO_DESCUENTO_CALCULADO = @MONTO_SUBTOTAL 
+        SET @MONTO_DESCUENTO_CALCULADO = @MONTO_SUBTOTAL
             * (@PORCENTAJE_DESCUENTO / 100.0);
 
         DECLARE @BASE_IMPONIBLE DECIMAL(18, 2);
-        SET @BASE_IMPONIBLE = @MONTO_SUBTOTAL 
+        SET @BASE_IMPONIBLE = @MONTO_SUBTOTAL
             - @MONTO_DESCUENTO_CALCULADO;
 
         DECLARE @MONTO_IMPUESTO_CALCULADO DECIMAL(18, 2);
-        SET @MONTO_IMPUESTO_CALCULADO = @BASE_IMPONIBLE 
+        SET @MONTO_IMPUESTO_CALCULADO = @BASE_IMPONIBLE
             * (@PORCENTAJE_IMPUESTO / 100.0);
 
         DECLARE @MONTO_TOTAL_FACTURA DECIMAL(19, 2);
-        SET @MONTO_TOTAL_FACTURA = @BASE_IMPONIBLE 
+        SET @MONTO_TOTAL_FACTURA = @BASE_IMPONIBLE
             + @MONTO_IMPUESTO_CALCULADO;
 
         -- Insercion de Factura
-        INSERT INTO DBO.FACTURA ( 
+        INSERT INTO DBO.FACTURA (
             NUMERO_CONSECUTIVO,
             FECHA_CREACION,
             FECHA_MODIFICACION,
@@ -148,10 +148,10 @@ BEGIN
             SUBTOTAL,
             TOTAL_DESCUENTO,
             TOTAL_IMPUESTO,
-            MONTO_TOTAL, 
+            MONTO_TOTAL,
             OBSERVACIONES_ADICIONALES,
             CODIGO_MONEDA,
-            ID_ESTADO_FACTURA, 
+            ID_ESTADO_FACTURA,
             ID_EMPRESA,
             ID_CLIENTE,
             CODIGO_IDENTIFICADOR_DOCUMENTO
@@ -164,16 +164,16 @@ BEGIN
             @MONTO_SUBTOTAL,
             @PORCENTAJE_DESCUENTO,
             @MONTO_IMPUESTO_CALCULADO,
-            @MONTO_TOTAL_FACTURA, 
+            @MONTO_TOTAL_FACTURA,
             ISNULL(@OBSERVACIONES, 'N/A'),
             @CODIGO_MONEDA,
-            @ID_ESTADO_FACTURA, 
+            @ID_ESTADO_FACTURA,
             @ID_EMPRESA,
             @ID_CLIENTE,
             @CODIGO_DOCUMENTO
         );
 
-        -- Capturar el ID de la factura que se acaba de crear 
+        -- Capturar el ID de la factura que se acaba de crear
         DECLARE @ID_NUEVA_FACTURA INT = SCOPE_IDENTITY();
 
         -- Insercion de Detalle de Factura
@@ -201,23 +201,23 @@ BEGIN
         );
 
         -- Actualizacion del inventario
-        UPDATE DBO.PRODUCTO 
-        SET 
+        UPDATE DBO.PRODUCTO
+        SET
             EXISTENCIAS = EXISTENCIAS - @CANTIDAD
         WHERE ID = @ID_PRODUCTO;
 
         -- Registro de Auditoria en la tabla Historial
         DECLARE @NOMBRE_ESTADO VARCHAR(25);
-        
-        SELECT @NOMBRE_ESTADO = ESTADO_FACTURA 
-        FROM DBO.ESTADO_FACTURA 
+
+        SELECT @NOMBRE_ESTADO = ESTADO_FACTURA
+        FROM DBO.ESTADO_FACTURA
         WHERE ID = @ID_ESTADO_FACTURA;
 
         INSERT INTO DBO.HISTORIAL (
             ID_FACTURA,
             ID_REGISTRO_AFECTADO,
             OPERACION_REALIZADA,
-            ESTADO_PREVIO, 
+            ESTADO_PREVIO,
             ESTADO_NUEVO,
             FECHA_HORA,
             TABLA_AFECTADA,
@@ -228,7 +228,7 @@ BEGIN
             @ID_NUEVA_FACTURA,
             @ID_NUEVA_FACTURA,
             'EMISION',
-            NULL, 
+            NULL,
             @NOMBRE_ESTADO,
             GETDATE(),
             'FACTURA Y DETALLE',
@@ -244,7 +244,7 @@ BEGIN
             ROLLBACK TRANSACTION;
         END;
 
-        -- Setear mensajes de error
+        -- Setear mensaje de error
         SET @CODIGO_ERROR = ERROR_NUMBER();
         SET @MENSAJE_ERROR = ERROR_MESSAGE();
     END CATCH
