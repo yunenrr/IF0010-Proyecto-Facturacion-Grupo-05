@@ -2,10 +2,11 @@ USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF EXISTS (
-    SELECT 1
-    FROM SYS.OBJECTS
-    WHERE NAME = 'pr_ActualizarCorreoCliente'
+IF 
+    EXISTS (
+        SELECT 1
+        FROM SYS.OBJECTS
+        WHERE NAME = 'pr_ActualizarCorreoCliente'
         AND TYPE = 'P'
 )
 BEGIN
@@ -30,14 +31,16 @@ BEGIN
         BEGIN TRANSACTION;
 
         -- Validamos que los datos no sean nulos
-        IF @ID_CLIENTE IS NULL
-        BEGIN;
+        IF 
+            @ID_CLIENTE IS NULL
+        BEGIN
             THROW 50100, 'El ID de cliente no puede ser nulo', 1;
         END;
 
         -- Regla: el correo debe tener uno de los siguientes dominios:
         -- @ucr.ac.cr, @gmail.com, @hotmail.com, @outlook.com
-        IF @CORREO_ELECTRONICO_ACTUALIZAR IS NULL
+        IF 
+            @CORREO_ELECTRONICO_ACTUALIZAR IS NULL
             OR NOT (
                 @CORREO_ELECTRONICO_ACTUALIZAR LIKE '%ucr.ac.cr'
                 OR @CORREO_ELECTRONICO_ACTUALIZAR LIKE '%gmail.com'
@@ -49,25 +52,28 @@ BEGIN
         END;
 
         -- Validar que el cliente exista
-        IF NOT EXISTS (
-            SELECT 1
-            FROM DBO.CLIENTE AS C
-            WHERE @ID_CLIENTE = C.ID
+        IF 
+            NOT EXISTS (
+                SELECT 1
+                FROM DBO.CLIENTE AS C
+                WHERE @ID_CLIENTE = C.ID
         )
-        BEGIN;
+        BEGIN
             THROW 50102, 'El cliente no se encuentra registrado', 1;
-        END;
+        END
 
         -- Validamos que el correo a actualizar no este inscrito
-        IF EXISTS (
-            SELECT 1
-            FROM DBO.CLIENTE AS CL
-            WHERE CL.CORREO_ELECTRONICO = @CORREO_ELECTRONICO_ACTUALIZAR
-                AND CL.ID <> @ID_CLIENTE
+        IF 
+            EXISTS (
+                SELECT 1
+                FROM DBO.CLIENTE AS CL
+                WHERE 
+                    CL.CORREO_ELECTRONICO = @CORREO_ELECTRONICO_ACTUALIZAR
+                    AND CL.ID <> @ID_CLIENTE
         )
-        BEGIN;
+        BEGIN
             THROW 50103, 'No se puede actualizar el correo, ya existe', 1;
-        END;
+        END
 
         UPDATE DBO.CLIENTE
         SET
@@ -81,7 +87,7 @@ BEGIN
         IF XACT_STATE() <> 0
         BEGIN
             ROLLBACK TRANSACTION;
-        END;
+        END
 
         -- Seteamos los mensajes obtenidos
         SET @CODIGO_ERROR = ERROR_NUMBER();
