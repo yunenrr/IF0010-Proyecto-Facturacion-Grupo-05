@@ -2,15 +2,17 @@ USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF EXISTS (
-    SELECT 1
-    FROM SYS.OBJECTS
-    WHERE NAME = 'pr_InsertarDocumento'
-        AND TYPE = 'P'
-)
-BEGIN
-    DROP PROCEDURE DBO.PR_INSERTARDOCUMENTO;
-END;
+IF
+    EXISTS (
+        SELECT 1
+        FROM SYS.OBJECTS
+        WHERE
+            NAME = 'pr_InsertarDocumento'
+            AND TYPE = 'P'
+    )
+        BEGIN
+            DROP PROCEDURE DBO.PR_INSERTARDOCUMENTO;
+        END;
 GO
 
 CREATE PROCEDURE DBO.PR_INSERTARDOCUMENTO (
@@ -29,9 +31,9 @@ BEGIN
         BEGIN TRANSACTION;
 
         IF @DESCRIPCION IS NULL
-        BEGIN;
-            THROW 50100, 'El parametro obligatorio no puede ser nulo', 1;
-        END;
+            BEGIN
+                THROW 50100, 'El parametro obligatorio no puede ser nulo', 1;
+            END;
 
         INSERT INTO DBO.DOCUMENTO (
             DESCRIPCION
@@ -44,9 +46,9 @@ BEGIN
     END TRY
     BEGIN CATCH
         IF XACT_STATE() <> 0
-        BEGIN
-            ROLLBACK TRANSACTION;
-        END;
+            BEGIN
+                ROLLBACK TRANSACTION;
+            END;
 
         SET @CODIGO_ERROR = ERROR_NUMBER();
         SET @MENSAJE_ERROR = ERROR_MESSAGE();
