@@ -4,16 +4,16 @@ GO
 -- INICIO
 IF EXISTS (
     SELECT 1
-    FROM sys.objects
-    WHERE name = 'pr_ActualizarTelefonoCliente'
-        AND type = 'P'
+    FROM SYS.OBJECTS
+    WHERE NAME = 'pr_ActualizarTelefonoCliente'
+        AND TYPE = 'P'
 )
 BEGIN
-    DROP PROCEDURE dbo.pr_ActualizarTelefonoCliente;
+    DROP PROCEDURE DBO.PR_ACTUALIZARTELEFONOCLIENTE;
 END;
 GO
 
-CREATE PROCEDURE dbo.pr_ActualizarTelefonoCliente (
+CREATE PROCEDURE DBO.PR_ACTUALIZARTELEFONOCLIENTE (
     @ID_CLIENTE INT,
     @TELEFONO_ACTUALIZAR VARCHAR(20),
     @CODIGO_ERROR INT OUTPUT,
@@ -25,7 +25,7 @@ BEGIN
     SET XACT_ABORT ON;
     SET @CODIGO_ERROR = 0;
     SET @MENSAJE_ERROR = 'Exitoso';
-    
+
     BEGIN TRY
         BEGIN TRANSACTION;
 
@@ -46,7 +46,7 @@ BEGIN
         -- Validar que el cliente exista
         IF NOT EXISTS (
             SELECT 1
-            FROM dbo.CLIENTE AS C
+            FROM DBO.CLIENTE AS C
             WHERE @ID_CLIENTE = C.ID
         )
         BEGIN;
@@ -55,18 +55,18 @@ BEGIN
 
         -- Validamos que el numero a actualizar no este registrado
         IF EXISTS (
-            SELECT 1 
-            FROM dbo.CLIENTE AS CL 
-            WHERE @TELEFONO_ACTUALIZAR = CL.TELEFONO 
+            SELECT 1
+            FROM DBO.CLIENTE AS CL
+            WHERE CL.TELEFONO = @TELEFONO_ACTUALIZAR
                 AND CL.ID <> @ID_CLIENTE
         )
         BEGIN;
             THROW 50005, 'No se puede actualizar un numero ya registrado', 1;
         END;
 
-        UPDATE dbo.CLIENTE 
-        SET 
-            TELEFONO = @TELEFONO_ACTUALIZAR, 
+        UPDATE DBO.CLIENTE
+        SET
+            TELEFONO = @TELEFONO_ACTUALIZAR,
             FECHA_ULTIMA_ACTUALIZACION = CAST(GETDATE() AS DATE)
         WHERE ID = @ID_CLIENTE;
 
