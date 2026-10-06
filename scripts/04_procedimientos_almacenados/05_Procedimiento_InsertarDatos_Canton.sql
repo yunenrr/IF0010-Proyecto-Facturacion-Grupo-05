@@ -1,14 +1,19 @@
-USE [FACTURACION_SA];
+USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF EXISTS (SELECT 1 FROM [sys].[objects] WHERE [name] = 'pr_InsertarCanton' AND [type] = 'P')
+IF EXISTS (
+    SELECT 1
+    FROM sys.objects
+    WHERE name = 'pr_InsertarCanton'
+        AND type = 'P'
+)
 BEGIN
-    DROP PROCEDURE [dbo].[pr_InsertarCanton];
+    DROP PROCEDURE dbo.pr_InsertarCanton;
 END;
 GO
 
-CREATE PROCEDURE [dbo].[pr_InsertarCanton] (
+CREATE PROCEDURE dbo.pr_InsertarCanton (
     @NOMBRE VARCHAR(30),
     @DETALLE_CANTON VARCHAR(100),
     @CODIGO_ERROR INT OUTPUT,
@@ -25,14 +30,15 @@ BEGIN
         BEGIN TRANSACTION;
 
         -- Validacion de parametros nulos
-        IF @NOMBRE IS NULL OR @DETALLE_CANTON IS NULL
+        IF @NOMBRE IS NULL
+            OR @DETALLE_CANTON IS NULL
         BEGIN;
             THROW 50100, 'Parametros nulos', 1;
         END;
 
-        INSERT INTO [dbo].[CANTON] (
-            [NOMBRE],
-            [DETALLE_CANTON]
+        INSERT INTO dbo.CANTON (
+            NOMBRE,
+            DETALLE_CANTON
         )
         VALUES (
             @NOMBRE,
