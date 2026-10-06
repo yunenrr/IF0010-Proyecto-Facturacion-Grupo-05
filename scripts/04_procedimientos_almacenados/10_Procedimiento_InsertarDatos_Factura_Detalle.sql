@@ -2,11 +2,11 @@ USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF 
-    EXISTS (
-        SELECT 1
-        FROM SYS.OBJECTS
-        WHERE NAME = 'pr_EmitirFactura'
+IF EXISTS (
+    SELECT 1
+    FROM SYS.OBJECTS
+    WHERE
+        NAME = 'PR_EMITIRFACTURA'
         AND TYPE = 'P'
 )
 BEGIN
@@ -96,13 +96,14 @@ BEGIN
 
         CALCULOLINEABASE AS (
             SELECT
-                NUMEROLINEA.LINEA,
+                NUMEROLINEA.LINEA AS LINEA,
                 (
                     ((@NUMERO_CONSECUTIVO * 5 + NUMEROLINEA.LINEA) - 1) % 1000
                 ) + 1 AS IDPROD,
                 ((@NUMERO_CONSECUTIVO + NUMEROLINEA.LINEA) % 5) + 1 AS CANT
             FROM NUMEROLINEA
         )
+
         INSERT INTO DBO.DETALLE_FACTURA (
             ID_FACTURA,
             NUMERO_LINEA,
