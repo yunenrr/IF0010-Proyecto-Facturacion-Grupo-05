@@ -22,7 +22,7 @@ BEGIN
         'ANULADA',
         'PENDIENTE'
     );
-    
+
     SET @USUARIO = CHOOSE(
         (@FACTURA % 3) + 1,
         'admin_sistema',
@@ -31,7 +31,7 @@ BEGIN
     );
 
     -- Insercion del registro de trazabilidad
-    EXEC dbo.pr_InsertarHistorial
+    EXEC DBO.PR_INSERTARHISTORIAL
         @ID_FACTURA = @FACTURA,
         @ID_REGISTRO_AFECTADO = @FACTURA,
         @OPERACION_REALIZADA = 'INSERT',
