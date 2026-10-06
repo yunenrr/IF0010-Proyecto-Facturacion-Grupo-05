@@ -33,8 +33,12 @@ BEGIN
             THROW 50100, 'El parametro obligatorio no puede ser nulo', 1;
         END;
 
-        INSERT INTO DBO.DOCUMENTO (DESCRIPCION)
-        VALUES (@DESCRIPCION);
+        INSERT INTO DBO.DOCUMENTO (
+            DESCRIPCION
+        )
+        VALUES (
+            @DESCRIPCION
+        );
 
         COMMIT TRANSACTION;
     END TRY
