@@ -1,14 +1,19 @@
-USE [FACTURACION_SA];
+USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF EXISTS (SELECT 1 FROM [sys].[objects] WHERE [name] = 'pr_ActualizarExistenciasProducto' AND [type] = 'P')
+IF EXISTS (
+    SELECT 1
+    FROM sys.objects
+    WHERE name = 'pr_ActualizarExistenciasProducto'
+        AND type = 'P'
+)
 BEGIN
-    DROP PROCEDURE [dbo].[pr_ActualizarExistenciasProducto];
+    DROP PROCEDURE dbo.pr_ActualizarExistenciasProducto;
 END;
 GO
 
-CREATE PROCEDURE [dbo].[pr_ActualizarExistenciasProducto] (
+CREATE PROCEDURE dbo.pr_ActualizarExistenciasProducto (
     @ID_PRODUCTO INT,
     @CANTIDAD_AJUSTE INT,
     @CODIGO_ERROR INT OUTPUT,
@@ -36,26 +41,33 @@ BEGIN
         END;
 
         -- Validar que el producto exista en el catalogo
-        IF NOT EXISTS (SELECT 1 FROM [dbo].[PRODUCTO] AS [P] WHERE @ID_PRODUCTO = [P].[ID])
+        IF NOT EXISTS (
+            SELECT 1
+            FROM dbo.PRODUCTO AS P
+            WHERE @ID_PRODUCTO = P.ID
+        )
         BEGIN;
             THROW 50004, 'El producto no se encuentra registrado', 1;
         END;
 
         -- Extraer el stock actual para aplicar la regla de negocio
         DECLARE @EXISTENCIAS_ACTUALES INT;
-        SELECT @EXISTENCIAS_ACTUALES = [EXISTENCIAS] FROM [dbo].[PRODUCTO] WHERE [ID] = @ID_PRODUCTO;
+        
+        SELECT @EXISTENCIAS_ACTUALES = EXISTENCIAS 
+        FROM dbo.PRODUCTO 
+        WHERE ID = @ID_PRODUCTO;
 
         -- Validar que el ajuste no deje el inventario en negativo
         IF (@EXISTENCIAS_ACTUALES + @CANTIDAD_AJUSTE) < 0
         BEGIN;
-            THROW 50011, 'Operacion invalida: Las existencias resultantes no pueden ser menores a cero', 1;
+            THROW 50011, 'Las existencias no pueden quedar en negativo', 1;
         END;
 
         -- Actualizar el inventario sumando o restando 
-        UPDATE [dbo].[PRODUCTO] 
+        UPDATE dbo.PRODUCTO 
         SET 
-            [EXISTENCIAS] = [EXISTENCIAS] + @CANTIDAD_AJUSTE
-        WHERE [ID] = @ID_PRODUCTO;
+            EXISTENCIAS = EXISTENCIAS + @CANTIDAD_AJUSTE
+        WHERE ID = @ID_PRODUCTO;
 
         COMMIT TRANSACTION;
     END TRY
