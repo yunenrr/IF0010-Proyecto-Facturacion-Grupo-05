@@ -10,9 +10,9 @@ IF
             NAME = 'pr_InsertarCanton'
             AND TYPE = 'P'
     )
-        BEGIN
-            DROP PROCEDURE DBO.PR_INSERTARCANTON;
-        END;
+    BEGIN
+        DROP PROCEDURE DBO.PR_INSERTARCANTON;
+    END;
 GO
 
 CREATE PROCEDURE DBO.PR_INSERTARCANTON (
@@ -35,9 +35,9 @@ BEGIN
         IF
             @NOMBRE IS NULL
             OR @DETALLE_CANTON IS NULL
-                BEGIN
-                    THROW 50100, 'Parametros nulos', 1;
-                END;
+            BEGIN
+                THROW 50100, 'Parametros nulos', 1;
+            END;
 
         INSERT INTO DBO.CANTON (
             NOMBRE,
