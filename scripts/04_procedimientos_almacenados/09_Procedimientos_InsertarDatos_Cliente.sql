@@ -35,7 +35,7 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        -- Validacion de parametros nulos
+        -- Validaciones de parametros nulos
         IF @CEDULA IS NULL
             OR @TELEFONO IS NULL
             OR @NOMBRE IS NULL
