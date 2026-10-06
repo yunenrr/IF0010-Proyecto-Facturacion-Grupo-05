@@ -29,7 +29,11 @@ WHILE @PASO <= 1000
                 SET @IMPUESTO = 10.0;
                 SET @EXISTENCIAS = 5;
                 SET @TIPO = 'FISICO';
-                SET @FECHA_VENCIMIENTO = DATEADD(DAY, 30 + (@PASO % 150), GETDATE());
+                SET @FECHA_VENCIMIENTO = DATEADD(
+                    DAY,
+                    30 + (@PASO % 150),
+                    GETDATE()
+                );
             END
         ELSE IF (@PASO % 5 = 1)
             BEGIN
@@ -38,7 +42,11 @@ WHILE @PASO <= 1000
                 SET @IMPUESTO = 12.0;
                 SET @EXISTENCIAS = 3;
                 SET @TIPO = 'DIGITAL';
-                SET @FECHA_VENCIMIENTO = DATEADD(DAY, 30 + (@PASO % 250), GETDATE());
+                SET @FECHA_VENCIMIENTO = DATEADD(
+                    DAY,
+                    30 + (@PASO % 250),
+                    GETDATE()
+                );
             END
         ELSE IF (@PASO % 5 = 2)
             BEGIN
@@ -47,7 +55,11 @@ WHILE @PASO <= 1000
                 SET @IMPUESTO = 4.0;
                 SET @EXISTENCIAS = 12;
                 SET @TIPO = 'FISICO';
-                SET @FECHA_VENCIMIENTO = DATEADD(DAY, 30 + (@PASO % 200), GETDATE());
+                SET @FECHA_VENCIMIENTO = DATEADD(
+                    DAY,
+                    30 + (@PASO % 200),
+                    GETDATE()
+                );
             END
         ELSE IF (@PASO % 5 = 3)
             BEGIN
@@ -56,7 +68,11 @@ WHILE @PASO <= 1000
                 SET @IMPUESTO = 8.0;
                 SET @EXISTENCIAS = 7;
                 SET @TIPO = 'DIGITAL';
-                SET @FECHA_VENCIMIENTO = DATEADD(DAY, 30 + (@PASO % 300), GETDATE());
+                SET @FECHA_VENCIMIENTO = DATEADD(
+                    DAY,
+                    30 + (@PASO % 300),
+                    GETDATE()
+                );
             END
         ELSE IF (@PASO % 5 = 4)
             BEGIN
@@ -65,7 +81,11 @@ WHILE @PASO <= 1000
                 SET @IMPUESTO = 2.0;
                 SET @EXISTENCIAS = 8;
                 SET @TIPO = 'FISICO';
-                SET @FECHA_VENCIMIENTO = DATEADD(DAY, 30 + (@PASO % 500), GETDATE());
+                SET @FECHA_VENCIMIENTO = DATEADD(
+                    DAY,
+                    30 + (@PASO % 500),
+                    GETDATE()
+                );
             END;
 
         EXEC DBO.PR_INSERTARPRODUCTO
