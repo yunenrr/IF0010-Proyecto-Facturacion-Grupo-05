@@ -4,16 +4,16 @@ GO
 -- INICIO
 IF EXISTS (
     SELECT 1
-    FROM sys.objects
-    WHERE name = 'pr_InsertarDireccion'
-        AND type = 'P'
+    FROM SYS.OBJECTS
+    WHERE NAME = 'pr_InsertarDireccion'
+        AND TYPE = 'P'
 )
 BEGIN
-    DROP PROCEDURE dbo.pr_InsertarDireccion;
+    DROP PROCEDURE DBO.PR_INSERTARDIRECCION;
 END;
 GO
 
-CREATE PROCEDURE dbo.pr_InsertarDireccion (
+CREATE PROCEDURE DBO.PR_INSERTARDIRECCION (
     @ID_PROVINCIA INT,
     @ID_CANTON INT,
     @ID_DISTRITO INT,
@@ -40,7 +40,7 @@ BEGIN
             THROW 50100, 'Parametros nulos', 1;
         END;
 
-        INSERT INTO dbo.DIRECCION (
+        INSERT INTO DBO.DIRECCION (
             ID_PROVINCIA,
             ID_CANTON,
             ID_DISTRITO,
