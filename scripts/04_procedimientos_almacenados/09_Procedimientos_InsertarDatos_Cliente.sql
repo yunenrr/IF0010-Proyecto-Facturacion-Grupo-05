@@ -2,11 +2,11 @@ USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF 
-    EXISTS (
-        SELECT 1
-        FROM SYS.OBJECTS
-        WHERE NAME = 'pr_InsertarCliente'
+IF EXISTS (
+    SELECT 1
+    FROM SYS.OBJECTS
+    WHERE
+        NAME = 'PR_INSERTARCLIENTE'
         AND TYPE = 'P'
 )
 BEGIN
@@ -37,7 +37,7 @@ BEGIN
         BEGIN TRANSACTION;
 
         -- Validaciones de parametros nulos
-        IF 
+        IF
             @CEDULA IS NULL
             OR @TELEFONO IS NULL
             OR @NOMBRE IS NULL
@@ -77,7 +77,7 @@ BEGIN
 
         SET @CODIGO_ERROR = ERROR_NUMBER();
         SET @MENSAJE_ERROR = ERROR_MESSAGE();
-    END CATCH
+    END CATCH;
 END;
 GO
 -- FIN
