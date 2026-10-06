@@ -2,18 +2,20 @@ USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF EXISTS (
-    SELECT 1
-    FROM SYS.OBJECTS
-    WHERE NAME = 'pr_InsertarDireccion'
-        AND TYPE = 'P'
-)
+IF
+    EXISTS (
+        SELECT 1
+        FROM sys.objects
+        WHERE
+            name = 'pr_InsertarDireccion'
+            AND type = 'P'
+    )
 BEGIN
-    DROP PROCEDURE DBO.PR_INSERTARDIRECCION;
+    DROP PROCEDURE dbo.pr_InsertarDireccion;
 END;
 GO
 
-CREATE PROCEDURE DBO.PR_INSERTARDIRECCION (
+CREATE PROCEDURE dbo.pr_InsertarDireccion (
     @ID_PROVINCIA INT,
     @ID_CANTON INT,
     @ID_DISTRITO INT,
@@ -31,16 +33,17 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        -- Validar de parametros nulos
-        IF @ID_PROVINCIA IS NULL
+        -- Validación de parámetros nulos
+        IF 
+            @ID_PROVINCIA IS NULL
             OR @ID_CANTON IS NULL
             OR @ID_DISTRITO IS NULL
             OR @DETALLE_DIRECCION IS NULL
         BEGIN;
-            THROW 50100, 'Parametros nulos', 1;
-        END;
+            THROW 50100, 'Parámetros nulos', 1;
+        END
 
-        INSERT INTO DBO.DIRECCION (
+        INSERT INTO dbo.DIRECCION (
             ID_PROVINCIA,
             ID_CANTON,
             ID_DISTRITO,
@@ -59,7 +62,7 @@ BEGIN
         IF XACT_STATE() <> 0
         BEGIN
             ROLLBACK TRANSACTION;
-        END;
+        END
 
         SET @CODIGO_ERROR = ERROR_NUMBER();
         SET @MENSAJE_ERROR = ERROR_MESSAGE();
