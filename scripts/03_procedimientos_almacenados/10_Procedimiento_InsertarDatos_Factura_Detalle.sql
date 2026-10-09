@@ -27,6 +27,7 @@ BEGIN
     SET @MENSAJE_ERROR = 'Exitoso';
     DECLARE @IDFACTURA INT;
     DECLARE @LINEASTOTALES INT = ((@NUMERO_CONSECUTIVO % 3) + 3);
+    DECLARE @BASEPROD INT = @NUMERO_CONSECUTIVO * 5;
     BEGIN TRY
         INSERT INTO DBO.FACTURA (
             NUMERO_CONSECUTIVO,
@@ -61,29 +62,6 @@ BEGIN
             @CODIGO_DOCUMENTO
         );
         SET @IDFACTURA = SCOPE_IDENTITY();
-        WITH NUMEROLINEA AS (
-            SELECT V.LINEA
-            FROM (VALUES (1), (2), (3), (4), (5)) AS V(LINEA)
-            WHERE V.LINEA <= @LINEASTOTALES
-        ),
-        CALCULOSDETALLE AS (
-            SELECT
-                NL.LINEA AS NUMERO_LINEA,
-                ((@NUMERO_CONSECUTIVO * 5 + NL.LINEA - 1) % 1000) + 1 AS IDPROD,
-                ((@NUMERO_CONSECUTIVO + NL.LINEA) % 5) + 1 AS CANT
-            FROM NUMEROLINEA AS NL
-        ),
-        LINEASPRODUCTO AS (
-            SELECT
-                CD.NUMERO_LINEA,
-                CD.IDPROD,
-                CD.CANT,
-                ISNULL(P.PRECIO_UNITARIO, 1000.00) AS PRECIO,
-                ISNULL(P.PORCENTAJE_IMPUESTO, 13.00) AS PORCENTAJE
-            FROM CALCULOSDETALLE AS CD
-            LEFT JOIN DBO.PRODUCTO AS P
-                ON CD.IDPROD = P.ID
-        )
         INSERT INTO DBO.DETALLE_FACTURA (
             ID_FACTURA,
             NUMERO_LINEA,
@@ -105,8 +83,31 @@ BEGIN
             LP.PRECIO * LP.CANT AS MONTO_SUBTOTAL,
             LP.PRECIO * LP.CANT * (LP.PORCENTAJE / 100.0) AS MONTO_IMPUESTO,
             'Detalle generado automaticamente' AS DESCRIPCION
-        FROM LINEASPRODUCTO AS LP;
-        WITH TOTALESDETALLE AS (
+        FROM (
+            SELECT
+                CD.NUMERO_LINEA,
+                CD.IDPROD,
+                CD.CANT,
+                ISNULL(P.PRECIO_UNITARIO, 1000.00) AS PRECIO,
+                ISNULL(P.PORCENTAJE_IMPUESTO, 13.00) AS PORCENTAJE
+            FROM (
+                SELECT
+                    V.LINEA AS NUMERO_LINEA,
+                    ((@BASEPROD + V.LINEA - 1) % 1000) + 1 AS IDPROD,
+                    ((@NUMERO_CONSECUTIVO + V.LINEA) % 5) + 1 AS CANT
+                FROM (VALUES (1), (2), (3), (4), (5)) AS V(LINEA)
+                WHERE V.LINEA <= @LINEASTOTALES
+            ) AS CD
+            LEFT JOIN DBO.PRODUCTO AS P
+                ON CD.IDPROD = P.ID
+        ) AS LP;
+        UPDATE F
+        SET
+            SUBTOTAL = TD.SUBTOTALSUM,
+            TOTAL_IMPUESTO = TD.IMPUESTOSUM,
+            MONTO_TOTAL = TD.SUBTOTALSUM - F.TOTAL_DESCUENTO + TD.IMPUESTOSUM
+        FROM DBO.FACTURA AS F
+        INNER JOIN (
             SELECT
                 DF.ID_FACTURA,
                 SUM(DF.MONTO_SUBTOTAL) AS SUBTOTALSUM,
@@ -116,14 +117,7 @@ BEGIN
                 DF.ID_FACTURA = @IDFACTURA
             GROUP BY
                 DF.ID_FACTURA
-        )
-        UPDATE F
-        SET
-            SUBTOTAL = TD.SUBTOTALSUM,
-            TOTAL_IMPUESTO = TD.IMPUESTOSUM,
-            MONTO_TOTAL = TD.SUBTOTALSUM - F.TOTAL_DESCUENTO + TD.IMPUESTOSUM
-        FROM DBO.FACTURA AS F
-        INNER JOIN TOTALESDETALLE AS TD
+        ) AS TD
             ON F.ID = TD.ID_FACTURA;
     END TRY
     BEGIN CATCH
