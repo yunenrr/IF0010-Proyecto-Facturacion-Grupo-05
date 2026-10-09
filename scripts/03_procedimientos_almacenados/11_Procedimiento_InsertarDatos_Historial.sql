@@ -43,10 +43,10 @@ BEGIN
             OR @TABLA_AFECTADA IS NULL
             OR @USUARIO_RESPONSABLE IS NULL
         BEGIN;
-            THROW 50010, 'Los parametros obligatorios no pueden ser nulos', 1; -- noqa: LT05
+            THROW 50010, 'Los parametros obligatorios no pueden ser nulos', 1;
         END;
 
-        -- Validacion de Idempotencia para bitacora (evitar duplicar el mismo evento exacto)
+        -- Validacion de duplicado
         IF EXISTS (
             SELECT 1
             FROM DBO.HISTORIAL
