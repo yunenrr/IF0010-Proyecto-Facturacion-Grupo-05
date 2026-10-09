@@ -45,7 +45,7 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        -- Validacion de nulos unificada
+        -- Validacion de nulos
         IF @NUMERO_CONSECUTIVO IS NULL
             OR @CODIGO_MONEDA IS NULL
             OR @ID_ESTADO_FACTURA IS NULL
@@ -57,7 +57,7 @@ BEGIN
             OR @PORCENTAJE_DESCUENTO IS NULL
             OR @USUARIO_RESPONSABLE IS NULL
         BEGIN;
-            THROW 50010, 'Los parametros obligatorios no pueden ser nulos', 1; -- noqa: LT05
+            THROW 50010, 'Los parametros obligatorios no pueden ser nulos', 1;
         END;
 
         IF @CANTIDAD <= 0
@@ -65,7 +65,7 @@ BEGIN
             THROW 50011, 'La cantidad del producto debe ser mayor a cero', 1;
         END;
 
-        -- Idempotencia: Validar que el consecutivo de factura no exista ya
+        --Validar que el consecutivo de factura no exista ya
         IF EXISTS (
             SELECT 1
             FROM DBO.FACTURA
@@ -75,7 +75,7 @@ BEGIN
             THROW 50101, 'La factura ya se encuentra registrada con ese consecutivo', 1;
         END;
 
-        -- Validaciones de Integridad Referencial
+        -- Validaciones de Integridad
         IF NOT EXISTS (
             SELECT 1
             FROM DBO.MONEDA
@@ -112,7 +112,7 @@ BEGIN
             THROW 50007, 'El producto no se encuentra registrado', 1;
         END;
 
-        -- Extraccion de datos del producto (CON BLOQUEO DE CONCURRENCIA)
+        -- Extraccion de datos del producto
         DECLARE @PRECIO_UNITARIO DECIMAL(18, 2);
         DECLARE @PORCENTAJE_IMPUESTO DECIMAL(5, 2);
         DECLARE @EXISTENCIAS_ACTUALES INT;
@@ -168,7 +168,7 @@ BEGIN
             CAST(GETDATE() AS DATE),
             CAST(GETDATE() AS DATE),
             @MONTO_SUBTOTAL,
-            @MONTO_DESCUENTO_CALCULADO, -- CORRECCION DEL BUG (Antes decia @PORCENTAJE_DESCUENTO)
+            @MONTO_DESCUENTO_CALCULADO,
             @MONTO_IMPUESTO_CALCULADO,
             @MONTO_TOTAL_FACTURA,
             ISNULL(@OBSERVACIONES, 'N/A'),
@@ -213,7 +213,7 @@ BEGIN
             EXISTENCIAS = EXISTENCIAS - @CANTIDAD
         WHERE ID = @ID_PRODUCTO;
 
-        -- Registro de Auditoria en la tabla Historial
+        -- Registro en la tabla Historial
         DECLARE @NOMBRE_ESTADO VARCHAR(25);
 
         SELECT @NOMBRE_ESTADO = ESTADO_FACTURA
