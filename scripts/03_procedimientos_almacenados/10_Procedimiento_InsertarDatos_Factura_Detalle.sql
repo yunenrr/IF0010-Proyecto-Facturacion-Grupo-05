@@ -71,7 +71,7 @@ BEGIN
  
         WITH NUMEROLINEA AS (
             SELECT V.LINEA
-            FROM (VALUES (1), (2), (3), (4), (5)) AS V (LINEA)
+            FROM (VALUES (1), (2), (3), (4), (5)) AS V(LINEA)
             WHERE V.LINEA <= @LINEASTOTALES
         ),
  
