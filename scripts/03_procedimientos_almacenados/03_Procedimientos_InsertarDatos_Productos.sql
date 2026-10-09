@@ -49,7 +49,7 @@ BEGIN
             THROW 50100, 'Parametros obligatorios no pueden ser nulos', 1;
         END;
 
-        -- Validaciones de negocio (reemplazan los CHECK constraints de la tabla)
+        -- Validaciones de negocio
         IF @EXISTENCIAS < 0
         BEGIN;
             THROW 50101, 'Las existencias no pueden ser menores a cero', 1;
