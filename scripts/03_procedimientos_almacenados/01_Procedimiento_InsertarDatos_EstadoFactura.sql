@@ -2,15 +2,17 @@ USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF EXISTS (
-    SELECT 1
-    FROM SYS.OBJECTS
-    WHERE NAME = 'pr_InsertarEstadoFactura'
-        AND TYPE = 'P'
-)
-BEGIN
-    DROP PROCEDURE DBO.PR_INSERTARESTADOFACTURA;
-END;
+IF
+    EXISTS (
+        SELECT 1
+        FROM SYS.OBJECTS
+        WHERE
+            NAME = 'pr_InsertarEstadoFactura'
+            AND TYPE = 'P'
+    )
+    BEGIN
+        DROP PROCEDURE DBO.PR_INSERTARESTADOFACTURA;
+    END;
 GO
 
 CREATE PROCEDURE DBO.PR_INSERTARESTADOFACTURA (
@@ -30,21 +32,24 @@ BEGIN
         BEGIN TRANSACTION;
 
         -- Validar parametros nulos
-        IF @ESTADO_FACTURA IS NULL
+        IF
+            @ESTADO_FACTURA IS NULL
             OR @DESCRIPCION IS NULL
-        BEGIN;
-            THROW 50100, 'Los parametros obligatorios no pueden ser nulos', 1;
-        END;
+            BEGIN
+                THROW 50100, 'Los parametros obligatorios no pueden ser nulos', 1;
+            END;
 
         -- Validacion para evitar registros duplicados
-        IF EXISTS (
-            SELECT 1
-            FROM DBO.ESTADO_FACTURA
-            WHERE ESTADO_FACTURA = @ESTADO_FACTURA
-        )
-        BEGIN;
-            THROW 50101, 'El estado de factura ya se encuentra registrado', 1;
-        END;
+        IF
+            EXISTS (
+                SELECT 1
+                FROM DBO.ESTADO_FACTURA
+                WHERE
+                    ESTADO_FACTURA = @ESTADO_FACTURA
+            )
+            BEGIN
+                THROW 50101, 'El estado de factura ya se encuentra registrado', 1;
+            END;
 
         INSERT INTO DBO.ESTADO_FACTURA (
             ESTADO_FACTURA,
@@ -59,9 +64,9 @@ BEGIN
     END TRY
     BEGIN CATCH
         IF XACT_STATE() <> 0
-        BEGIN
-            ROLLBACK TRANSACTION;
-        END;
+            BEGIN
+                ROLLBACK TRANSACTION;
+            END;
 
         SET @CODIGO_ERROR = ERROR_NUMBER();
         SET @MENSAJE_ERROR = ERROR_MESSAGE();
