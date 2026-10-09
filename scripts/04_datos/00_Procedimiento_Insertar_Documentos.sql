@@ -5,7 +5,7 @@ GO
 DECLARE @CODIGOERROR INT;
 DECLARE @MENSAJEERROR VARCHAR(100);
 
--- Evitar duplicados validando la existencia previa del documento
+-- Evitar duplicados
 IF NOT EXISTS (
     SELECT 1
     FROM DBO.DOCUMENTO
