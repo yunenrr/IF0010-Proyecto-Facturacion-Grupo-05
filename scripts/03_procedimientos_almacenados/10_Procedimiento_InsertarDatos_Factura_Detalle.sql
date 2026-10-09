@@ -91,6 +91,16 @@ BEGIN
             UNION ALL
             SELECT 5 AS LINEA
             WHERE @LINEASTOTALES >= 5
+        ),
+
+        CALCULOSDETALLE AS (
+            SELECT
+                NL.LINEA AS NUMERO_LINEA,
+                ((((@NUMERO_CONSECUTIVO * 5 + NL.LINEA) - 1) % 1000) + 1)
+                    AS IDPROD,
+                (((@NUMERO_CONSECUTIVO + NL.LINEA) % 5) + 1)
+                    AS CANT
+            FROM NUMEROLINEA AS NL
         )
 
         INSERT INTO DBO.DETALLE_FACTURA (
@@ -106,30 +116,22 @@ BEGIN
         )
         SELECT
             @IDFACTURA AS ID_FACTURA,
-            NL.LINEA AS NUMERO_LINEA,
-            CL.IDPROD AS ID_PRODUCTO,
-            CL.CANT AS CANTIDAD,
+            CD.NUMERO_LINEA AS NUMERO_LINEA,
+            CD.IDPROD AS ID_PRODUCTO,
+            CD.CANT AS CANTIDAD,
             ISNULL(P.PRECIO_UNITARIO, 1000.00) AS PRECIO_UNITARIO_VENTA,
             ROUND((@TOTAL_DESCUENTO / @LINEASTOTALES), 2) AS MONTO_DESCUENTO,
-            (ISNULL(P.PRECIO_UNITARIO, 1000.00) * CL.CANT)
+            (ISNULL(P.PRECIO_UNITARIO, 1000.00) * CD.CANT)
                 AS MONTO_SUBTOTAL,
             (
-                (ISNULL(P.PRECIO_UNITARIO, 1000.00) * CL.CANT)
+                (ISNULL(P.PRECIO_UNITARIO, 1000.00) * CD.CANT)
                 * (ISNULL(P.PORCENTAJE_IMPUESTO, 13.00) / 100.0)
             )
                 AS MONTO_IMPUESTO,
             'Detalle generado automaticamente' AS DESCRIPCION
-        FROM NUMEROLINEA AS NL
-        CROSS APPLY (
-            SELECT
-                (
-                    (((@NUMERO_CONSECUTIVO * 5 + NL.LINEA) - 1) % 1000)
-                    + 1
-                ) AS IDPROD,
-                (((@NUMERO_CONSECUTIVO + NL.LINEA) % 5) + 1) AS CANT
-        ) AS CL
+        FROM CALCULOSDETALLE AS CD
         LEFT JOIN DBO.PRODUCTO AS P
-            ON CL.IDPROD = P.ID;
+            ON CD.IDPROD = P.ID;
 
         WITH TOTALESDETALLE AS (
             SELECT
