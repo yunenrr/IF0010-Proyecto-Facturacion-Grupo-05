@@ -1,13 +1,14 @@
 USE FACTURACION_SA;
 GO
 
-IF EXISTS (
-    SELECT 1
-    FROM SYS.OBJECTS
-    WHERE
-        NAME = 'PR_EMITIRFACTURA'
-        AND TYPE = 'P'
-)
+IF
+    EXISTS (
+        SELECT 1
+        FROM SYS.OBJECTS
+        WHERE
+            NAME = 'PR_EMITIRFACTURA'
+            AND TYPE = 'P'
+    )
 BEGIN
     DROP PROCEDURE DBO.PR_EMITIRFACTURA;
 END;
@@ -90,6 +91,18 @@ BEGIN
             UNION ALL
             SELECT 5 AS LINEA
             WHERE @LINEASTOTALES >= 5
+        ),
+
+        TOTALESDETALLE AS (
+            SELECT
+                DF.ID_FACTURA,
+                SUM(DF.MONTO_SUBTOTAL) AS SUBTOTALSUM,
+                SUM(DF.MONTO_IMPUESTO) AS IMPUESTOSUM
+            FROM DBO.DETALLE_FACTURA AS DF
+            WHERE
+                DF.ID_FACTURA = @IDFACTURA
+            GROUP BY
+                DF.ID_FACTURA
         )
 
         INSERT INTO DBO.DETALLE_FACTURA (
@@ -104,7 +117,7 @@ BEGIN
             DESCRIPCION
         )
         SELECT
-            @IDFACTURA AS ID_FACTURA,
+            @IDFACTURA,
             NL.LINEA AS NUMERO_LINEA,
             CL.IDPROD AS ID_PRODUCTO,
             CL.CANT AS CANTIDAD,
@@ -112,30 +125,27 @@ BEGIN
             ROUND((@TOTAL_DESCUENTO / @LINEASTOTALES), 2) AS MONTO_DESCUENTO,
             (ISNULL(P.PRECIO_UNITARIO, 1000.00) * CL.CANT)
                 AS MONTO_SUBTOTAL,
-            ((ISNULL(P.PRECIO_UNITARIO, 1000.00) * CL.CANT)
-            * (ISNULL(P.PORCENTAJE_IMPUESTO, 13.00) / 100.0))
+            (
+                (ISNULL(P.PRECIO_UNITARIO, 1000.00) * CL.CANT)
+                * (ISNULL(P.PORCENTAJE_IMPUESTO, 13.00) / 100.0)
+            )
                 AS MONTO_IMPUESTO,
             'Detalle generado automaticamente' AS DESCRIPCION
         FROM NUMEROLINEA AS NL
         CROSS APPLY (
             SELECT
-                ((((@NUMERO_CONSECUTIVO * 5 + NL.LINEA) - 1) % 1000) + 1)
-                    AS IDPROD,
-                (((@NUMERO_CONSECUTIVO + NL.LINEA) % 5) + 1)
-                    AS CANT
+                (
+                    (((@NUMERO_CONSECUTIVO * 5 + NL.LINEA) - 1) % 1000)
+                    + 1
+                ) AS IDPROD,
+                (((@NUMERO_CONSECUTIVO + NL.LINEA) % 5) + 1) AS CANT
         ) AS CL
         LEFT JOIN DBO.PRODUCTO AS P
-            ON P.ID = CL.IDPROD;
+            ON CL.IDPROD = P.ID;
 
-        UPDATE F
-        SET
-            SUBTOTAL = TD.SUBTOTALSUM,
-            TOTAL_IMPUESTO = TD.IMPUESTOSUM,
-            MONTO_TOTAL = TD.SUBTOTALSUM - F.TOTAL_DESCUENTO + TD.IMPUESTOSUM
-        FROM DBO.FACTURA AS F
-        INNER JOIN (
+        WITH TOTALESDETALLE AS (
             SELECT
-                DF.ID_FACTURA AS ID_FACTURA,
+                DF.ID_FACTURA,
                 SUM(DF.MONTO_SUBTOTAL) AS SUBTOTALSUM,
                 SUM(DF.MONTO_IMPUESTO) AS IMPUESTOSUM
             FROM DBO.DETALLE_FACTURA AS DF
@@ -143,7 +153,15 @@ BEGIN
                 DF.ID_FACTURA = @IDFACTURA
             GROUP BY
                 DF.ID_FACTURA
-        ) AS TD
+        )
+
+        UPDATE F
+        SET
+            SUBTOTAL = TD.SUBTOTALSUM,
+            TOTAL_IMPUESTO = TD.IMPUESTOSUM,
+            MONTO_TOTAL = TD.SUBTOTALSUM - F.TOTAL_DESCUENTO + TD.IMPUESTOSUM
+        FROM DBO.FACTURA AS F
+        INNER JOIN TOTALESDETALLE AS TD
             ON F.ID = TD.ID_FACTURA;
 
     END TRY
