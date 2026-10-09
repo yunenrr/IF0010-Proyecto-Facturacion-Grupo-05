@@ -2,15 +2,17 @@ USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF EXISTS (
-    SELECT 1
-    FROM SYS.OBJECTS
-    WHERE NAME = 'pr_InsertarMoneda'
-        AND TYPE = 'P'
-)
-BEGIN
-    DROP PROCEDURE DBO.PR_INSERTARMONEDA;
-END;
+IF
+    EXISTS (
+        SELECT 1
+        FROM SYS.OBJECTS
+        WHERE
+            NAME = 'pr_InsertarMoneda'
+            AND TYPE = 'P'
+    )
+    BEGIN
+        DROP PROCEDURE DBO.PR_INSERTARMONEDA;
+    END;
 GO
 
 CREATE PROCEDURE DBO.PR_INSERTARMONEDA (
@@ -31,22 +33,25 @@ BEGIN
         BEGIN TRANSACTION;
 
         -- Validar parametros nulos
-        IF @CODIGO IS NULL
+        IF
+            @CODIGO IS NULL
             OR @DESCRIPCION IS NULL
             OR @SIMBOLO IS NULL
-        BEGIN;
-            THROW 50100, 'Los parametros obligatorios no pueden ser nulos', 1;
-        END;
+            BEGIN
+                THROW 50100, 'Los parametros obligatorios no pueden ser nulos', 1;
+            END;
 
         -- Validacion para evitar registros duplicados
-        IF EXISTS (
-            SELECT 1
-            FROM DBO.MONEDA
-            WHERE CODIGO = @CODIGO
-        )
-        BEGIN;
-            THROW 50101, 'La moneda ya se encuentra registrada', 1;
-        END;
+        IF
+            EXISTS (
+                SELECT 1
+                FROM DBO.MONEDA
+                WHERE
+                    CODIGO = @CODIGO
+            )
+            BEGIN
+                THROW 50101, 'La moneda ya se encuentra registrada', 1;
+            END;
 
         INSERT INTO DBO.MONEDA (
             CODIGO,
@@ -63,9 +68,9 @@ BEGIN
     END TRY
     BEGIN CATCH
         IF XACT_STATE() <> 0
-        BEGIN
-            ROLLBACK TRANSACTION;
-        END;
+            BEGIN
+                ROLLBACK TRANSACTION;
+            END;
 
         SET @CODIGO_ERROR = ERROR_NUMBER();
         SET @MENSAJE_ERROR = ERROR_MESSAGE();
