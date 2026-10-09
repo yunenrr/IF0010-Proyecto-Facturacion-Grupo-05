@@ -2,17 +2,15 @@ USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF
-    EXISTS (
-        SELECT 1
-        FROM SYS.OBJECTS
-        WHERE
-            NAME = 'pr_InsertarDistrito'
-            AND TYPE = 'P'
-    )
-    BEGIN
-        DROP PROCEDURE DBO.PR_INSERTARDISTRITO;
-    END;
+IF EXISTS (
+    SELECT 1
+    FROM SYS.OBJECTS
+    WHERE NAME = 'pr_InsertarDistrito'
+        AND TYPE = 'P'
+)
+BEGIN
+    DROP PROCEDURE DBO.PR_INSERTARDISTRITO;
+END;
 GO
 
 CREATE PROCEDURE DBO.PR_INSERTARDISTRITO (
@@ -32,12 +30,21 @@ BEGIN
         BEGIN TRANSACTION;
 
         -- Validar de parametros nulos
-        IF
-            @NOMBRE IS NULL
+        IF @NOMBRE IS NULL
             OR @DETALLE_DISTRITO IS NULL
-            BEGIN
-                THROW 50100, 'Parametros nulos', 1;
-            END;
+        BEGIN;
+            THROW 50100, 'Parametros nulos', 1;
+        END;
+
+        -- Validacion para evitar registros duplicados
+        IF EXISTS (
+            SELECT 1
+            FROM DBO.DISTRITO
+            WHERE NOMBRE = @NOMBRE
+        )
+        BEGIN;
+            THROW 50101, 'El distrito ya se encuentra registrado', 1;
+        END;
 
         INSERT INTO DBO.DISTRITO (
             NOMBRE,
@@ -52,9 +59,9 @@ BEGIN
     END TRY
     BEGIN CATCH
         IF XACT_STATE() <> 0
-            BEGIN
-                ROLLBACK TRANSACTION;
-            END;
+        BEGIN
+            ROLLBACK TRANSACTION;
+        END;
 
         SET @CODIGO_ERROR = ERROR_NUMBER();
         SET @MENSAJE_ERROR = ERROR_MESSAGE();
