@@ -2,15 +2,17 @@ USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF EXISTS (
-    SELECT 1
-    FROM SYS.OBJECTS
-    WHERE NAME = 'PR_INSERTARHISTORIAL'
-        AND TYPE = 'P'
-)
-BEGIN
-    DROP PROCEDURE DBO.PR_INSERTARHISTORIAL;
-END;
+IF
+    EXISTS (
+        SELECT 1
+        FROM SYS.OBJECTS
+        WHERE
+            NAME = 'PR_INSERTARHISTORIAL'
+            AND TYPE = 'P'
+    )
+    BEGIN
+        DROP PROCEDURE DBO.PR_INSERTARHISTORIAL;
+    END;
 GO
 
 CREATE PROCEDURE DBO.PR_INSERTARHISTORIAL (
@@ -37,29 +39,36 @@ BEGIN
         BEGIN TRANSACTION;
 
         -- Validaciones de parametros nulos
-        IF @ID_FACTURA IS NULL
+        IF
+            @ID_FACTURA IS NULL
             OR @ID_REGISTRO_AFECTADO IS NULL
             OR @OPERACION_REALIZADA IS NULL
             OR @TABLA_AFECTADA IS NULL
             OR @USUARIO_RESPONSABLE IS NULL
-        BEGIN;
-            THROW 50010, 'Los parametros obligatorios no pueden ser nulos', 1;
-        END;
+            BEGIN
+                THROW 50010,
+                'Los parametros obligatorios no pueden ser nulos',
+                1;
+            END;
 
         -- Validacion de duplicado
-        IF EXISTS (
-            SELECT 1
-            FROM DBO.HISTORIAL
-            WHERE ID_FACTURA = @ID_FACTURA
-                AND ID_REGISTRO_AFECTADO = @ID_REGISTRO_AFECTADO
-                AND OPERACION_REALIZADA = @OPERACION_REALIZADA
-                AND ISNULL(ESTADO_PREVIO, '') = ISNULL(@ESTADO_PREVIO, '')
-                AND ISNULL(ESTADO_NUEVO, '') = ISNULL(@ESTADO_NUEVO, '')
-                AND TABLA_AFECTADA = @TABLA_AFECTADA
-        )
-        BEGIN;
-            THROW 50101, 'El registro de historial exacto ya se encuentra en la bitacora', 1;
-        END;
+        IF
+            EXISTS (
+                SELECT 1
+                FROM DBO.HISTORIAL
+                WHERE
+                    ID_FACTURA = @ID_FACTURA
+                    AND ID_REGISTRO_AFECTADO = @ID_REGISTRO_AFECTADO
+                    AND OPERACION_REALIZADA = @OPERACION_REALIZADA
+                    AND ISNULL(ESTADO_PREVIO, '') = ISNULL(@ESTADO_PREVIO, '')
+                    AND ISNULL(ESTADO_NUEVO, '') = ISNULL(@ESTADO_NUEVO, '')
+                    AND TABLA_AFECTADA = @TABLA_AFECTADA
+            )
+            BEGIN
+                THROW 50101,
+                'El registro de historial exacto ya se encuentra en la bitacora', -- noqa: LT05
+                1;
+            END;
 
         INSERT INTO DBO.HISTORIAL (
             ID_FACTURA,
@@ -88,9 +97,9 @@ BEGIN
     END TRY
     BEGIN CATCH
         IF XACT_STATE() <> 0
-        BEGIN
-            ROLLBACK TRANSACTION;
-        END;
+            BEGIN
+                ROLLBACK TRANSACTION;
+            END;
 
         SET @CODIGO_ERROR = ERROR_NUMBER();
         SET @MENSAJE_ERROR = ERROR_MESSAGE();
