@@ -1,9 +1,7 @@
 USE FACTURACION_SA;
 GO
- 
 DROP PROCEDURE IF EXISTS DBO.PR_EMITIRFACTURA;
 GO
- 
 CREATE PROCEDURE DBO.PR_EMITIRFACTURA (
     @NUMERO_CONSECUTIVO INT,
     @FECHA_CREACION DATE,
@@ -25,15 +23,11 @@ CREATE PROCEDURE DBO.PR_EMITIRFACTURA (
 AS
 BEGIN
     SET NOCOUNT ON;
- 
     SET @CODIGO_ERROR = 0;
     SET @MENSAJE_ERROR = 'Exitoso';
- 
     DECLARE @IDFACTURA INT;
     DECLARE @LINEASTOTALES INT = ((@NUMERO_CONSECUTIVO % 3) + 3);
- 
     BEGIN TRY
- 
         INSERT INTO DBO.FACTURA (
             NUMERO_CONSECUTIVO,
             FECHA_CREACION,
@@ -66,15 +60,12 @@ BEGIN
             @ID_CLIENTE,
             @CODIGO_DOCUMENTO
         );
- 
         SET @IDFACTURA = SCOPE_IDENTITY();
- 
         WITH NUMEROLINEA AS (
             SELECT V.LINEA
             FROM (VALUES (1), (2), (3), (4), (5)) AS V(LINEA)
             WHERE V.LINEA <= @LINEASTOTALES
         ),
- 
         CALCULOSDETALLE AS (
             SELECT
                 NL.LINEA AS NUMERO_LINEA,
@@ -82,7 +73,6 @@ BEGIN
                 ((@NUMERO_CONSECUTIVO + NL.LINEA) % 5) + 1 AS CANT
             FROM NUMEROLINEA AS NL
         ),
- 
         LINEASPRODUCTO AS (
             SELECT
                 CD.NUMERO_LINEA,
@@ -94,7 +84,6 @@ BEGIN
             LEFT JOIN DBO.PRODUCTO AS P
                 ON CD.IDPROD = P.ID
         )
- 
         INSERT INTO DBO.DETALLE_FACTURA (
             ID_FACTURA,
             NUMERO_LINEA,
@@ -117,7 +106,6 @@ BEGIN
             LP.PRECIO * LP.CANT * (LP.PORCENTAJE / 100.0) AS MONTO_IMPUESTO,
             'Detalle generado automaticamente' AS DESCRIPCION
         FROM LINEASPRODUCTO AS LP;
- 
         WITH TOTALESDETALLE AS (
             SELECT
                 DF.ID_FACTURA,
@@ -129,7 +117,6 @@ BEGIN
             GROUP BY
                 DF.ID_FACTURA
         )
- 
         UPDATE F
         SET
             SUBTOTAL = TD.SUBTOTALSUM,
@@ -138,7 +125,6 @@ BEGIN
         FROM DBO.FACTURA AS F
         INNER JOIN TOTALESDETALLE AS TD
             ON F.ID = TD.ID_FACTURA;
- 
     END TRY
     BEGIN CATCH
         SET @CODIGO_ERROR = ERROR_NUMBER();
@@ -146,4 +132,3 @@ BEGIN
     END CATCH;
 END;
 GO
- 
