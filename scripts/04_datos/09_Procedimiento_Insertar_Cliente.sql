@@ -11,25 +11,53 @@ DECLARE @FECHA DATE;
 DECLARE @IDDIRECCION INT;
 DECLARE @ERROR INT;
 DECLARE @MENSAJE VARCHAR(100);
+DECLARE @DOMINIO VARCHAR(20);
+DECLARE @PREFIJO VARCHAR(1);
 
 BEGIN TRANSACTION;
 
 WHILE @PASO <= 50000
-    BEGIN
-        SET @CEDULA = CONCAT(
-            '1',
-            RIGHT('00000000' + CAST(@PASO AS VARCHAR(10)), 8)
-        );
+BEGIN
+    SET @CEDULA = CONCAT(
+        '1',
+        RIGHT('00000000' + CAST(@PASO AS VARCHAR(10)), 8)
+    );
 
+    -- Validar existencia previa para evitar registros duplicados
+    IF NOT EXISTS (
+        SELECT 1
+        FROM DBO.CLIENTE
+        WHERE CEDULA = @CEDULA
+    )
+    BEGIN
+        -- Aleatorizar el primer digito del telefono (6, 7 o 8 para celulares CR)
+        SET @PREFIJO = CHOOSE((ABS(CHECKSUM(NEWID())) % 3) + 1, '8', '7', '6');
         SET @TELEFONO = CONCAT(
-            '8',
+            @PREFIJO,
             RIGHT('0000000' + CAST(@PASO AS VARCHAR(10)), 7)
         );
 
         SET @NOMBRE = CONCAT('Cliente', @PASO);
-        SET @CORREO = CONCAT('cliente', @PASO, '@gmail.com');
-        SET @FECHA = DATEADD(DAY, -(@PASO % 3000), CAST(GETDATE() AS DATE));
-        SET @IDDIRECCION = ((@PASO - 1) % 50) + 1;
+
+        -- Aleatorizar dominios de correo para no ver siempre el mismo
+        SET @DOMINIO = CHOOSE(
+            (ABS(CHECKSUM(NEWID())) % 4) + 1,
+            'gmail.com',
+            'hotmail.com',
+            'outlook.com',
+            'yahoo.com'
+        );
+        SET @CORREO = CONCAT('cliente', @PASO, '@', @DOMINIO);
+
+        -- Aleatorizar fecha de creacion de forma caotica (hasta ~8 anos atras)
+        SET @FECHA = DATEADD(
+            DAY,
+            -(ABS(CHECKSUM(NEWID())) % 3000),
+            CAST(GETDATE() AS DATE)
+        );
+
+        -- Aleatorizar la direccion entre las 50 creadas en el catalogo
+        SET @IDDIRECCION = (ABS(CHECKSUM(NEWID())) % 50) + 1;
 
         EXEC DBO.PR_INSERTARCLIENTE
             @CEDULA = @CEDULA,
@@ -41,10 +69,12 @@ WHILE @PASO <= 50000
             @ID_DIRECCION = @IDDIRECCION,
             @CODIGO_ERROR = @ERROR OUTPUT,
             @MENSAJE_ERROR = @MENSAJE OUTPUT;
-
-        SET @PASO += 1;
     END;
+
+    SET @PASO += 1;
+END;
 
 COMMIT TRANSACTION;
 GO
--- FINN
+-- FIN
+
