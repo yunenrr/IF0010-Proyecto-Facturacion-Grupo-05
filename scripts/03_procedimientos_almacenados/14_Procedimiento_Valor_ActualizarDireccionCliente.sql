@@ -2,15 +2,17 @@ USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF EXISTS (
-    SELECT 1
-    FROM SYS.OBJECTS
-    WHERE NAME = 'PR_ACTUALIZARDIRECCIONCLIENTE'
-        AND TYPE = 'P'
-)
-BEGIN
-    DROP PROCEDURE DBO.PR_ACTUALIZARDIRECCIONCLIENTE;
-END;
+IF
+    EXISTS (
+        SELECT 1
+        FROM SYS.OBJECTS
+        WHERE
+            NAME = 'PR_ACTUALIZARDIRECCIONCLIENTE'
+            AND TYPE = 'P'
+    )
+    BEGIN
+        DROP PROCEDURE DBO.PR_ACTUALIZARDIRECCIONCLIENTE;
+    END;
 GO
 
 CREATE PROCEDURE DBO.PR_ACTUALIZARDIRECCIONCLIENTE (
@@ -30,42 +32,51 @@ BEGIN
         BEGIN TRANSACTION;
 
         -- Validar que los datos no sean nulos
-        IF @ID_CLIENTE IS NULL
+        IF
+            @ID_CLIENTE IS NULL
             OR @ID_DIRECCION_ACTUALIZAR IS NULL
-        BEGIN;
-            THROW 50010, 'Los parametros obligatorios no pueden ser nulos', 1;
-        END;
+            BEGIN
+                THROW 50010,
+                'Los parametros obligatorios no pueden ser nulos',
+                1;
+            END;
 
         -- Validar que el cliente exista
-        IF NOT EXISTS (
-            SELECT 1
-            FROM DBO.CLIENTE
-            WHERE ID = @ID_CLIENTE
-        )
-        BEGIN;
-            THROW 50004, 'El cliente no se encuentra registrado', 1;
-        END;
+        IF
+            NOT EXISTS (
+                SELECT 1
+                FROM DBO.CLIENTE
+                WHERE ID = @ID_CLIENTE
+            )
+            BEGIN
+                THROW 50004, 'El cliente no se encuentra registrado', 1;
+            END;
 
         -- Validar que la direccion a actualizar exista en el catalogo
-        IF NOT EXISTS (
-            SELECT 1
-            FROM DBO.DIRECCION
-            WHERE ID_DIRECCION = @ID_DIRECCION_ACTUALIZAR
-        )
-        BEGIN;
-            THROW 50006, 'Direccion a actualizar no esta registrada en el catalogo', 1; -- noqa: LT05
-        END;
+        IF
+            NOT EXISTS (
+                SELECT 1
+                FROM DBO.DIRECCION
+                WHERE ID_DIRECCION = @ID_DIRECCION_ACTUALIZAR
+            )
+            BEGIN
+                THROW 50006,
+                'Direccion a actualizar no esta registrada en el catalogo',
+                1;
+            END;
 
         --Verificar que no tenga ya esa misma direccion
-        IF EXISTS (
-            SELECT 1
-            FROM DBO.CLIENTE
-            WHERE ID = @ID_CLIENTE
-                AND ID_DIRECCION = @ID_DIRECCION_ACTUALIZAR
-        )
-        BEGIN;
-            THROW 50007, 'El cliente ya tiene asignada esta direccion', 1;
-        END;
+        IF
+            EXISTS (
+                SELECT 1
+                FROM DBO.CLIENTE
+                WHERE
+                    ID = @ID_CLIENTE
+                    AND ID_DIRECCION = @ID_DIRECCION_ACTUALIZAR
+            )
+            BEGIN
+                THROW 50007, 'El cliente ya tiene asignada esta direccion', 1;
+            END;
 
         UPDATE DBO.CLIENTE
         SET
@@ -77,9 +88,9 @@ BEGIN
     END TRY
     BEGIN CATCH
         IF XACT_STATE() <> 0
-        BEGIN
-            ROLLBACK TRANSACTION;
-        END;
+            BEGIN
+                ROLLBACK TRANSACTION;
+            END;
 
         -- Mensaje de error
         SET @CODIGO_ERROR = ERROR_NUMBER();
