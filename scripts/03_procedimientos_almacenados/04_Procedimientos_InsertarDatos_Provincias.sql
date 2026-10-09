@@ -2,15 +2,17 @@ USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF EXISTS (
-    SELECT 1
-    FROM SYS.OBJECTS
-    WHERE NAME = 'pr_InsertarProvincia'
-        AND TYPE = 'P'
-)
-BEGIN
-    DROP PROCEDURE DBO.PR_INSERTARPROVINCIA;
-END;
+IF
+    EXISTS (
+        SELECT 1
+        FROM SYS.OBJECTS
+        WHERE
+            NAME = 'pr_InsertarProvincia'
+            AND TYPE = 'P'
+    )
+    BEGIN
+        DROP PROCEDURE DBO.PR_INSERTARPROVINCIA;
+    END;
 GO
 
 CREATE PROCEDURE DBO.PR_INSERTARPROVINCIA (
@@ -30,21 +32,24 @@ BEGIN
         BEGIN TRANSACTION;
 
         -- Validar parametros nulos
-        IF @NOMBRE IS NULL
+        IF
+            @NOMBRE IS NULL
             OR @DETALLE_PROVINCIA IS NULL
-        BEGIN;
-            THROW 50100, 'Parametros nulos', 1;
-        END;
+            BEGIN
+                THROW 50100, 'Parametros nulos', 1;
+            END;
 
         -- Validacion para evitar registros duplicados
-        IF EXISTS (
-            SELECT 1
-            FROM DBO.PROVINCIA
-            WHERE NOMBRE = @NOMBRE
-        )
-        BEGIN;
-            THROW 50101, 'La provincia ya se encuentra registrada', 1;
-        END;
+        IF
+            EXISTS (
+                SELECT 1
+                FROM DBO.PROVINCIA
+                WHERE
+                    NOMBRE = @NOMBRE
+            )
+            BEGIN
+                THROW 50101, 'La provincia ya se encuentra registrada', 1;
+            END;
 
         INSERT INTO DBO.PROVINCIA (
             NOMBRE,
@@ -59,9 +64,9 @@ BEGIN
     END TRY
     BEGIN CATCH
         IF XACT_STATE() <> 0
-        BEGIN
-            ROLLBACK TRANSACTION;
-        END;
+            BEGIN
+                ROLLBACK TRANSACTION;
+            END;
 
         SET @CODIGO_ERROR = ERROR_NUMBER();
         SET @MENSAJE_ERROR = ERROR_MESSAGE();
