@@ -34,7 +34,7 @@ BEGIN
             THROW 50100, 'El parametro obligatorio no puede ser nulo', 1;
         END;
 
-        -- Validacion para evitar registros duplicados (Regla del profesor)
+        -- Validacion para evitar registros duplicados
         IF EXISTS (
             SELECT 1
             FROM DBO.DOCUMENTO
