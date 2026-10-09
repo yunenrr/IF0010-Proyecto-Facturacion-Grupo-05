@@ -1,21 +1,13 @@
 USE FACTURACION_SA;
 GO
 
--- INICIO
-IF
-    EXISTS (
-        SELECT 1
-        FROM SYS.OBJECTS
-        WHERE
-            NAME = 'PR_EMITIRFACTURA'
-            AND TYPE = 'P'
-    )
-    BEGIN
-        DROP PROCEDURE DBO.PR_EMITIRFACTURA;
-    END;
+IF EXISTS (SELECT 1 FROM sys.objects WHERE name = 'pr_EmitirFactura' AND type = 'P')
+BEGIN
+    DROP PROCEDURE dbo.pr_EmitirFactura;
+END;
 GO
 
-CREATE PROCEDURE DBO.PR_EMITIRFACTURA (
+CREATE PROCEDURE dbo.pr_EmitirFactura (
     @NUMERO_CONSECUTIVO INT,
     @FECHA_CREACION DATE,
     @FECHA_MODIFICACION DATE,
@@ -36,46 +28,16 @@ CREATE PROCEDURE DBO.PR_EMITIRFACTURA (
 AS
 BEGIN
     SET NOCOUNT ON;
-    SET XACT_ABORT ON;
 
     SET @CODIGO_ERROR = 0;
     SET @MENSAJE_ERROR = 'Exitoso';
 
-    DECLARE @IDFACTURA INT;
-
-    DECLARE @LINEASTOTALES INT = (ABS(CHECKSUM(NEWID())) % 3) + 3;
+    DECLARE @IdFactura INT;
+    DECLARE @LineasTotales INT = ((@NUMERO_CONSECUTIVO % 3) + 3);
 
     BEGIN TRY
-        BEGIN TRANSACTION;
-
-        -- Validaciones de parametros obligatorios
-        IF
-            @NUMERO_CONSECUTIVO IS NULL
-            OR @CODIGO_MONEDA IS NULL
-            OR @ID_ESTADO_FACTURA IS NULL
-            OR @ID_EMPRESA IS NULL
-            OR @ID_CLIENTE IS NULL
-            OR @CODIGO_DOCUMENTO IS NULL
-            BEGIN
-                THROW 50100,
-                'Los parametros obligatorios no pueden ser nulos',
-                1;
-            END;
-
-        -- Validacion Evitar facturas duplicadas
-        IF
-            EXISTS (
-                SELECT 1
-                FROM DBO.FACTURA
-                WHERE NUMERO_CONSECUTIVO = @NUMERO_CONSECUTIVO
-            )
-            BEGIN
-                THROW 50101,
-                'La factura ya se encuentra registrada con ese consecutivo',
-                1;
-            END;
-
-        INSERT INTO DBO.FACTURA (
+        
+        INSERT INTO dbo.FACTURA (
             NUMERO_CONSECUTIVO,
             FECHA_CREACION,
             FECHA_MODIFICACION,
@@ -97,7 +59,7 @@ BEGIN
             ISNULL(@FECHA_MODIFICACION, CAST(GETDATE() AS DATE)),
             ISNULL(@FECHA_EMISION, CAST(GETDATE() AS DATE)),
             0.00,
-            ISNULL(@TOTAL_DESCUENTO, 0.00),
+            @TOTAL_DESCUENTO,
             0.00,
             0.00,
             ISNULL(@OBSERVACIONES, 'N/A'),
@@ -108,34 +70,10 @@ BEGIN
             @CODIGO_DOCUMENTO
         );
 
-        -- Obtener ID
-        SET @IDFACTURA = SCOPE_IDENTITY();
+        -- Obtener el ID 
+        SET @IdFactura = SCOPE_IDENTITY();
 
-        WITH NUMEROLINEA AS (
-            SELECT 1 AS LINEA
-            UNION ALL
-            SELECT 2 AS LINEA
-            UNION ALL
-            SELECT 3 AS LINEA
-            UNION ALL
-            SELECT 4 AS LINEA
-            WHERE @LINEASTOTALES >= 4
-            UNION ALL
-            SELECT 5 AS LINEA
-            WHERE @LINEASTOTALES >= 5
-        ),
-
-        CALCULOLINEABASE AS (
-            SELECT
-                NUMEROLINEA.LINEA,
-                -- Seleccion aleatoria
-                (ABS(CHECKSUM(NEWID())) % 1000) + 1 AS IDPROD,
-                -- Cantidad aleatoria entre 1 y 5
-                (ABS(CHECKSUM(NEWID())) % 5) + 1 AS CANT
-            FROM NUMEROLINEA
-        )
-
-        INSERT INTO DBO.DETALLE_FACTURA (
+        INSERT INTO dbo.DETALLE_FACTURA (
             ID_FACTURA,
             NUMERO_LINEA,
             ID_PRODUCTO,
@@ -146,63 +84,49 @@ BEGIN
             MONTO_IMPUESTO,
             DESCRIPCION
         )
-        SELECT
-            @IDFACTURA AS ID_FACTURA,
-            CALCULOLINEABASE.LINEA,
-            CALCULOLINEABASE.IDPROD,
-            CALCULOLINEABASE.CANT,
-            ISNULL(P.PRECIO_UNITARIO, 1000.00) AS PRECIO_UNITARIO_VENTA,
-            ROUND(
-                (ISNULL(@TOTAL_DESCUENTO, 0) / @LINEASTOTALES),
-                2
-            ) AS MONTO_DESCUENTO,
-            (
-                ISNULL(P.PRECIO_UNITARIO, 1000.00) * CALCULOLINEABASE.CANT
-            ) AS MONTO_SUBTOTAL,
-            (
-                (ISNULL(P.PRECIO_UNITARIO, 1000.00) * CALCULOLINEABASE.CANT)
-                * (ISNULL(P.PORCENTAJE_IMPUESTO, 13.00) / 100.0)
-            ) AS MONTO_IMPUESTO,
-            'Detalle generado automaticamente' AS DESCRIPCION
-        FROM CALCULOLINEABASE
-        LEFT JOIN DBO.PRODUCTO AS P
-            ON CALCULOLINEABASE.IDPROD = P.ID;
+        SELECT 
+            @IdFactura,
+            numeroLinea.Linea,
+            CalculoLinea.IdProd,
+            CalculoLinea.Cant,
+            ISNULL(P.PRECIO_UNITARIO, 1000.00),
+            ROUND((@TOTAL_DESCUENTO / @LineasTotales), 2),
+            (ISNULL(P.PRECIO_UNITARIO, 1000.00) * CalculoLinea.Cant),
+            ((ISNULL(P.PRECIO_UNITARIO, 1000.00) * CalculoLinea.Cant) * (ISNULL(P.PORCENTAJE_IMPUESTO, 13.00) / 100.0)),
+            'Detalle generado automaticamente'
+        FROM (
+            SELECT 1 AS Linea UNION ALL SELECT 2 UNION ALL SELECT 3
+            UNION ALL SELECT 4 WHERE @LineasTotales >= 4
+            UNION ALL SELECT 5 WHERE @LineasTotales >= 5
+        ) numeroLinea
+        CROSS APPLY (
+            SELECT 
+                ((((@NUMERO_CONSECUTIVO * 5 + numeroLinea.Linea) - 1) % 1000) + 1) AS IdProd,
+                (((@NUMERO_CONSECUTIVO + numeroLinea.Linea) % 5) + 1) AS Cant
+        ) CalculoLinea
+        LEFT JOIN dbo.PRODUCTO P ON P.ID = CalculoLinea.IdProd;
 
         -- Actualizacion de totales
-        WITH TOTALDETALLES AS (
-            SELECT
+        UPDATE Factura
+        SET 
+            SUBTOTAL = totalDetalles.SubtotalSum,
+            TOTAL_IMPUESTO = totalDetalles.ImpuestoSum,
+            MONTO_TOTAL = totalDetalles.SubtotalSum - Factura.TOTAL_DESCUENTO + totalDetalles.ImpuestoSum
+        FROM dbo.FACTURA Factura
+        INNER JOIN (
+            SELECT 
                 ID_FACTURA,
-                SUM(MONTO_SUBTOTAL) AS SUBTOTALSUM,
-                SUM(MONTO_IMPUESTO) AS IMPUESTOSUM
-            FROM DBO.DETALLE_FACTURA
-            WHERE ID_FACTURA = @IDFACTURA
+                SUM(MONTO_SUBTOTAL) AS SubtotalSum,
+                SUM(MONTO_IMPUESTO) AS ImpuestoSum
+            FROM dbo.DETALLE_FACTURA
+            WHERE ID_FACTURA = @IdFactura
             GROUP BY ID_FACTURA
-        )
+        ) AS totalDetalles ON Factura.ID = totalDetalles.ID_FACTURA;
 
-        UPDATE FACTURA
-        SET
-            SUBTOTAL = TOTALDETALLES.SUBTOTALSUM,
-            TOTAL_IMPUESTO = TOTALDETALLES.IMPUESTOSUM,
-            MONTO_TOTAL = (
-                TOTALDETALLES.SUBTOTALSUM
-                - ISNULL(FACTURA.TOTAL_DESCUENTO, 0)
-                + TOTALDETALLES.IMPUESTOSUM
-            )
-        FROM DBO.FACTURA AS FACTURA
-        INNER JOIN TOTALDETALLES
-            ON FACTURA.ID = TOTALDETALLES.ID_FACTURA;
-
-        COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
-        IF XACT_STATE() <> 0
-            BEGIN
-                ROLLBACK TRANSACTION;
-            END;
-
         SET @CODIGO_ERROR = ERROR_NUMBER();
         SET @MENSAJE_ERROR = ERROR_MESSAGE();
     END CATCH;
 END;
 GO
--- FIN
