@@ -1,15 +1,4 @@
-Para resolver las advertencias restantes:
 
-ST03 (Unused CTE): Había una definición duplicada de TOTALESDETALLE antes del INSERT INTO que no se estaba utilizando en ese punto.
-
-AL03 (Column without alias): En la inserción inicial @IDFACTURA se usaba directamente sin darle un alias explícito (AS ID_FACTURA).
-
-ST05 (Subquery): Eliminamos cualquier remanente de subconsultas directas dentro de la cláusula de selección.
-
-LT02 (Indentación): Se ajustaron los bloques de sangría a múltiplos estrictos de 4 espacios.
-
-Código SQL 100% corregido y alineado con SQLFluff:
-SQL
 USE FACTURACION_SA;
 GO
 
