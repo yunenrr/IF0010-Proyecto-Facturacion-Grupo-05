@@ -16,7 +16,7 @@ DECLARE @ESTRUCTURA VARCHAR(50);
 
 WHILE @PASO <= 50
 BEGIN
-    -- Para datos aleatorios reales y no secuenciales
+    -- Para datos aleatorios
     SET @ID_PROVINCIA = (ABS(CHECKSUM(NEWID())) % 7) + 1;
     SET @ID_CANTON = (ABS(CHECKSUM(NEWID())) % 10) + 1;
     SET @ID_DISTRITO = (ABS(CHECKSUM(NEWID())) % 15) + 1;
