@@ -153,4 +153,56 @@ BEGIN
             CALCULOLINEABASE.CANT,
             ISNULL(P.PRECIO_UNITARIO, 1000.00) AS PRECIO_UNITARIO_VENTA,
             ROUND(
-                (ISNULL(@TOTAL_DESCUENTO, 0) /
+                (ISNULL(@TOTAL_DESCUENTO, 0) / @LINEASTOTALES),
+                2
+            ) AS MONTO_DESCUENTO,
+            (
+                ISNULL(P.PRECIO_UNITARIO, 1000.00) * CALCULOLINEABASE.CANT
+            ) AS MONTO_SUBTOTAL,
+            (
+                (ISNULL(P.PRECIO_UNITARIO, 1000.00) * CALCULOLINEABASE.CANT)
+                * (ISNULL(P.PORCENTAJE_IMPUESTO, 13.00) / 100.0)
+            ) AS MONTO_IMPUESTO,
+            'Detalle generado automaticamente' AS DESCRIPCION
+        FROM CALCULOLINEABASE
+        LEFT JOIN DBO.PRODUCTO AS P
+            ON CALCULOLINEABASE.IDPROD = P.ID;
+
+        -- Actualizacion de totales
+        WITH TOTALDETALLES AS (
+            SELECT
+                ID_FACTURA,
+                SUM(MONTO_SUBTOTAL) AS SUBTOTALSUM,
+                SUM(MONTO_IMPUESTO) AS IMPUESTOSUM
+            FROM DBO.DETALLE_FACTURA
+            WHERE ID_FACTURA = @IDFACTURA
+            GROUP BY ID_FACTURA
+        )
+
+        UPDATE FACTURA
+        SET
+            SUBTOTAL = TOTALDETALLES.SUBTOTALSUM,
+            TOTAL_IMPUESTO = TOTALDETALLES.IMPUESTOSUM,
+            MONTO_TOTAL = (
+                TOTALDETALLES.SUBTOTALSUM
+                - ISNULL(FACTURA.TOTAL_DESCUENTO, 0)
+                + TOTALDETALLES.IMPUESTOSUM
+            )
+        FROM DBO.FACTURA AS FACTURA
+        INNER JOIN TOTALDETALLES
+            ON FACTURA.ID = TOTALDETALLES.ID_FACTURA;
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        IF XACT_STATE() <> 0
+            BEGIN
+                ROLLBACK TRANSACTION;
+            END;
+
+        SET @CODIGO_ERROR = ERROR_NUMBER();
+        SET @MENSAJE_ERROR = ERROR_MESSAGE();
+    END CATCH;
+END;
+GO
+-- FIN
