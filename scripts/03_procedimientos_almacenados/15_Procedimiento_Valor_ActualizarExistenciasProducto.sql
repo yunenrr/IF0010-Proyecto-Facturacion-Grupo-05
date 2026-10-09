@@ -29,14 +29,13 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        -- Validar que los parametros obligatorios no sean nulos (Unificado)
+        -- Validar que los parametros obligatorios no sean nulos
         IF @ID_PRODUCTO IS NULL
             OR @CANTIDAD_AJUSTE IS NULL
         BEGIN;
             THROW 50010, 'Los parametros obligatorios no pueden ser nulos', 1;
         END;
 
-        -- Optimizacion: Evitar transacciones en vano si el ajuste es cero
         IF @CANTIDAD_AJUSTE = 0
         BEGIN;
             THROW 50012, 'La cantidad de ajuste no puede ser cero', 1;
@@ -54,7 +53,7 @@ BEGIN
 
         DECLARE @EXISTENCIAS_ACTUALES INT;
 
-        -- Bloqueo de fila (UPDLOCK) para evitar condiciones de carrera en alta concurrencia
+        -- Bloqueo de fila
         SELECT @EXISTENCIAS_ACTUALES = EXISTENCIAS
         FROM DBO.PRODUCTO WITH (UPDLOCK)
         WHERE ID = @ID_PRODUCTO;
