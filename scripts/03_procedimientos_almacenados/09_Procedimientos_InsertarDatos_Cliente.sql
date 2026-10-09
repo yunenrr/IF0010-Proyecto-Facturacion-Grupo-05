@@ -2,15 +2,17 @@ USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF EXISTS (
-    SELECT 1
-    FROM SYS.OBJECTS
-    WHERE NAME = 'PR_INSERTARCLIENTE'
-        AND TYPE = 'P'
-)
-BEGIN
-    DROP PROCEDURE DBO.PR_INSERTARCLIENTE;
-END;
+IF
+    EXISTS (
+        SELECT 1
+        FROM SYS.OBJECTS
+        WHERE
+            NAME = 'PR_INSERTARCLIENTE'
+            AND TYPE = 'P'
+    )
+    BEGIN
+        DROP PROCEDURE DBO.PR_INSERTARCLIENTE;
+    END;
 GO
 
 CREATE PROCEDURE DBO.PR_INSERTARCLIENTE (
@@ -36,25 +38,29 @@ BEGIN
         BEGIN TRANSACTION;
 
         -- Validaciones de parametros nulos
-        IF @CEDULA IS NULL
+        IF
+            @CEDULA IS NULL
             OR @TELEFONO IS NULL
             OR @NOMBRE IS NULL
             OR @CORREO_ELECTRONICO IS NULL
             OR @FECHA_CREACION IS NULL
             OR @ID_DIRECCION IS NULL
-        BEGIN;
-            THROW 50100, 'Los parametros obligatorios no pueden ser nulos', 1;
-        END;
+            BEGIN
+                THROW 50100,
+                'Los parametros obligatorios no pueden ser nulos',
+                1;
+            END;
 
         -- Validacion para evitar registros duplicados
-        IF EXISTS (
-            SELECT 1
-            FROM DBO.CLIENTE
-            WHERE CEDULA = @CEDULA
-        )
-        BEGIN;
-            THROW 50101, 'El cliente ya se encuentra registrado', 1;
-        END;
+        IF
+            EXISTS (
+                SELECT 1
+                FROM DBO.CLIENTE
+                WHERE CEDULA = @CEDULA
+            )
+            BEGIN
+                THROW 50101, 'El cliente ya se encuentra registrado', 1;
+            END;
 
         INSERT INTO DBO.CLIENTE (
             CEDULA,
@@ -79,9 +85,9 @@ BEGIN
     END TRY
     BEGIN CATCH
         IF XACT_STATE() <> 0
-        BEGIN
-            ROLLBACK TRANSACTION;
-        END;
+            BEGIN
+                ROLLBACK TRANSACTION;
+            END;
 
         SET @CODIGO_ERROR = ERROR_NUMBER();
         SET @MENSAJE_ERROR = ERROR_MESSAGE();
