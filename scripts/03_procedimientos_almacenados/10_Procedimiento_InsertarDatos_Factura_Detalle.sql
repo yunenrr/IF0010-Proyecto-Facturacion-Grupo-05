@@ -2,15 +2,17 @@ USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF EXISTS (
-    SELECT 1
-    FROM SYS.OBJECTS
-    WHERE NAME = 'PR_EMITIRFACTURA'
-        AND TYPE = 'P'
-)
-BEGIN
-    DROP PROCEDURE DBO.PR_EMITIRFACTURA;
-END;
+IF
+    EXISTS (
+        SELECT 1
+        FROM SYS.OBJECTS
+        WHERE
+            NAME = 'PR_EMITIRFACTURA'
+            AND TYPE = 'P'
+    )
+    BEGIN
+        DROP PROCEDURE DBO.PR_EMITIRFACTURA;
+    END;
 GO
 
 CREATE PROCEDURE DBO.PR_EMITIRFACTURA (
@@ -40,32 +42,38 @@ BEGIN
     SET @MENSAJE_ERROR = 'Exitoso';
 
     DECLARE @IDFACTURA INT;
-    
+
     DECLARE @LINEASTOTALES INT = (ABS(CHECKSUM(NEWID())) % 3) + 3;
 
     BEGIN TRY
         BEGIN TRANSACTION;
 
         -- Validaciones de parametros obligatorios
-        IF @NUMERO_CONSECUTIVO IS NULL
+        IF
+            @NUMERO_CONSECUTIVO IS NULL
             OR @CODIGO_MONEDA IS NULL
             OR @ID_ESTADO_FACTURA IS NULL
             OR @ID_EMPRESA IS NULL
             OR @ID_CLIENTE IS NULL
             OR @CODIGO_DOCUMENTO IS NULL
-        BEGIN;
-            THROW 50100, 'Los parametros obligatorios no pueden ser nulos', 1;
-        END;
+            BEGIN
+                THROW 50100,
+                'Los parametros obligatorios no pueden ser nulos',
+                1;
+            END;
 
         -- Validacion Evitar facturas duplicadas
-        IF EXISTS (
-            SELECT 1
-            FROM DBO.FACTURA
-            WHERE NUMERO_CONSECUTIVO = @NUMERO_CONSECUTIVO
-        )
-        BEGIN;
-            THROW 50101, 'La factura ya se encuentra registrada con ese consecutivo', 1;
-        END;
+        IF
+            EXISTS (
+                SELECT 1
+                FROM DBO.FACTURA
+                WHERE NUMERO_CONSECUTIVO = @NUMERO_CONSECUTIVO
+            )
+            BEGIN
+                THROW 50101,
+                'La factura ya se encuentra registrada con ese consecutivo',
+                1;
+            END;
 
         INSERT INTO DBO.FACTURA (
             NUMERO_CONSECUTIVO,
@@ -144,54 +152,5 @@ BEGIN
             CALCULOLINEABASE.IDPROD,
             CALCULOLINEABASE.CANT,
             ISNULL(P.PRECIO_UNITARIO, 1000.00) AS PRECIO_UNITARIO_VENTA,
-            ROUND((ISNULL(@TOTAL_DESCUENTO, 0) / @LINEASTOTALES), 2) AS MONTO_DESCUENTO,
-            (
-                ISNULL(P.PRECIO_UNITARIO, 1000.00) * CALCULOLINEABASE.CANT
-            ) AS MONTO_SUBTOTAL,
-            (
-                (ISNULL(P.PRECIO_UNITARIO, 1000.00) * CALCULOLINEABASE.CANT)
-                * (ISNULL(P.PORCENTAJE_IMPUESTO, 13.00) / 100.0)
-            ) AS MONTO_IMPUESTO,
-            'Detalle generado automaticamente' AS DESCRIPCION
-        FROM CALCULOLINEABASE
-        LEFT JOIN DBO.PRODUCTO AS P
-            ON CALCULOLINEABASE.IDPROD = P.ID;
-
-        -- Actualizacion de totales
-        WITH TOTALDETALLES AS (
-            SELECT
-                ID_FACTURA,
-                SUM(MONTO_SUBTOTAL) AS SUBTOTALSUM,
-                SUM(MONTO_IMPUESTO) AS IMPUESTOSUM
-            FROM DBO.DETALLE_FACTURA
-            WHERE ID_FACTURA = @IDFACTURA
-            GROUP BY ID_FACTURA
-        )
-
-        UPDATE FACTURA
-        SET
-            SUBTOTAL = TOTALDETALLES.SUBTOTALSUM,
-            TOTAL_IMPUESTO = TOTALDETALLES.IMPUESTOSUM,
-            MONTO_TOTAL = (
-                TOTALDETALLES.SUBTOTALSUM
-                - ISNULL(FACTURA.TOTAL_DESCUENTO, 0)
-                + TOTALDETALLES.IMPUESTOSUM
-            )
-        FROM DBO.FACTURA AS FACTURA
-        INNER JOIN TOTALDETALLES
-            ON FACTURA.ID = TOTALDETALLES.ID_FACTURA;
-
-        COMMIT TRANSACTION;
-    END TRY
-    BEGIN CATCH
-        IF XACT_STATE() <> 0
-        BEGIN
-            ROLLBACK TRANSACTION;
-        END;
-
-        SET @CODIGO_ERROR = ERROR_NUMBER();
-        SET @MENSAJE_ERROR = ERROR_MESSAGE();
-    END CATCH;
-END;
-GO
--- FIN
+            ROUND(
+                (ISNULL(@TOTAL_DESCUENTO, 0) /
