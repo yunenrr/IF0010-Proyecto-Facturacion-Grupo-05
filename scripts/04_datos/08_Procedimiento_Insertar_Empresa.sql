@@ -42,7 +42,7 @@ BEGIN
         );
         SET @CORREO = CONCAT('empresa', @PASO, '@', @DOMINIO);
 
-        -- Aleatorizar el primer digito del telefono (2, 4 o 8)
+        -- Aleatorizar el primer digito del telefono
         SET @TELEFONO = CONCAT(
             CHOOSE((ABS(CHECKSUM(NEWID())) % 3) + 1, '8', '2', '4'),
             RIGHT('0000000' + CAST(@PASO AS VARCHAR(10)), 7)
@@ -53,7 +53,7 @@ BEGIN
         -- Aleatorizar la direccion entre las 50 disponibles
         SET @IDDIRECCION = (ABS(CHECKSUM(NEWID())) % 50) + 1;
 
-        -- Aleatorizar permiso de operar (aprox 90% con permiso)
+        -- Aleatorizar permiso de operar
         SET @ESTADOACTIVO = CASE
             WHEN (ABS(CHECKSUM(NEWID())) % 10) < 9 THEN 1
             ELSE 0
