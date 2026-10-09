@@ -1,14 +1,21 @@
-USE [FACTURACION_SA];
+USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF EXISTS (SELECT 1 FROM [sys].[objects] WHERE [name] = 'pr_InsertarCliente' AND [type] = 'P')
-BEGIN
-    DROP PROCEDURE [dbo].[pr_InsertarCliente];
-END;
+IF
+    EXISTS (
+        SELECT 1
+        FROM SYS.OBJECTS
+        WHERE
+            NAME = 'PR_INSERTARCLIENTE'
+            AND TYPE = 'P'
+    )
+    BEGIN
+        DROP PROCEDURE DBO.PR_INSERTARCLIENTE;
+    END;
 GO
 
-CREATE PROCEDURE [dbo].[pr_InsertarCliente] (
+CREATE PROCEDURE DBO.PR_INSERTARCLIENTE (
     @CEDULA VARCHAR(30),
     @TELEFONO VARCHAR(20),
     @NOMBRE VARCHAR(70),
@@ -30,25 +37,26 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        -- Validamos parametros nulos
-        IF @CEDULA IS NULL
+        -- Validaciones de parametros nulos
+        IF
+            @CEDULA IS NULL
             OR @TELEFONO IS NULL
             OR @NOMBRE IS NULL
             OR @CORREO_ELECTRONICO IS NULL
             OR @FECHA_CREACION IS NULL
             OR @ID_DIRECCION IS NULL
-        BEGIN;
-            THROW 50100, 'Los parametros obligatorios no pueden ser nulos', 1;
-        END;
+            BEGIN
+                THROW 50100, 'Los parametros obligatorios no pueden ser nulos', 1; -- noqa: LT05
+            END;
 
-        INSERT INTO [dbo].[CLIENTE] (
-            [CEDULA],
-            [TELEFONO],
-            [NOMBRE],
-            [CORREO_ELECTRONICO],
-            [FECHA_ULTIMA_ACTUALIZACION],
-            [FECHA_CREACION],
-            [ID_DIRECCION]
+        INSERT INTO DBO.CLIENTE (
+            CEDULA,
+            TELEFONO,
+            NOMBRE,
+            CORREO_ELECTRONICO,
+            FECHA_ULTIMA_ACTUALIZACION,
+            FECHA_CREACION,
+            ID_DIRECCION
         )
         VALUES (
             @CEDULA,
@@ -64,13 +72,13 @@ BEGIN
     END TRY
     BEGIN CATCH
         IF XACT_STATE() <> 0
-        BEGIN
-            ROLLBACK TRANSACTION;
-        END;
+            BEGIN
+                ROLLBACK TRANSACTION;
+            END;
 
         SET @CODIGO_ERROR = ERROR_NUMBER();
         SET @MENSAJE_ERROR = ERROR_MESSAGE();
-    END CATCH
+    END CATCH;
 END;
 GO
 -- FIN

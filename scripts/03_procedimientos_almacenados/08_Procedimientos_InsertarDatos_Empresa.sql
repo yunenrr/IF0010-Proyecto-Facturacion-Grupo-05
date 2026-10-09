@@ -1,14 +1,21 @@
-USE [FACTURACION_SA];
+USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF EXISTS (SELECT 1 FROM [sys].[objects] WHERE [name] = 'pr_InsertarEmpresa' AND [type] = 'P')
-BEGIN
-    DROP PROCEDURE [dbo].[pr_InsertarEmpresa];
-END;
+IF
+    EXISTS (
+        SELECT 1
+        FROM SYS.OBJECTS
+        WHERE
+            NAME = 'PR_INSERTAREMPRESA'
+            AND TYPE = 'P'
+    )
+    BEGIN
+        DROP PROCEDURE DBO.PR_INSERTAREMPRESA;
+    END;
 GO
 
-CREATE PROCEDURE [dbo].[pr_InsertarEmpresa] (
+CREATE PROCEDURE DBO.PR_INSERTAREMPRESA (
     @CEDULA_JURIDICA VARCHAR(30),
     @RAZON_SOCIAL VARCHAR(50),
     @NOMBRE VARCHAR(50),
@@ -30,8 +37,9 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        -- Validamos parametros nulos
-        IF @CEDULA_JURIDICA IS NULL
+        -- Validar parametros nulos
+        IF
+            @CEDULA_JURIDICA IS NULL
             OR @RAZON_SOCIAL IS NULL
             OR @NOMBRE IS NULL
             OR @CORREO_ELECTRONICO IS NULL
@@ -39,19 +47,19 @@ BEGIN
             OR @FECHA_CREACION IS NULL
             OR @PERMISO_OPERAR IS NULL
             OR @ID_DIRECCION IS NULL
-        BEGIN;
-            THROW 50100, 'Los parametros obligatorios no pueden ser nulos', 1;
-        END;
+            BEGIN
+                THROW 50100, 'Los parametros obligatorios no pueden ser nulos', 1; -- noqa: LT05
+            END;
 
-        INSERT INTO [dbo].[EMPRESA] (
-            [CEDULA_JURIDICA],
-            [RAZON_SOCIAL],
-            [NOMBRE],
-            [CORREO_ELECTRONICO],
-            [TELEFONO],
-            [FECHA_CREACION],
-            [PERMISO_OPERAR],
-            [ID_DIRECCION]
+        INSERT INTO DBO.EMPRESA (
+            CEDULA_JURIDICA,
+            RAZON_SOCIAL,
+            NOMBRE,
+            CORREO_ELECTRONICO,
+            TELEFONO,
+            FECHA_CREACION,
+            PERMISO_OPERAR,
+            ID_DIRECCION
         )
         VALUES (
             @CEDULA_JURIDICA,
@@ -68,13 +76,13 @@ BEGIN
     END TRY
     BEGIN CATCH
         IF XACT_STATE() <> 0
-        BEGIN
-            ROLLBACK TRANSACTION;
-        END;
+            BEGIN
+                ROLLBACK TRANSACTION;
+            END;
 
         SET @CODIGO_ERROR = ERROR_NUMBER();
         SET @MENSAJE_ERROR = ERROR_MESSAGE();
-    END CATCH
+    END CATCH;
 END;
 GO
 -- FIN

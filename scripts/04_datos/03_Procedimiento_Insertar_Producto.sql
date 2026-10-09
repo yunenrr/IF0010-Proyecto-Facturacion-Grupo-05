@@ -1,0 +1,107 @@
+USE FACTURACION_SA;
+GO
+
+-- INICIO
+DECLARE @PASO INT = 1;
+DECLARE @CODIGO VARCHAR(30);
+DECLARE @DESCRIPCION VARCHAR(70);
+DECLARE @PRECIO DECIMAL(18, 2);
+DECLARE @IMPUESTO DECIMAL(5, 2);
+DECLARE @EXISTENCIAS INT;
+DECLARE @TIPO VARCHAR(10);
+DECLARE @FECHA_VENCIMIENTO DATE;
+
+-- Variables adicionales del SP
+DECLARE @FECHA_CREACION DATE = CAST(GETDATE() AS DATE);
+DECLARE @ERR INT;
+DECLARE @MSG VARCHAR(100);
+
+WHILE @PASO <= 1000
+    BEGIN
+        -- Codigo todos finalizan en 0
+        SET @CODIGO = CONCAT('Prod-', @PASO, '0');
+
+        -- Descripcion
+        IF (@PASO % 5 = 0)
+            BEGIN
+                SET @DESCRIPCION = CONCAT('Producto Lacteo ', @PASO);
+                SET @PRECIO = 500 + (@PASO * 1.50);
+                SET @IMPUESTO = 10.0;
+                SET @EXISTENCIAS = 5;
+                SET @TIPO = 'FISICO';
+                SET @FECHA_VENCIMIENTO = DATEADD(
+                    DAY,
+                    30 + (@PASO % 150),
+                    GETDATE()
+                );
+            END
+        ELSE IF (@PASO % 5 = 1)
+            BEGIN
+                SET @DESCRIPCION = CONCAT('Servicios telefonia movil ', @PASO);
+                SET @PRECIO = 800 + (@PASO * 2.50);
+                SET @IMPUESTO = 12.0;
+                SET @EXISTENCIAS = 3;
+                SET @TIPO = 'DIGITAL';
+                SET @FECHA_VENCIMIENTO = DATEADD(
+                    DAY,
+                    30 + (@PASO % 250),
+                    GETDATE()
+                );
+            END
+        ELSE IF (@PASO % 5 = 2)
+            BEGIN
+                SET @DESCRIPCION = CONCAT('Canasta Basica ', @PASO);
+                SET @PRECIO = 650 + (@PASO * 2.00);
+                SET @IMPUESTO = 4.0;
+                SET @EXISTENCIAS = 12;
+                SET @TIPO = 'FISICO';
+                SET @FECHA_VENCIMIENTO = DATEADD(
+                    DAY,
+                    30 + (@PASO % 200),
+                    GETDATE()
+                );
+            END
+        ELSE IF (@PASO % 5 = 3)
+            BEGIN
+                SET @DESCRIPCION = CONCAT('Pelicula ', @PASO);
+                SET @PRECIO = 300 + (@PASO * 3.00);
+                SET @IMPUESTO = 8.0;
+                SET @EXISTENCIAS = 7;
+                SET @TIPO = 'DIGITAL';
+                SET @FECHA_VENCIMIENTO = DATEADD(
+                    DAY,
+                    30 + (@PASO % 300),
+                    GETDATE()
+                );
+            END
+        ELSE IF (@PASO % 5 = 4)
+            BEGIN
+                SET @DESCRIPCION = CONCAT('Bebidas ', @PASO);
+                SET @PRECIO = 100 + (@PASO * 5.00);
+                SET @IMPUESTO = 2.0;
+                SET @EXISTENCIAS = 8;
+                SET @TIPO = 'FISICO';
+                SET @FECHA_VENCIMIENTO = DATEADD(
+                    DAY,
+                    30 + (@PASO % 500),
+                    GETDATE()
+                );
+            END;
+
+        EXEC DBO.PR_INSERTARPRODUCTO
+            @CODIGO = @CODIGO,
+            @DESCRIPCION = @DESCRIPCION,
+            @PRECIO_UNITARIO = @PRECIO,
+            @PORCENTAJE_IMPUESTO = @IMPUESTO,
+            @ESTADO_ACTIVO = 1,
+            @FECHA_CREACION = @FECHA_CREACION,
+            @FECHA_VENCIMIENTO = @FECHA_VENCIMIENTO,
+            @EXISTENCIAS = @EXISTENCIAS,
+            @TIPO_PRODUCTO = @TIPO,
+            @CODIGO_ERROR = @ERR OUTPUT,
+            @MENSAJE_ERROR = @MSG OUTPUT;
+
+        SET @PASO += 1;
+    END;
+GO
+-- FINN

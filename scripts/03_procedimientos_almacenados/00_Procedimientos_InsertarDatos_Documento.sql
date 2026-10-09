@@ -1,0 +1,58 @@
+USE FACTURACION_SA;
+GO
+
+-- INICIO
+IF
+    EXISTS (
+        SELECT 1
+        FROM SYS.OBJECTS
+        WHERE
+            NAME = 'pr_InsertarDocumento'
+            AND TYPE = 'P'
+    )
+    BEGIN
+        DROP PROCEDURE DBO.PR_INSERTARDOCUMENTO;
+    END;
+GO
+
+CREATE PROCEDURE DBO.PR_INSERTARDOCUMENTO (
+    @DESCRIPCION VARCHAR(70),
+    @CODIGO_ERROR INT OUTPUT,
+    @MENSAJE_ERROR VARCHAR(100) OUTPUT
+)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    SET @CODIGO_ERROR = 0;
+    SET @MENSAJE_ERROR = 'Exitoso';
+
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        IF @DESCRIPCION IS NULL
+            BEGIN
+                THROW 50100, 'El parametro obligatorio no puede ser nulo', 1;
+            END;
+
+        INSERT INTO DBO.DOCUMENTO (
+            DESCRIPCION
+        )
+        VALUES (
+            @DESCRIPCION
+        );
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        IF XACT_STATE() <> 0
+            BEGIN
+                ROLLBACK TRANSACTION;
+            END;
+
+        SET @CODIGO_ERROR = ERROR_NUMBER();
+        SET @MENSAJE_ERROR = ERROR_MESSAGE();
+    END CATCH
+END;
+GO
+-- FINN

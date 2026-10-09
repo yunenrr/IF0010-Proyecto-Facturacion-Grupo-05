@@ -1,18 +1,18 @@
-USE [FACTURACION_SA];
+USE FACTURACION_SA;
 GO
 
 -- INICIO
 DECLARE @ERR INT;
 DECLARE @MSG VARCHAR(100);
 
-EXEC [dbo].[pr_InsertarMoneda]
+EXEC DBO.PR_INSERTARMONEDA
     @CODIGO = 'CRC',
     @DESCRIPCION = 'Moneda Costarricense',
     @SIMBOLO = 'C',
     @CODIGO_ERROR = @ERR OUTPUT,
     @MENSAJE_ERROR = @MSG OUTPUT;
 
-EXEC [dbo].[pr_InsertarMoneda]
+EXEC DBO.PR_INSERTARMONEDA
     @CODIGO = 'USD',
     @DESCRIPCION = 'Moneda Estadounidense',
     @SIMBOLO = 'D',
