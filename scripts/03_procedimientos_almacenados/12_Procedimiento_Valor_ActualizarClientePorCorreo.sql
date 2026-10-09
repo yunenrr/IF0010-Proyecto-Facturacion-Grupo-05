@@ -35,8 +35,6 @@ BEGIN
             THROW 50100, 'El ID de cliente no puede ser nulo', 1;
         END;
 
-        -- Regla: el correo debe tener uno de los siguientes dominios:
-        -- @ucr.ac.cr, @gmail.com, @hotmail.com, @outlook.com
         IF @CORREO_ELECTRONICO_ACTUALIZAR IS NULL
             OR NOT (
                 @CORREO_ELECTRONICO_ACTUALIZAR LIKE '%@ucr.ac.cr'
@@ -83,7 +81,7 @@ BEGIN
             ROLLBACK TRANSACTION;
         END;
 
-        -- Seteamos los mensajes obtenidos
+        -- Setear los mensajes obtenidos
         SET @CODIGO_ERROR = ERROR_NUMBER();
         SET @MENSAJE_ERROR = ERROR_MESSAGE();
     END CATCH;
