@@ -2,17 +2,15 @@ USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF
-    EXISTS (
-        SELECT 1
-        FROM SYS.OBJECTS
-        WHERE
-            NAME = 'PR_INSERTAREMPRESA'
-            AND TYPE = 'P'
-    )
-    BEGIN
-        DROP PROCEDURE DBO.PR_INSERTAREMPRESA;
-    END;
+IF EXISTS (
+    SELECT 1
+    FROM SYS.OBJECTS
+    WHERE NAME = 'PR_INSERTAREMPRESA'
+        AND TYPE = 'P'
+)
+BEGIN
+    DROP PROCEDURE DBO.PR_INSERTAREMPRESA;
+END;
 GO
 
 CREATE PROCEDURE DBO.PR_INSERTAREMPRESA (
@@ -38,8 +36,7 @@ BEGIN
         BEGIN TRANSACTION;
 
         -- Validar parametros nulos
-        IF
-            @CEDULA_JURIDICA IS NULL
+        IF @CEDULA_JURIDICA IS NULL
             OR @RAZON_SOCIAL IS NULL
             OR @NOMBRE IS NULL
             OR @CORREO_ELECTRONICO IS NULL
@@ -47,9 +44,19 @@ BEGIN
             OR @FECHA_CREACION IS NULL
             OR @PERMISO_OPERAR IS NULL
             OR @ID_DIRECCION IS NULL
-            BEGIN
-                THROW 50100, 'Los parametros obligatorios no pueden ser nulos', 1; -- noqa: LT05
-            END;
+        BEGIN;
+            THROW 50100, 'Los parametros obligatorios no pueden ser nulos', 1; -- noqa: LT05
+        END;
+
+        -- Validacion para evitar registros duplicados
+        IF EXISTS (
+            SELECT 1
+            FROM DBO.EMPRESA
+            WHERE CEDULA_JURIDICA = @CEDULA_JURIDICA
+        )
+        BEGIN;
+            THROW 50101, 'La empresa ya se encuentra registrada', 1;
+        END;
 
         INSERT INTO DBO.EMPRESA (
             CEDULA_JURIDICA,
@@ -76,9 +83,9 @@ BEGIN
     END TRY
     BEGIN CATCH
         IF XACT_STATE() <> 0
-            BEGIN
-                ROLLBACK TRANSACTION;
-            END;
+        BEGIN
+            ROLLBACK TRANSACTION;
+        END;
 
         SET @CODIGO_ERROR = ERROR_NUMBER();
         SET @MENSAJE_ERROR = ERROR_MESSAGE();
