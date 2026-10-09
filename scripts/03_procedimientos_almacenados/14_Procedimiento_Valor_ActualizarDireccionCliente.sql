@@ -29,11 +29,11 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        -- Validar que los datos no sean nulos (Unificados en un solo bloque)
+        -- Validar que los datos no sean nulos
         IF @ID_CLIENTE IS NULL
             OR @ID_DIRECCION_ACTUALIZAR IS NULL
         BEGIN;
-            THROW 50010, 'Los parametros obligatorios no pueden ser nulos', 1; -- noqa: LT05
+            THROW 50010, 'Los parametros obligatorios no pueden ser nulos', 1;
         END;
 
         -- Validar que el cliente exista
@@ -56,7 +56,7 @@ BEGIN
             THROW 50006, 'Direccion a actualizar no esta registrada en el catalogo', 1; -- noqa: LT05
         END;
 
-        -- Validacion de Idempotencia: Verificar que no tenga ya esa misma direccion
+        --Verificar que no tenga ya esa misma direccion
         IF EXISTS (
             SELECT 1
             FROM DBO.CLIENTE
