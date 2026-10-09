@@ -35,7 +35,7 @@ BEGIN
             OR @DESCRIPCION IS NULL
             OR @SIMBOLO IS NULL
         BEGIN;
-            THROW 50100, 'Los parametros obligatorios no pueden ser nulos', 1; -- noqa: LT05
+            THROW 50100, 'Los parametros obligatorios no pueden ser nulos', 1;
         END;
 
         -- Validacion para evitar registros duplicados
