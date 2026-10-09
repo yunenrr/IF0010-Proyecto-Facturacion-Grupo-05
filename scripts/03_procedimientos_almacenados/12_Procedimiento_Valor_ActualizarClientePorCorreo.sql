@@ -2,15 +2,17 @@ USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF EXISTS (
-    SELECT 1
-    FROM SYS.OBJECTS
-    WHERE NAME = 'PR_ACTUALIZARCORREOCLIENTE'
-        AND TYPE = 'P'
-)
-BEGIN
-    DROP PROCEDURE DBO.PR_ACTUALIZARCORREOCLIENTE;
-END;
+IF
+    EXISTS (
+        SELECT 1
+        FROM SYS.OBJECTS
+        WHERE
+            NAME = 'PR_ACTUALIZARCORREOCLIENTE'
+            AND TYPE = 'P'
+    )
+    BEGIN
+        DROP PROCEDURE DBO.PR_ACTUALIZARCORREOCLIENTE;
+    END;
 GO
 
 CREATE PROCEDURE DBO.PR_ACTUALIZARCORREOCLIENTE (
@@ -31,41 +33,45 @@ BEGIN
 
         -- Validamos que los datos no sean nulos
         IF @ID_CLIENTE IS NULL
-        BEGIN;
-            THROW 50100, 'El ID de cliente no puede ser nulo', 1;
-        END;
+            BEGIN
+                THROW 50100, 'El ID de cliente no puede ser nulo', 1;
+            END;
 
-        IF @CORREO_ELECTRONICO_ACTUALIZAR IS NULL
+        IF
+            @CORREO_ELECTRONICO_ACTUALIZAR IS NULL
             OR NOT (
                 @CORREO_ELECTRONICO_ACTUALIZAR LIKE '%@ucr.ac.cr'
                 OR @CORREO_ELECTRONICO_ACTUALIZAR LIKE '%@gmail.com'
                 OR @CORREO_ELECTRONICO_ACTUALIZAR LIKE '%@hotmail.com'
                 OR @CORREO_ELECTRONICO_ACTUALIZAR LIKE '%@outlook.com'
             )
-        BEGIN;
-            THROW 50101, 'El correo no es valido o dominio no permitido', 1;
-        END;
+            BEGIN
+                THROW 50101, 'El correo no es valido o dominio no permitido', 1;
+            END;
 
         -- Validar que el cliente exista
-        IF NOT EXISTS (
-            SELECT 1
-            FROM DBO.CLIENTE
-            WHERE ID = @ID_CLIENTE
-        )
-        BEGIN;
-            THROW 50102, 'El cliente no se encuentra registrado', 1;
-        END;
+        IF
+            NOT EXISTS (
+                SELECT 1
+                FROM DBO.CLIENTE
+                WHERE ID = @ID_CLIENTE
+            )
+            BEGIN
+                THROW 50102, 'El cliente no se encuentra registrado', 1;
+            END;
 
         -- Validamos que el correo a actualizar no este inscrito en otro cliente
-        IF EXISTS (
-            SELECT 1
-            FROM DBO.CLIENTE
-            WHERE CORREO_ELECTRONICO = @CORREO_ELECTRONICO_ACTUALIZAR
-                AND ID <> @ID_CLIENTE
-        )
-        BEGIN;
-            THROW 50103, 'No se puede actualizar el correo, ya existe', 1;
-        END;
+        IF
+            EXISTS (
+                SELECT 1
+                FROM DBO.CLIENTE
+                WHERE
+                    CORREO_ELECTRONICO = @CORREO_ELECTRONICO_ACTUALIZAR
+                    AND ID <> @ID_CLIENTE
+            )
+            BEGIN
+                THROW 50103, 'No se puede actualizar el correo, ya existe', 1;
+            END;
 
         UPDATE DBO.CLIENTE
         SET
@@ -77,9 +83,9 @@ BEGIN
     END TRY
     BEGIN CATCH
         IF XACT_STATE() <> 0
-        BEGIN
-            ROLLBACK TRANSACTION;
-        END;
+            BEGIN
+                ROLLBACK TRANSACTION;
+            END;
 
         -- Setear los mensajes obtenidos
         SET @CODIGO_ERROR = ERROR_NUMBER();
@@ -88,4 +94,3 @@ BEGIN
 END;
 GO
 -- FIN
-
