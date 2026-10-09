@@ -30,7 +30,7 @@ BEGIN
         WHERE CEDULA = @CEDULA
     )
     BEGIN
-        -- Aleatorizar el primer digito del telefono (6, 7 o 8 para celulares CR)
+        -- Aleatorizar el primer digito del telefono
         SET @PREFIJO = CHOOSE((ABS(CHECKSUM(NEWID())) % 3) + 1, '8', '7', '6');
         SET @TELEFONO = CONCAT(
             @PREFIJO,
@@ -39,7 +39,7 @@ BEGIN
 
         SET @NOMBRE = CONCAT('Cliente', @PASO);
 
-        -- Aleatorizar dominios de correo para no ver siempre el mismo
+        -- Aleatorizar dominios de correo
         SET @DOMINIO = CHOOSE(
             (ABS(CHECKSUM(NEWID())) % 4) + 1,
             'gmail.com',
@@ -49,14 +49,14 @@ BEGIN
         );
         SET @CORREO = CONCAT('cliente', @PASO, '@', @DOMINIO);
 
-        -- Aleatorizar fecha de creacion de forma caotica (hasta ~8 anos atras)
+        -- Aleatorizar fecha de creacion
         SET @FECHA = DATEADD(
             DAY,
             -(ABS(CHECKSUM(NEWID())) % 3000),
             CAST(GETDATE() AS DATE)
         );
 
-        -- Aleatorizar la direccion entre las 50 creadas en el catalogo
+        -- Aleatorizar la direccion
         SET @IDDIRECCION = (ABS(CHECKSUM(NEWID())) % 50) + 1;
 
         EXEC DBO.PR_INSERTARCLIENTE
