@@ -29,18 +29,18 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        -- Validamos que los datos no sean nulos
+        -- Validar que los datos no sean nulos
         IF @ID_CLIENTE IS NULL
         BEGIN;
             THROW 50010, 'El id de cliente no puede ser nulo', 1;
         END;
 
-        -- Regla de negocio: telefono exactamente de 8 digitos (CR) y solo numeros
+        -- Regla de negocio: telefono exactamente de 8 digitos y solo numeros
         IF @TELEFONO_ACTUALIZAR IS NULL
             OR LEN(@TELEFONO_ACTUALIZAR) <> 8
             OR @TELEFONO_ACTUALIZAR LIKE '%[^0-9]%'
         BEGIN;
-            THROW 50011, 'Telefono invalido: debe tener exactamente 8 digitos numericos', 1; -- noqa: LT05
+            THROW 50011, 'Telefono invalido: debe tener exactamente 8 digitos numericos', 1;
         END;
 
         -- Validar que el cliente exista
@@ -53,7 +53,7 @@ BEGIN
             THROW 50004, 'El cliente no se encuentra registrado', 1;
         END;
 
-        -- Validamos que el numero a actualizar no este registrado en otro cliente
+        -- Validar que el numero a actualizar no este registrado en otro cliente
         IF EXISTS (
             SELECT 1
             FROM DBO.CLIENTE
@@ -61,7 +61,7 @@ BEGIN
                 AND ID <> @ID_CLIENTE
         )
         BEGIN;
-            THROW 50005, 'No se puede actualizar un numero ya registrado', 1; -- noqa: LT05
+            THROW 50005, 'No se puede actualizar un numero ya registrado', 1;
         END;
 
         UPDATE DBO.CLIENTE
@@ -78,7 +78,7 @@ BEGIN
             ROLLBACK TRANSACTION;
         END;
 
-        -- Seteamos los mensajes obtenidos
+        -- Setear los mensajes obtenidos
         SET @CODIGO_ERROR = ERROR_NUMBER();
         SET @MENSAJE_ERROR = ERROR_MESSAGE();
     END CATCH;
