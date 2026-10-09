@@ -41,7 +41,6 @@ BEGIN
 
     DECLARE @IDFACTURA INT;
     
-    -- Reemplazamos la logica predecible de (% 3 + 3) por aleatoriedad real
     DECLARE @LINEASTOTALES INT = (ABS(CHECKSUM(NEWID())) % 3) + 3;
 
     BEGIN TRY
@@ -55,10 +54,10 @@ BEGIN
             OR @ID_CLIENTE IS NULL
             OR @CODIGO_DOCUMENTO IS NULL
         BEGIN;
-            THROW 50100, 'Los parametros obligatorios no pueden ser nulos', 1; -- noqa: LT05
+            THROW 50100, 'Los parametros obligatorios no pueden ser nulos', 1;
         END;
 
-        -- Validacion de Idempotencia: Evitar facturas duplicadas
+        -- Validacion Evitar facturas duplicadas
         IF EXISTS (
             SELECT 1
             FROM DBO.FACTURA
@@ -101,7 +100,7 @@ BEGIN
             @CODIGO_DOCUMENTO
         );
 
-        -- Obtener el ID
+        -- Obtener ID
         SET @IDFACTURA = SCOPE_IDENTITY();
 
         WITH NUMEROLINEA AS (
@@ -121,7 +120,7 @@ BEGIN
         CALCULOLINEABASE AS (
             SELECT
                 NUMEROLINEA.LINEA,
-                -- Seleccion aleatoria real de los 1000 productos creados
+                -- Seleccion aleatoria
                 (ABS(CHECKSUM(NEWID())) % 1000) + 1 AS IDPROD,
                 -- Cantidad aleatoria entre 1 y 5
                 (ABS(CHECKSUM(NEWID())) % 5) + 1 AS CANT
