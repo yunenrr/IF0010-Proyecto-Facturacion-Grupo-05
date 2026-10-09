@@ -2,15 +2,17 @@ USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF EXISTS (
-    SELECT 1
-    FROM SYS.OBJECTS
-    WHERE NAME = 'pr_InsertarDireccion'
-        AND TYPE = 'P'
-)
-BEGIN
-    DROP PROCEDURE DBO.PR_INSERTARDIRECCION;
-END;
+IF
+    EXISTS (
+        SELECT 1
+        FROM SYS.OBJECTS
+        WHERE
+            NAME = 'pr_InsertarDireccion'
+            AND TYPE = 'P'
+    )
+    BEGIN
+        DROP PROCEDURE DBO.PR_INSERTARDIRECCION;
+    END;
 GO
 
 CREATE PROCEDURE DBO.PR_INSERTARDIRECCION (
@@ -32,26 +34,29 @@ BEGIN
         BEGIN TRANSACTION;
 
         -- Validación de parámetros nulos
-        IF @ID_PROVINCIA IS NULL
+        IF
+            @ID_PROVINCIA IS NULL
             OR @ID_CANTON IS NULL
             OR @ID_DISTRITO IS NULL
             OR @DETALLE_DIRECCION IS NULL
-        BEGIN;
-            THROW 50100, 'Parámetros nulos', 1;
-        END;
+            BEGIN
+                THROW 50100, 'Parámetros nulos', 1;
+            END;
 
         -- Validacion para evitar registros duplicados
-        IF EXISTS (
-            SELECT 1
-            FROM DBO.DIRECCION
-            WHERE ID_PROVINCIA = @ID_PROVINCIA
-                AND ID_CANTON = @ID_CANTON
-                AND ID_DISTRITO = @ID_DISTRITO
-                AND DETALLE_DIRECCION = @DETALLE_DIRECCION
-        )
-        BEGIN;
-            THROW 50101, 'La direccion ya se encuentra registrada', 1;
-        END;
+        IF
+            EXISTS (
+                SELECT 1
+                FROM DBO.DIRECCION
+                WHERE
+                    ID_PROVINCIA = @ID_PROVINCIA
+                    AND ID_CANTON = @ID_CANTON
+                    AND ID_DISTRITO = @ID_DISTRITO
+                    AND DETALLE_DIRECCION = @DETALLE_DIRECCION
+            )
+            BEGIN
+                THROW 50101, 'La direccion ya se encuentra registrada', 1;
+            END;
 
         INSERT INTO DBO.DIRECCION (
             ID_PROVINCIA,
@@ -70,9 +75,9 @@ BEGIN
     END TRY
     BEGIN CATCH
         IF XACT_STATE() <> 0
-        BEGIN
-            ROLLBACK TRANSACTION;
-        END;
+            BEGIN
+                ROLLBACK TRANSACTION;
+            END;
 
         SET @CODIGO_ERROR = ERROR_NUMBER();
         SET @MENSAJE_ERROR = ERROR_MESSAGE();
