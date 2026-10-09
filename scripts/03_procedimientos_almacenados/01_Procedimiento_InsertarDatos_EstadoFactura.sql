@@ -36,7 +36,9 @@ BEGIN
             @ESTADO_FACTURA IS NULL
             OR @DESCRIPCION IS NULL
             BEGIN
-                THROW 50100, 'Los parametros obligatorios no pueden ser nulos', 1;
+                THROW 50100,
+                'Los parametros obligatorios no pueden ser nulos',
+                1;
             END;
 
         -- Validacion para evitar registros duplicados
@@ -48,7 +50,9 @@ BEGIN
                     ESTADO_FACTURA = @ESTADO_FACTURA
             )
             BEGIN
-                THROW 50101, 'El estado de factura ya se encuentra registrado', 1;
+                THROW 50101,
+                'El estado de factura ya se encuentra registrado',
+                1;
             END;
 
         INSERT INTO DBO.ESTADO_FACTURA (
