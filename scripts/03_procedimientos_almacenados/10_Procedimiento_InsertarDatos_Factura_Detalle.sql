@@ -1,13 +1,19 @@
 USE FACTURACION_SA;
 GO
 
-IF EXISTS (SELECT 1 FROM sys.objects WHERE name = 'pr_EmitirFactura' AND type = 'P')
+IF EXISTS (
+    SELECT 1
+    FROM SYS.OBJECTS
+    WHERE
+        NAME = 'PR_EMITIRFACTURA'
+        AND TYPE = 'P'
+)
 BEGIN
-    DROP PROCEDURE dbo.pr_EmitirFactura;
+    DROP PROCEDURE DBO.PR_EMITIRFACTURA;
 END;
 GO
 
-CREATE PROCEDURE dbo.pr_EmitirFactura (
+CREATE PROCEDURE DBO.PR_EMITIRFACTURA (
     @NUMERO_CONSECUTIVO INT,
     @FECHA_CREACION DATE,
     @FECHA_MODIFICACION DATE,
@@ -32,12 +38,12 @@ BEGIN
     SET @CODIGO_ERROR = 0;
     SET @MENSAJE_ERROR = 'Exitoso';
 
-    DECLARE @IdFactura INT;
-    DECLARE @LineasTotales INT = ((@NUMERO_CONSECUTIVO % 3) + 3);
+    DECLARE @IDFACTURA INT;
+    DECLARE @LINEASTOTALES INT = ((@NUMERO_CONSECUTIVO % 3) + 3);
 
     BEGIN TRY
-        
-        INSERT INTO dbo.FACTURA (
+
+        INSERT INTO DBO.FACTURA (
             NUMERO_CONSECUTIVO,
             FECHA_CREACION,
             FECHA_MODIFICACION,
@@ -70,10 +76,23 @@ BEGIN
             @CODIGO_DOCUMENTO
         );
 
-        -- Obtener el ID 
-        SET @IdFactura = SCOPE_IDENTITY();
+        SET @IDFACTURA = SCOPE_IDENTITY();
 
-        INSERT INTO dbo.DETALLE_FACTURA (
+        WITH NUMEROLINEA AS (
+            SELECT 1 AS LINEA
+            UNION ALL
+            SELECT 2 AS LINEA
+            UNION ALL
+            SELECT 3 AS LINEA
+            UNION ALL
+            SELECT 4 AS LINEA
+            WHERE @LINEASTOTALES >= 4
+            UNION ALL
+            SELECT 5 AS LINEA
+            WHERE @LINEASTOTALES >= 5
+        )
+
+        INSERT INTO DBO.DETALLE_FACTURA (
             ID_FACTURA,
             NUMERO_LINEA,
             ID_PRODUCTO,
@@ -84,44 +103,48 @@ BEGIN
             MONTO_IMPUESTO,
             DESCRIPCION
         )
-        SELECT 
-            @IdFactura,
-            numeroLinea.Linea,
-            CalculoLinea.IdProd,
-            CalculoLinea.Cant,
-            ISNULL(P.PRECIO_UNITARIO, 1000.00),
-            ROUND((@TOTAL_DESCUENTO / @LineasTotales), 2),
-            (ISNULL(P.PRECIO_UNITARIO, 1000.00) * CalculoLinea.Cant),
-            ((ISNULL(P.PRECIO_UNITARIO, 1000.00) * CalculoLinea.Cant) * (ISNULL(P.PORCENTAJE_IMPUESTO, 13.00) / 100.0)),
-            'Detalle generado automaticamente'
-        FROM (
-            SELECT 1 AS Linea UNION ALL SELECT 2 UNION ALL SELECT 3
-            UNION ALL SELECT 4 WHERE @LineasTotales >= 4
-            UNION ALL SELECT 5 WHERE @LineasTotales >= 5
-        ) numeroLinea
+        SELECT
+            @IDFACTURA AS ID_FACTURA,
+            NL.LINEA AS NUMERO_LINEA,
+            CL.IDPROD AS ID_PRODUCTO,
+            CL.CANT AS CANTIDAD,
+            ISNULL(P.PRECIO_UNITARIO, 1000.00) AS PRECIO_UNITARIO_VENTA,
+            ROUND((@TOTAL_DESCUENTO / @LINEASTOTALES), 2) AS MONTO_DESCUENTO,
+            (ISNULL(P.PRECIO_UNITARIO, 1000.00) * CL.CANT)
+                AS MONTO_SUBTOTAL,
+            ((ISNULL(P.PRECIO_UNITARIO, 1000.00) * CL.CANT)
+            * (ISNULL(P.PORCENTAJE_IMPUESTO, 13.00) / 100.0))
+                AS MONTO_IMPUESTO,
+            'Detalle generado automaticamente' AS DESCRIPCION
+        FROM NUMEROLINEA AS NL
         CROSS APPLY (
-            SELECT 
-                ((((@NUMERO_CONSECUTIVO * 5 + numeroLinea.Linea) - 1) % 1000) + 1) AS IdProd,
-                (((@NUMERO_CONSECUTIVO + numeroLinea.Linea) % 5) + 1) AS Cant
-        ) CalculoLinea
-        LEFT JOIN dbo.PRODUCTO P ON P.ID = CalculoLinea.IdProd;
+            SELECT
+                ((((@NUMERO_CONSECUTIVO * 5 + NL.LINEA) - 1) % 1000) + 1)
+                    AS IDPROD,
+                (((@NUMERO_CONSECUTIVO + NL.LINEA) % 5) + 1)
+                    AS CANT
+        ) AS CL
+        LEFT JOIN DBO.PRODUCTO AS P
+            ON P.ID = CL.IDPROD;
 
-        -- Actualizacion de totales
-        UPDATE Factura
-        SET 
-            SUBTOTAL = totalDetalles.SubtotalSum,
-            TOTAL_IMPUESTO = totalDetalles.ImpuestoSum,
-            MONTO_TOTAL = totalDetalles.SubtotalSum - Factura.TOTAL_DESCUENTO + totalDetalles.ImpuestoSum
-        FROM dbo.FACTURA Factura
+        UPDATE F
+        SET
+            SUBTOTAL = TD.SUBTOTALSUM,
+            TOTAL_IMPUESTO = TD.IMPUESTOSUM,
+            MONTO_TOTAL = TD.SUBTOTALSUM - F.TOTAL_DESCUENTO + TD.IMPUESTOSUM
+        FROM DBO.FACTURA AS F
         INNER JOIN (
-            SELECT 
-                ID_FACTURA,
-                SUM(MONTO_SUBTOTAL) AS SubtotalSum,
-                SUM(MONTO_IMPUESTO) AS ImpuestoSum
-            FROM dbo.DETALLE_FACTURA
-            WHERE ID_FACTURA = @IdFactura
-            GROUP BY ID_FACTURA
-        ) AS totalDetalles ON Factura.ID = totalDetalles.ID_FACTURA;
+            SELECT
+                DF.ID_FACTURA AS ID_FACTURA,
+                SUM(DF.MONTO_SUBTOTAL) AS SUBTOTALSUM,
+                SUM(DF.MONTO_IMPUESTO) AS IMPUESTOSUM
+            FROM DBO.DETALLE_FACTURA AS DF
+            WHERE
+                DF.ID_FACTURA = @IDFACTURA
+            GROUP BY
+                DF.ID_FACTURA
+        ) AS TD
+            ON F.ID = TD.ID_FACTURA;
 
     END TRY
     BEGIN CATCH
