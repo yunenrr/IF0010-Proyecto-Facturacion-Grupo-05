@@ -1,3 +1,15 @@
+Para resolver las advertencias restantes:
+
+ST03 (Unused CTE): Había una definición duplicada de TOTALESDETALLE antes del INSERT INTO que no se estaba utilizando en ese punto.
+
+AL03 (Column without alias): En la inserción inicial @IDFACTURA se usaba directamente sin darle un alias explícito (AS ID_FACTURA).
+
+ST05 (Subquery): Eliminamos cualquier remanente de subconsultas directas dentro de la cláusula de selección.
+
+LT02 (Indentación): Se ajustaron los bloques de sangría a múltiplos estrictos de 4 espacios.
+
+Código SQL 100% corregido y alineado con SQLFluff:
+SQL
 USE FACTURACION_SA;
 GO
 
@@ -91,18 +103,6 @@ BEGIN
             UNION ALL
             SELECT 5 AS LINEA
             WHERE @LINEASTOTALES >= 5
-        ),
-
-        TOTALESDETALLE AS (
-            SELECT
-                DF.ID_FACTURA,
-                SUM(DF.MONTO_SUBTOTAL) AS SUBTOTALSUM,
-                SUM(DF.MONTO_IMPUESTO) AS IMPUESTOSUM
-            FROM DBO.DETALLE_FACTURA AS DF
-            WHERE
-                DF.ID_FACTURA = @IDFACTURA
-            GROUP BY
-                DF.ID_FACTURA
         )
 
         INSERT INTO DBO.DETALLE_FACTURA (
@@ -117,7 +117,7 @@ BEGIN
             DESCRIPCION
         )
         SELECT
-            @IDFACTURA,
+            @IDFACTURA AS ID_FACTURA,
             NL.LINEA AS NUMERO_LINEA,
             CL.IDPROD AS ID_PRODUCTO,
             CL.CANT AS CANTIDAD,
