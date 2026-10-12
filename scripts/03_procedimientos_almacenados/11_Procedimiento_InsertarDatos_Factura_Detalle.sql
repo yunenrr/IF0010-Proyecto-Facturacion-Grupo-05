@@ -1,8 +1,20 @@
 USE FACTURACION_SA;
 GO
 
-DROP PROCEDURE IF EXISTS DBO.PR_EMITIRFACTURA;
+-- INICIO
+IF
+    EXISTS (
+        SELECT 1
+        FROM SYS.OBJECTS
+        WHERE
+            NAME = 'PR_EMITIRFACTURA'
+            AND TYPE = 'P'
+    )
+    BEGIN
+        DROP PROCEDURE DBO.PR_EMITIRFACTURA;
+    END;
 GO
+
 CREATE PROCEDURE DBO.PR_EMITIRFACTURA (
     @IDENTIFICADOR_FACTURA VARCHAR(30),
     @NUMERO_CONSECUTIVO INT,
@@ -27,9 +39,11 @@ BEGIN
     SET NOCOUNT ON;
     SET @CODIGO_ERROR = 0;
     SET @MENSAJE_ERROR = 'Exitoso';
+    
     DECLARE @IDFACTURA INT;
     DECLARE @LINEASTOTALES INT = ((@NUMERO_CONSECUTIVO % 3) + 3);
     DECLARE @BASEPROD INT = @NUMERO_CONSECUTIVO * 5;
+    
     BEGIN TRY
         -- Validar identificador de factura
         IF
@@ -38,7 +52,7 @@ BEGIN
                 THROW 50100,
                 'El Identificador de la Factura no puede ser nulo',
                 1;
-        END;
+            END;
 
         INSERT INTO DBO.FACTURA (
             IDENTIFICADOR_FACTURA,
@@ -74,7 +88,9 @@ BEGIN
             @ID_CLIENTE,
             @CODIGO_DOCUMENTO
         );
+        
         SET @IDFACTURA = SCOPE_IDENTITY();
+        
         INSERT INTO DBO.DETALLE_FACTURA (
             ID_FACTURA,
             NUMERO_LINEA,
@@ -109,11 +125,13 @@ BEGIN
                     ((@BASEPROD + V.LINEA - 1) % 1000) + 1 AS IDPROD,
                     ((@NUMERO_CONSECUTIVO + V.LINEA) % 5) + 1 AS CANT
                 FROM (VALUES (1), (2), (3), (4), (5)) AS V(LINEA)
-                WHERE V.LINEA <= @LINEASTOTALES
+                WHERE
+                    V.LINEA <= @LINEASTOTALES
             ) AS CD
             LEFT JOIN DBO.PRODUCTO AS P
                 ON CD.IDPROD = P.ID
         ) AS LP;
+        
         UPDATE F
         SET
             SUBTOTAL = TD.SUBTOTALSUM,
@@ -132,6 +150,7 @@ BEGIN
                 DF.ID_FACTURA
         ) AS TD
             ON F.ID = TD.ID_FACTURA;
+            
     END TRY
     BEGIN CATCH
         SET @CODIGO_ERROR = ERROR_NUMBER();
@@ -139,3 +158,4 @@ BEGIN
     END CATCH;
 END;
 GO
+-- FIN
