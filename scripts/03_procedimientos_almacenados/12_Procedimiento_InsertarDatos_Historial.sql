@@ -47,8 +47,8 @@ BEGIN
             OR @USUARIO_RESPONSABLE IS NULL
             BEGIN
                 THROW 50010,
-                'Los parametros obligatorios no pueden ser nulos',
-                1;
+                    'Los parametros obligatorios no pueden ser nulos',
+                    1;
             END;
 
         -- Validacion de duplicado
@@ -66,9 +66,12 @@ BEGIN
             )
             BEGIN
                 DECLARE @MSG_ERR VARCHAR(100);
-                SET @MSG_ERR = 'El registro de historial exacto ya se ' +
-                    'encuentra en la bitacora';
-                THROW 50101, @MSG_ERR, 1;
+                SET @MSG_ERR = 'El registro de historial exacto ya se '
+                    + 'encuentra en la bitacora';
+                
+                THROW 50101,
+                    @MSG_ERR,
+                    1;
             END;
 
         INSERT INTO DBO.HISTORIAL (
