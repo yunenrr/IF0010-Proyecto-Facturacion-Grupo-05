@@ -1,0 +1,17 @@
+USE FACTURACION_SA;
+GO
+
+-- INICIO
+IF
+    EXISTS (
+        SELECT 1
+        FROM SYS.INDEXES
+        WHERE
+            NAME = 'IX_CLIENTE_NOMBRE'
+            AND OBJECT_ID = OBJECT_ID('DBO.CLIENTE')
+    )
+    BEGIN
+        DROP INDEX IX_CLIENTE_NOMBRE ON DBO.CLIENTE;
+    END;
+GO
+-- FIN
