@@ -39,11 +39,11 @@ BEGIN
     SET NOCOUNT ON;
     SET @CODIGO_ERROR = 0;
     SET @MENSAJE_ERROR = 'Exitoso';
-    
+
     DECLARE @IDFACTURA INT;
     DECLARE @LINEASTOTALES INT = ((@NUMERO_CONSECUTIVO % 3) + 3);
     DECLARE @BASEPROD INT = @NUMERO_CONSECUTIVO * 5;
-    
+
     BEGIN TRY
         -- Validar identificador de factura
         IF
@@ -88,9 +88,9 @@ BEGIN
             @ID_CLIENTE,
             @CODIGO_DOCUMENTO
         );
-        
+
         SET @IDFACTURA = SCOPE_IDENTITY();
-        
+
         INSERT INTO DBO.DETALLE_FACTURA (
             ID_FACTURA,
             NUMERO_LINEA,
@@ -131,7 +131,7 @@ BEGIN
             LEFT JOIN DBO.PRODUCTO AS P
                 ON CD.IDPROD = P.ID
         ) AS LP;
-        
+
         UPDATE F
         SET
             SUBTOTAL = TD.SUBTOTALSUM,
@@ -150,7 +150,7 @@ BEGIN
                 DF.ID_FACTURA
         ) AS TD
             ON F.ID = TD.ID_FACTURA;
-            
+
     END TRY
     BEGIN CATCH
         SET @CODIGO_ERROR = ERROR_NUMBER();
