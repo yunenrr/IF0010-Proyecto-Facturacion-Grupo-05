@@ -7,17 +7,24 @@ IF
         SELECT 1
         FROM SYS.OBJECTS
         WHERE
-            NAME = 'pr_InsertarTipoProducto'
+            NAME = 'pr_InsertarProducto'
             AND TYPE = 'P'
     )
     BEGIN
-        DROP PROCEDURE DBO.PR_INSERTARTIPOPRODUCTO;
+        DROP PROCEDURE DBO.PR_INSERTARPRODUCTO;
     END;
 GO
 
-CREATE PROCEDURE DBO.PR_INSERTARTIPOPRODUCTO (
-    @NOMBRE VARCHAR(20),
-    @DESCRIPCION VARCHAR(100),
+CREATE PROCEDURE DBO.PR_INSERTARPRODUCTO (
+    @CODIGO VARCHAR(30),
+    @DESCRIPCION VARCHAR(70),
+    @PRECIO_UNITARIO DECIMAL(18, 2),
+    @PORCENTAJE_IMPUESTO DECIMAL(5, 2),
+    @ESTADO_ACTIVO BIT,
+    @FECHA_CREACION DATE,
+    @FECHA_VENCIMIENTO DATE,
+    @EXISTENCIAS INT,
+    @ID_TIPO_PRODUCTO INT,
     @CODIGO_ERROR INT OUTPUT,
     @MENSAJE_ERROR VARCHAR(100) OUTPUT
 )
@@ -31,37 +38,72 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        -- Validar parametros nulos
+        -- Validar parametros obligatorios
         IF
-            @NOMBRE IS NULL
+            @CODIGO IS NULL
             OR @DESCRIPCION IS NULL
+            OR @PRECIO_UNITARIO IS NULL
+            OR @PORCENTAJE_IMPUESTO IS NULL
+            OR @ESTADO_ACTIVO IS NULL
+            OR @FECHA_CREACION IS NULL
+            OR @FECHA_VENCIMIENTO is null
+            OR @EXISTENCIAS IS NULL
+            OR @ID_TIPO_PRODUCTO IS NULL
             BEGIN
-                THROW 50100,
-                'Los parametros obligatorios no pueden ser nulos',
-                1;
+                THROW 50100, 'Parametros obligatorios no pueden ser nulos', 1;
             END;
 
-        -- Validacion para evitar registros duplicados
+        -- Validaciones de negocio
         IF
-            EXISTS (
+            @EXISTENCIAS < 0
+            BEGIN
+                THROW 50101, 'Las existencias no pueden ser menores a cero', 1;
+            END;
+
+        -- Validar que el tipo de producto exista
+        IF
+            NOT EXISTS (
                 SELECT 1
                 FROM DBO.TIPO_PRODUCTO
                 WHERE
-                    NOMBRE = @NOMBRE
+                    ID = @ID_TIPO_PRODUCTO
             )
             BEGIN
-                THROW 50101,
-                'El tipo de producto ya se encuentra registrado',
-                1;
+                THROW 50103, 'El tipo de producto indicado no existe', 1;
+            END;
+        -- Validar productos duplicados
+        IF
+            EXISTS (
+                SELECT 1
+                FROM DBO.PRODUCTO
+                WHERE
+                    CODIGO = @CODIGO
+            )
+            BEGIN
+                THROW 50103, 'El producto ya se encuentra registrado', 1;
             END;
 
-        INSERT INTO DBO.TIPO_PRODUCTO (
-            NOMBRE,
-            DESCRIPCION
+        INSERT INTO DBO.PRODUCTO (
+            CODIGO,
+            DESCRIPCION,
+            PRECIO_UNITARIO,
+            PORCENTAJE_IMPUESTO,
+            ESTADO_ACTIVO,
+            FECHA_CREACION,
+            FECHA_VENCIMIENTO,
+            EXISTENCIAS,
+            ID_TIPO_PRODUCTO
         )
         VALUES (
-            @NOMBRE,
-            @DESCRIPCION
+            @CODIGO,
+            @DESCRIPCION,
+            @PRECIO_UNITARIO,
+            @PORCENTAJE_IMPUESTO,
+            @ESTADO_ACTIVO,
+            @FECHA_CREACION,
+            @FECHA_VENCIMIENTO,
+            @EXISTENCIAS,
+            @ID_TIPO_PRODUCTO
         );
 
         COMMIT TRANSACTION;
@@ -74,7 +116,7 @@ BEGIN
 
         SET @CODIGO_ERROR = ERROR_NUMBER();
         SET @MENSAJE_ERROR = ERROR_MESSAGE();
-    END CATCH;
+    END CATCH
 END;
 GO
 -- FIN
