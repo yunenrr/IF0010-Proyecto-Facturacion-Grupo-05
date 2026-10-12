@@ -1,18 +1,35 @@
 USE FACTURACION_SA;
 GO
 
--- Inicio
-DECLARE @CodigoError INT;
-DECLARE @MensajeError VARCHAR(100);
+-- INICIO
+DECLARE @CODIGOERROR INT;
+DECLARE @MENSAJEERROR VARCHAR(100);
 
-EXEC dbo.pr_InsertarDocumento
-    @DESCRIPCION = 'Factura Electronica',
-    @CODIGO_ERROR = @CodigoError OUTPUT,
-    @MENSAJE_ERROR = @MensajeError OUTPUT;
+-- Evitar duplicados
+IF
+    NOT EXISTS (
+        SELECT 1
+        FROM DBO.DOCUMENTO
+        WHERE DESCRIPCION = 'Factura Electronica'
+    )
+    BEGIN
+        EXEC DBO.PR_INSERTARDOCUMENTO
+            @DESCRIPCION = 'Factura Electronica',
+            @CODIGO_ERROR = @CODIGOERROR OUTPUT,
+            @MENSAJE_ERROR = @MENSAJEERROR OUTPUT;
+    END;
 
-EXEC dbo.pr_InsertarDocumento
-    @DESCRIPCION = 'Tiquete Electronica',
-    @CODIGO_ERROR = @CodigoError OUTPUT,
-    @MENSAJE_ERROR = @MensajeError OUTPUT;
+IF
+    NOT EXISTS (
+        SELECT 1
+        FROM DBO.DOCUMENTO
+        WHERE DESCRIPCION = 'Tiquete Electronico'
+    )
+    BEGIN
+        EXEC DBO.PR_INSERTARDOCUMENTO
+            @DESCRIPCION = 'Tiquete Electronico',
+            @CODIGO_ERROR = @CODIGOERROR OUTPUT,
+            @MENSAJE_ERROR = @MENSAJEERROR OUTPUT;
+    END;
 GO
 -- FIN
