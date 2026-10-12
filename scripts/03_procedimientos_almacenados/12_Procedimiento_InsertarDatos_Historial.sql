@@ -65,8 +65,10 @@ BEGIN
                     AND TABLA_AFECTADA = @TABLA_AFECTADA
             )
             BEGIN
-                THROW 50101,
-                'El registro de historial exacto ya se encuentra en la bitacora', 1;
+                DECLARE @MSG_ERR VARCHAR(100);
+                SET @MSG_ERR = 'El registro de historial exacto ya se ' +
+                    'encuentra en la bitacora';
+                THROW 50101, @MSG_ERR, 1;
             END;
 
         INSERT INTO DBO.HISTORIAL (
