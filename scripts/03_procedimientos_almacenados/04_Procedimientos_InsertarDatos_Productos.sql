@@ -24,7 +24,7 @@ CREATE PROCEDURE DBO.PR_INSERTARPRODUCTO (
     @FECHA_CREACION DATE,
     @FECHA_VENCIMIENTO DATE,
     @EXISTENCIAS INT,
-    @TIPO_PRODUCTO VARCHAR(10),
+    @ID_TIPO_PRODUCTO INT,
     @CODIGO_ERROR INT OUTPUT,
     @MENSAJE_ERROR VARCHAR(100) OUTPUT
 )
@@ -46,8 +46,9 @@ BEGIN
             OR @PORCENTAJE_IMPUESTO IS NULL
             OR @ESTADO_ACTIVO IS NULL
             OR @FECHA_CREACION IS NULL
+            OR @FECHA_VENCIMIENTO is null
             OR @EXISTENCIAS IS NULL
-            OR @TIPO_PRODUCTO IS NULL
+            OR @ID_TIPO_PRODUCTO IS NULL
             BEGIN
                 THROW 50100, 'Parametros obligatorios no pueden ser nulos', 1;
             END;
@@ -59,13 +60,18 @@ BEGIN
                 THROW 50101, 'Las existencias no pueden ser menores a cero', 1;
             END;
 
+        -- Validar que el tipo de producto exista
         IF
-            @TIPO_PRODUCTO NOT IN ('DIGITAL', 'FISICO')
+            NOT EXISTS (
+                SELECT 1
+                FROM DBO.TIPO_PRODUCTO
+                WHERE
+                    ID = @ID_TIPO_PRODUCTO
+            )
             BEGIN
-                THROW 50102, 'Tipo de producto debe ser DIGITAL o FISICO', 1;
+                THROW 50103, 'El tipo de producto indicado no existe', 1;
             END;
-
-        -- Validacion para evitar registros duplicados
+        -- Validar productos duplicados
         IF
             EXISTS (
                 SELECT 1
@@ -86,7 +92,7 @@ BEGIN
             FECHA_CREACION,
             FECHA_VENCIMIENTO,
             EXISTENCIAS,
-            TIPO_PRODUCTO
+            ID_TIPO_PRODUCTO
         )
         VALUES (
             @CODIGO,
@@ -97,7 +103,7 @@ BEGIN
             @FECHA_CREACION,
             @FECHA_VENCIMIENTO,
             @EXISTENCIAS,
-            @TIPO_PRODUCTO
+            @ID_TIPO_PRODUCTO
         );
 
         COMMIT TRANSACTION;

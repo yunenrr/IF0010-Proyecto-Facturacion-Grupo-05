@@ -17,6 +17,7 @@ GO
 
 CREATE PROCEDURE DBO.PR_EMITIRFACTURACONDETALLE (
     -- Parametros de la Factura
+    @IDENTIFICADOR_FACTURA VARCHAR(30),
     @NUMERO_CONSECUTIVO INT,
     @CODIGO_MONEDA CHAR(3),
     @ID_ESTADO_FACTURA INT,
@@ -49,7 +50,8 @@ BEGIN
 
         -- Validacion de nulos
         IF
-            @NUMERO_CONSECUTIVO IS NULL
+            @IDENTIFICADOR_FACTURA IS NULL
+            OR @NUMERO_CONSECUTIVO IS NULL
             OR @CODIGO_MONEDA IS NULL
             OR @ID_ESTADO_FACTURA IS NULL
             OR @ID_EMPRESA IS NULL
@@ -167,6 +169,7 @@ BEGIN
 
         -- Insercion de Factura
         INSERT INTO DBO.FACTURA (
+            IDENTIFICADOR_FACTURA,
             NUMERO_CONSECUTIVO,
             FECHA_CREACION,
             FECHA_MODIFICACION,
@@ -183,6 +186,7 @@ BEGIN
             CODIGO_IDENTIFICADOR_DOCUMENTO
         )
         VALUES (
+            @IDENTIFICADOR_FACTURA,
             @NUMERO_CONSECUTIVO,
             CAST(GETDATE() AS DATE),
             CAST(GETDATE() AS DATE),
@@ -255,7 +259,7 @@ BEGIN
             @ID_NUEVA_FACTURA,
             @ID_NUEVA_FACTURA,
             'EMISION',
-            NULL,
+            '',
             @NOMBRE_ESTADO,
             SYSDATETIME(),
             'FACTURA Y DETALLE',

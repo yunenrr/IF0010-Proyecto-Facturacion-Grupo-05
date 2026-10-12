@@ -66,8 +66,7 @@ BEGIN
             )
             BEGIN
                 THROW 50101,
-                'El registro de historial exacto ya se encuentra en la bitacora', -- noqa: LT05
-                1;
+                'El registro de historial exacto ya se encuentra en la bitacora', 1;
             END;
 
         INSERT INTO DBO.HISTORIAL (
@@ -85,8 +84,8 @@ BEGIN
             @ID_FACTURA,
             @ID_REGISTRO_AFECTADO,
             @OPERACION_REALIZADA,
-            @ESTADO_PREVIO,
-            @ESTADO_NUEVO,
+            ISNULL(@ESTADO_PREVIO, ''),
+            ISNULL(@ESTADO_NUEVO, ''),
             SYSDATETIME(),
             @TABLA_AFECTADA,
             ISNULL(@DESCRIPCION, 'N/A'),
