@@ -5,28 +5,61 @@ GO
 DECLARE @ERR INT;
 DECLARE @MSG VARCHAR(100);
 
-EXEC DBO.PR_INSERTARESTADOFACTURA
-    @ESTADO_FACTURA = 'BORRADOR',
-    @DESCRIPCION = 'Se esta preparando la factura',
-    @CODIGO_ERROR = @ERR OUTPUT,
-    @MENSAJE_ERROR = @MSG OUTPUT;
+-- Validar existencia previa para evitar registros duplicados
+IF
+    NOT EXISTS (
+        SELECT 1
+        FROM DBO.ESTADO_FACTURA
+        WHERE ESTADO_FACTURA = 'BORRADOR'
+    )
+    BEGIN
+        EXEC DBO.PR_INSERTARESTADOFACTURA
+            @ESTADO_FACTURA = 'BORRADOR',
+            @DESCRIPCION = 'Se esta preparando la factura',
+            @CODIGO_ERROR = @ERR OUTPUT,
+            @MENSAJE_ERROR = @MSG OUTPUT;
+    END;
 
-EXEC DBO.PR_INSERTARESTADOFACTURA
-    @ESTADO_FACTURA = 'EMITIDA',
-    @DESCRIPCION = 'Factura realizada',
-    @CODIGO_ERROR = @ERR OUTPUT,
-    @MENSAJE_ERROR = @MSG OUTPUT;
+IF
+    NOT EXISTS (
+        SELECT 1
+        FROM DBO.ESTADO_FACTURA
+        WHERE ESTADO_FACTURA = 'EMITIDA'
+    )
+    BEGIN
+        EXEC DBO.PR_INSERTARESTADOFACTURA
+            @ESTADO_FACTURA = 'EMITIDA',
+            @DESCRIPCION = 'Factura realizada',
+            @CODIGO_ERROR = @ERR OUTPUT,
+            @MENSAJE_ERROR = @MSG OUTPUT;
+    END;
 
-EXEC DBO.PR_INSERTARESTADOFACTURA
-    @ESTADO_FACTURA = 'PAGADA',
-    @DESCRIPCION = 'Factura cancelada',
-    @CODIGO_ERROR = @ERR OUTPUT,
-    @MENSAJE_ERROR = @MSG OUTPUT;
+IF
+    NOT EXISTS (
+        SELECT 1
+        FROM DBO.ESTADO_FACTURA
+        WHERE ESTADO_FACTURA = 'PAGADA'
+    )
+    BEGIN
+        EXEC DBO.PR_INSERTARESTADOFACTURA
+            @ESTADO_FACTURA = 'PAGADA',
+            @DESCRIPCION = 'Factura cancelada',
+            @CODIGO_ERROR = @ERR OUTPUT,
+            @MENSAJE_ERROR = @MSG OUTPUT;
+    END;
 
-EXEC DBO.PR_INSERTARESTADOFACTURA
-    @ESTADO_FACTURA = 'CANCELADA',
-    @DESCRIPCION = 'Factura Anulada',
-    @CODIGO_ERROR = @ERR OUTPUT,
-    @MENSAJE_ERROR = @MSG OUTPUT;
+IF
+    NOT EXISTS (
+        SELECT 1
+        FROM DBO.ESTADO_FACTURA
+        WHERE ESTADO_FACTURA = 'CANCELADA'
+    )
+    BEGIN
+        EXEC DBO.PR_INSERTARESTADOFACTURA
+            @ESTADO_FACTURA = 'CANCELADA',
+            @DESCRIPCION = 'Factura Anulada',
+            @CODIGO_ERROR = @ERR OUTPUT,
+            @MENSAJE_ERROR = @MSG OUTPUT;
+    END;
 GO
 -- FIN

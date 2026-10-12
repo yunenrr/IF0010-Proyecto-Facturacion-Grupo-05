@@ -48,7 +48,20 @@ BEGIN
             OR @PERMISO_OPERAR IS NULL
             OR @ID_DIRECCION IS NULL
             BEGIN
-                THROW 50100, 'Los parametros obligatorios no pueden ser nulos', 1; -- noqa: LT05
+                THROW 50100,
+                'Los parametros obligatorios no pueden ser nulos',
+                1;
+            END;
+
+        -- Validacion para evitar registros duplicados
+        IF
+            EXISTS (
+                SELECT 1
+                FROM DBO.EMPRESA
+                WHERE CEDULA_JURIDICA = @CEDULA_JURIDICA
+            )
+            BEGIN
+                THROW 50101, 'La empresa ya se encuentra registrada', 1;
             END;
 
         INSERT INTO DBO.EMPRESA (

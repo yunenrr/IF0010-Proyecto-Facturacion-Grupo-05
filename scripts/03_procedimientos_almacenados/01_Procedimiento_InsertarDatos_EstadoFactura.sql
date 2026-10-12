@@ -31,12 +31,28 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        -- Validar  parametros nulos
+        -- Validar parametros nulos
         IF
             @ESTADO_FACTURA IS NULL
             OR @DESCRIPCION IS NULL
             BEGIN
-                THROW 50100, 'Los parametros obligatorios no pueden ser nulos', 1; -- noqa: LT05
+                THROW 50100,
+                'Los parametros obligatorios no pueden ser nulos',
+                1;
+            END;
+
+        -- Validacion para evitar registros duplicados
+        IF
+            EXISTS (
+                SELECT 1
+                FROM DBO.ESTADO_FACTURA
+                WHERE
+                    ESTADO_FACTURA = @ESTADO_FACTURA
+            )
+            BEGIN
+                THROW 50101,
+                'El estado de factura ya se encuentra registrado',
+                1;
             END;
 
         INSERT INTO DBO.ESTADO_FACTURA (

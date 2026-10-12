@@ -41,7 +41,22 @@ BEGIN
             OR @DETALLE_DIRECCION IS NULL
             BEGIN
                 THROW 50100, 'Parámetros nulos', 1;
-            END
+            END;
+
+        -- Validacion para evitar registros duplicados
+        IF
+            EXISTS (
+                SELECT 1
+                FROM DBO.DIRECCION
+                WHERE
+                    ID_PROVINCIA = @ID_PROVINCIA
+                    AND ID_CANTON = @ID_CANTON
+                    AND ID_DISTRITO = @ID_DISTRITO
+                    AND DETALLE_DIRECCION = @DETALLE_DIRECCION
+            )
+            BEGIN
+                THROW 50101, 'La direccion ya se encuentra registrada', 1;
+            END;
 
         INSERT INTO DBO.DIRECCION (
             ID_PROVINCIA,
@@ -62,10 +77,11 @@ BEGIN
         IF XACT_STATE() <> 0
             BEGIN
                 ROLLBACK TRANSACTION;
-            END
+            END;
 
         SET @CODIGO_ERROR = ERROR_NUMBER();
         SET @MENSAJE_ERROR = ERROR_MESSAGE();
     END CATCH
 END;
 GO
+-- FIN

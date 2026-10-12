@@ -30,9 +30,22 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
+        -- Validacion de nulos
         IF @DESCRIPCION IS NULL
             BEGIN
                 THROW 50100, 'El parametro obligatorio no puede ser nulo', 1;
+            END;
+
+        -- Validacion para evitar registros duplicados
+        IF
+            EXISTS (
+                SELECT 1
+                FROM DBO.DOCUMENTO
+                WHERE
+                    DESCRIPCION = @DESCRIPCION
+            )
+            BEGIN
+                THROW 50101, 'El documento ya se encuentra registrado', 1;
             END;
 
         INSERT INTO DBO.DOCUMENTO (
@@ -55,4 +68,4 @@ BEGIN
     END CATCH
 END;
 GO
--- FINN
+-- FIN

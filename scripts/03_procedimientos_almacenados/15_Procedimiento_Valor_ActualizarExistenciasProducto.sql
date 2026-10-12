@@ -31,33 +31,37 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        -- Validar que los parametros no sean nulos
-        IF @ID_PRODUCTO IS NULL
+        -- Validar que los parametros obligatorios no sean nulos
+        IF
+            @ID_PRODUCTO IS NULL
+            OR @CANTIDAD_AJUSTE IS NULL
             BEGIN
-                THROW 50010, 'El id de producto no puede ser nulo', 1;
+                THROW 50010,
+                'Los parametros obligatorios no pueden ser nulos',
+                1;
             END;
 
-        IF @CANTIDAD_AJUSTE IS NULL
+        IF @CANTIDAD_AJUSTE = 0
             BEGIN
-                THROW 50010, 'La cantidad de ajuste no puede ser nula', 1;
+                THROW 50012, 'La cantidad de ajuste no puede ser cero', 1;
             END;
 
         -- Validar que el producto exista en el catalogo
         IF
             NOT EXISTS (
                 SELECT 1
-                FROM DBO.PRODUCTO AS P
-                WHERE @ID_PRODUCTO = P.ID
+                FROM DBO.PRODUCTO
+                WHERE ID = @ID_PRODUCTO
             )
             BEGIN
                 THROW 50004, 'El producto no se encuentra registrado', 1;
             END;
 
-        -- Extraer el stock actual para aplicar la regla de negocio
         DECLARE @EXISTENCIAS_ACTUALES INT;
 
+        -- Bloqueo de fila
         SELECT @EXISTENCIAS_ACTUALES = EXISTENCIAS
-        FROM DBO.PRODUCTO
+        FROM DBO.PRODUCTO WITH (UPDLOCK)
         WHERE ID = @ID_PRODUCTO;
 
         -- Validar que el ajuste no deje el inventario en negativo
@@ -68,7 +72,8 @@ BEGIN
 
         -- Actualizar el inventario sumando o restando
         UPDATE DBO.PRODUCTO
-        SET EXISTENCIAS = EXISTENCIAS + @CANTIDAD_AJUSTE
+        SET
+            EXISTENCIAS = EXISTENCIAS + @CANTIDAD_AJUSTE
         WHERE ID = @ID_PRODUCTO;
 
         COMMIT TRANSACTION;
@@ -85,5 +90,4 @@ BEGIN
     END CATCH;
 END;
 GO
-
 -- FIN

@@ -38,6 +38,7 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
+        -- Validaciones de parametros nulos
         IF
             @ID_FACTURA IS NULL
             OR @ID_REGISTRO_AFECTADO IS NULL
@@ -45,7 +46,28 @@ BEGIN
             OR @TABLA_AFECTADA IS NULL
             OR @USUARIO_RESPONSABLE IS NULL
             BEGIN
-                THROW 50010, 'Los parametros obligatorios no pueden ser nulos', 1; -- noqa: LT05
+                THROW 50010,
+                'Los parametros obligatorios no pueden ser nulos',
+                1;
+            END;
+
+        -- Validacion de duplicado
+        IF
+            EXISTS (
+                SELECT 1
+                FROM DBO.HISTORIAL
+                WHERE
+                    ID_FACTURA = @ID_FACTURA
+                    AND ID_REGISTRO_AFECTADO = @ID_REGISTRO_AFECTADO
+                    AND OPERACION_REALIZADA = @OPERACION_REALIZADA
+                    AND ISNULL(ESTADO_PREVIO, '') = ISNULL(@ESTADO_PREVIO, '')
+                    AND ISNULL(ESTADO_NUEVO, '') = ISNULL(@ESTADO_NUEVO, '')
+                    AND TABLA_AFECTADA = @TABLA_AFECTADA
+            )
+            BEGIN
+                THROW 50101,
+                'El registro de historial exacto ya se encuentra en la bitacora', -- noqa: LT05
+                1;
             END;
 
         INSERT INTO DBO.HISTORIAL (

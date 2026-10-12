@@ -17,13 +17,15 @@ DECLARE @ESTRUCTURA VARCHAR(50);
 WHILE @PASO <= 50
     BEGIN
         -- Para datos aleatorios
-        SET @ID_PROVINCIA = (@PASO % 7) + 1;
-        SET @ID_CANTON = (@PASO % 10) + 1;
-        SET @ID_DISTRITO = (@PASO % 15) + 1;
-        SET @DISTANCIA = CAST(((@PASO % 8) + 1) * 25 AS VARCHAR(10));
+        SET @ID_PROVINCIA = (ABS(CHECKSUM(NEWID())) % 7) + 1;
+        SET @ID_CANTON = (ABS(CHECKSUM(NEWID())) % 10) + 1;
+        SET @ID_DISTRITO = (ABS(CHECKSUM(NEWID())) % 15) + 1;
+        SET @DISTANCIA = CAST(
+            ((ABS(CHECKSUM(NEWID())) % 8) + 1) * 25 AS VARCHAR(10)
+        );
 
         SET @PUNTOREFERENCIA = CHOOSE(
-            (@PASO % 7) + 1,
+            (ABS(CHECKSUM(NEWID())) % 7) + 1,
             'la Iglesia Catolica',
             'la Escuela Publica',
             'la Municipalidad',
@@ -34,7 +36,7 @@ WHILE @PASO <= 50
         );
 
         SET @ORIENTACION = CHOOSE(
-            (@PASO % 4) + 1,
+            (ABS(CHECKSUM(NEWID())) % 4) + 1,
             'Norte',
             'Sur',
             'Este',
@@ -42,7 +44,7 @@ WHILE @PASO <= 50
         );
 
         SET @ESTRUCTURA = CHOOSE(
-            (@PASO % 6) + 1,
+            (ABS(CHECKSUM(NEWID())) % 6) + 1,
             'casa color blanca',
             'casa color azul',
             'edificio de dos plantas',
@@ -63,15 +65,24 @@ WHILE @PASO <= 50
             @PASO
         );
 
-        EXEC DBO.PR_INSERTARDIRECCION
-            @ID_PROVINCIA = @ID_PROVINCIA,
-            @ID_CANTON = @ID_CANTON,
-            @ID_DISTRITO = @ID_DISTRITO,
-            @DETALLE_DIRECCION = @DETALLE,
-            @CODIGO_ERROR = @ERROR OUTPUT,
-            @MENSAJE_ERROR = @MENSAJE OUTPUT;
+        -- Evitar duplicados validando la existencia de la direccion
+        IF
+            NOT EXISTS (
+                SELECT 1
+                FROM DBO.DIRECCION
+                WHERE DETALLE_DIRECCION = @DETALLE
+            )
+            BEGIN
+                EXEC DBO.PR_INSERTARDIRECCION
+                    @ID_PROVINCIA = @ID_PROVINCIA,
+                    @ID_CANTON = @ID_CANTON,
+                    @ID_DISTRITO = @ID_DISTRITO,
+                    @DETALLE_DIRECCION = @DETALLE,
+                    @CODIGO_ERROR = @ERROR OUTPUT,
+                    @MENSAJE_ERROR = @MENSAJE OUTPUT;
+            END;
 
         SET @PASO += 1;
     END;
 GO
--- FINN
+-- FIN

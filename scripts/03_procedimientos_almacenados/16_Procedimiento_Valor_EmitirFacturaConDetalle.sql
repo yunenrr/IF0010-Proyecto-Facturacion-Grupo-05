@@ -63,16 +63,29 @@ BEGIN
                 THROW 50010,
                 'Los parametros obligatorios no pueden ser nulos',
                 1;
-            END
+            END;
 
         IF @CANTIDAD <= 0
             BEGIN
                 THROW 50011,
                 'La cantidad del producto debe ser mayor a cero',
                 1;
-            END
+            END;
 
-        -- Validaciones de Integridad Referencial
+        --Validar que el consecutivo de factura no exista ya
+        IF
+            EXISTS (
+                SELECT 1
+                FROM DBO.FACTURA
+                WHERE NUMERO_CONSECUTIVO = @NUMERO_CONSECUTIVO
+            )
+            BEGIN
+                THROW 50101,
+                'La factura ya se encuentra registrada con ese consecutivo',
+                1;
+            END;
+
+        -- Validaciones de Integridad
         IF
             NOT EXISTS (
                 SELECT 1
@@ -81,7 +94,7 @@ BEGIN
             )
             BEGIN
                 THROW 50001, 'El codigo de la moneda no es valido', 1;
-            END
+            END;
 
         IF
             NOT EXISTS (
@@ -91,7 +104,7 @@ BEGIN
             )
             BEGIN
                 THROW 50002, 'El estado de factura no es valido', 1;
-            END
+            END;
 
         IF
             NOT EXISTS (
@@ -101,7 +114,7 @@ BEGIN
             )
             BEGIN
                 THROW 50004, 'El cliente no se encuentra registrado', 1;
-            END
+            END;
 
         IF
             NOT EXISTS (
@@ -111,7 +124,7 @@ BEGIN
             )
             BEGIN
                 THROW 50007, 'El producto no se encuentra registrado', 1;
-            END
+            END;
 
         -- Extraccion de datos del producto
         DECLARE @PRECIO_UNITARIO DECIMAL(18, 2);
@@ -122,7 +135,7 @@ BEGIN
             @PRECIO_UNITARIO = PRECIO_UNITARIO,
             @PORCENTAJE_IMPUESTO = PORCENTAJE_IMPUESTO,
             @EXISTENCIAS_ACTUALES = EXISTENCIAS
-        FROM DBO.PRODUCTO
+        FROM DBO.PRODUCTO WITH (UPDLOCK)
         WHERE ID = @ID_PRODUCTO;
 
         IF @CANTIDAD > @EXISTENCIAS_ACTUALES
@@ -130,9 +143,9 @@ BEGIN
                 THROW 50012,
                 'Existencias insuficientes para emitir factura',
                 1;
-            END
+            END;
 
-        -- Calculos de importes separando asignaciones
+        -- Calculos de importes
         DECLARE @MONTO_SUBTOTAL DECIMAL(18, 2);
         SET @MONTO_SUBTOTAL = @PRECIO_UNITARIO * @CANTIDAD;
 
@@ -142,9 +155,7 @@ BEGIN
             = @MONTO_SUBTOTAL * (@PORCENTAJE_DESCUENTO / 100.0);
 
         DECLARE @BASE_IMPONIBLE DECIMAL(18, 2);
-        SET
-            @BASE_IMPONIBLE
-            = @MONTO_SUBTOTAL - @MONTO_DESCUENTO_CALCULADO;
+        SET @BASE_IMPONIBLE = @MONTO_SUBTOTAL - @MONTO_DESCUENTO_CALCULADO;
 
         DECLARE @MONTO_IMPUESTO_CALCULADO DECIMAL(18, 2);
         SET
@@ -152,9 +163,7 @@ BEGIN
             = @BASE_IMPONIBLE * (@PORCENTAJE_IMPUESTO / 100.0);
 
         DECLARE @MONTO_TOTAL_FACTURA DECIMAL(19, 2);
-        SET
-            @MONTO_TOTAL_FACTURA
-            = @BASE_IMPONIBLE + @MONTO_IMPUESTO_CALCULADO;
+        SET @MONTO_TOTAL_FACTURA = @BASE_IMPONIBLE + @MONTO_IMPUESTO_CALCULADO;
 
         -- Insercion de Factura
         INSERT INTO DBO.FACTURA (
@@ -179,7 +188,7 @@ BEGIN
             CAST(GETDATE() AS DATE),
             CAST(GETDATE() AS DATE),
             @MONTO_SUBTOTAL,
-            @PORCENTAJE_DESCUENTO,
+            @MONTO_DESCUENTO_CALCULADO,
             @MONTO_IMPUESTO_CALCULADO,
             @MONTO_TOTAL_FACTURA,
             ISNULL(@OBSERVACIONES, 'N/A'),
@@ -220,10 +229,11 @@ BEGIN
 
         -- Actualizacion del inventario
         UPDATE DBO.PRODUCTO
-        SET EXISTENCIAS = EXISTENCIAS - @CANTIDAD
+        SET
+            EXISTENCIAS = EXISTENCIAS - @CANTIDAD
         WHERE ID = @ID_PRODUCTO;
 
-        -- Registro de Auditoria en la tabla Historial
+        -- Registro en la tabla Historial
         DECLARE @NOMBRE_ESTADO VARCHAR(25);
 
         SELECT @NOMBRE_ESTADO = ESTADO_FACTURA
@@ -247,7 +257,7 @@ BEGIN
             'EMISION',
             NULL,
             @NOMBRE_ESTADO,
-            GETDATE(),
+            SYSDATETIME(),
             'FACTURA Y DETALLE',
             'Emision de factura con rebajo de inventario',
             @USUARIO_RESPONSABLE
@@ -259,13 +269,12 @@ BEGIN
         IF XACT_STATE() <> 0
             BEGIN
                 ROLLBACK TRANSACTION;
-            END
+            END;
 
         -- Setear mensaje de error
         SET @CODIGO_ERROR = ERROR_NUMBER();
         SET @MENSAJE_ERROR = ERROR_MESSAGE();
-    END CATCH
+    END CATCH;
 END;
 GO
-
 -- FIN

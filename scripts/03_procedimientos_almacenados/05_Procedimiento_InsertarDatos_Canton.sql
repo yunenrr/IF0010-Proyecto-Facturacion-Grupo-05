@@ -39,6 +39,18 @@ BEGIN
                 THROW 50100, 'Parametros nulos', 1;
             END;
 
+        -- Validacion para evitar registros duplicados
+        IF
+            EXISTS (
+                SELECT 1
+                FROM DBO.CANTON
+                WHERE
+                    NOMBRE = @NOMBRE
+            )
+            BEGIN
+                THROW 50101, 'El canton ya se encuentra registrado', 1;
+            END;
+
         INSERT INTO DBO.CANTON (
             NOMBRE,
             DETALLE_CANTON

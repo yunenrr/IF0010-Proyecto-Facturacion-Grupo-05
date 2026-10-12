@@ -32,22 +32,21 @@ BEGIN
         BEGIN TRANSACTION;
 
         -- Validar que los datos no sean nulos
-        IF @ID_CLIENTE IS NULL
+        IF
+            @ID_CLIENTE IS NULL
+            OR @ID_DIRECCION_ACTUALIZAR IS NULL
             BEGIN
-                THROW 50010, 'El id de cliente no puede ser nulo', 1;
-            END;
-
-        IF @ID_DIRECCION_ACTUALIZAR IS NULL
-            BEGIN
-                THROW 50010, 'El id de la direccion no puede ser nulo', 1;
+                THROW 50010,
+                'Los parametros obligatorios no pueden ser nulos',
+                1;
             END;
 
         -- Validar que el cliente exista
         IF
             NOT EXISTS (
                 SELECT 1
-                FROM DBO.CLIENTE AS C
-                WHERE @ID_CLIENTE = C.ID
+                FROM DBO.CLIENTE
+                WHERE ID = @ID_CLIENTE
             )
             BEGIN
                 THROW 50004, 'El cliente no se encuentra registrado', 1;
@@ -57,11 +56,26 @@ BEGIN
         IF
             NOT EXISTS (
                 SELECT 1
-                FROM DBO.DIRECCION AS D
-                WHERE @ID_DIRECCION_ACTUALIZAR = D.ID_DIRECCION
+                FROM DBO.DIRECCION
+                WHERE ID_DIRECCION = @ID_DIRECCION_ACTUALIZAR
             )
             BEGIN
-                THROW 50006, 'Direccion a actualizar no esta registrada', 1;
+                THROW 50006,
+                'Direccion a actualizar no esta registrada en el catalogo',
+                1;
+            END;
+
+        --Verificar que no tenga ya esa misma direccion
+        IF
+            EXISTS (
+                SELECT 1
+                FROM DBO.CLIENTE
+                WHERE
+                    ID = @ID_CLIENTE
+                    AND ID_DIRECCION = @ID_DIRECCION_ACTUALIZAR
+            )
+            BEGIN
+                THROW 50007, 'El cliente ya tiene asignada esta direccion', 1;
             END;
 
         UPDATE DBO.CLIENTE
@@ -84,5 +98,4 @@ BEGIN
     END CATCH;
 END;
 GO
-
 -- FIN

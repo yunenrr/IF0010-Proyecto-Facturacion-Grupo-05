@@ -39,6 +39,18 @@ BEGIN
                 THROW 50100, 'Parametros nulos', 1;
             END;
 
+        -- Validacion para evitar registros duplicados
+        IF
+            EXISTS (
+                SELECT 1
+                FROM DBO.PROVINCIA
+                WHERE
+                    NOMBRE = @NOMBRE
+            )
+            BEGIN
+                THROW 50101, 'La provincia ya se encuentra registrada', 1;
+            END;
+
         INSERT INTO DBO.PROVINCIA (
             NOMBRE,
             DETALLE_PROVINCIA

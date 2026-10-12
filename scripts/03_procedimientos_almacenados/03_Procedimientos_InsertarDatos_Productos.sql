@@ -52,14 +52,29 @@ BEGIN
                 THROW 50100, 'Parametros obligatorios no pueden ser nulos', 1;
             END;
 
-        IF @EXISTENCIAS < 0
+        -- Validaciones de negocio
+        IF
+            @EXISTENCIAS < 0
             BEGIN
                 THROW 50101, 'Las existencias no pueden ser menores a cero', 1;
             END;
 
-        IF @TIPO_PRODUCTO NOT IN ('DIGITAL', 'FISICO')
+        IF
+            @TIPO_PRODUCTO NOT IN ('DIGITAL', 'FISICO')
             BEGIN
                 THROW 50102, 'Tipo de producto debe ser DIGITAL o FISICO', 1;
+            END;
+
+        -- Validacion para evitar registros duplicados
+        IF
+            EXISTS (
+                SELECT 1
+                FROM DBO.PRODUCTO
+                WHERE
+                    CODIGO = @CODIGO
+            )
+            BEGIN
+                THROW 50103, 'El producto ya se encuentra registrado', 1;
             END;
 
         INSERT INTO DBO.PRODUCTO (

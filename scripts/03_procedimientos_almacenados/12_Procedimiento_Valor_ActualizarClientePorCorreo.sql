@@ -37,15 +37,13 @@ BEGIN
                 THROW 50100, 'El ID de cliente no puede ser nulo', 1;
             END;
 
-        -- Regla: el correo debe tener uno de los siguientes dominios:
-        -- @ucr.ac.cr, @gmail.com, @hotmail.com, @outlook.com
         IF
             @CORREO_ELECTRONICO_ACTUALIZAR IS NULL
             OR NOT (
-                @CORREO_ELECTRONICO_ACTUALIZAR LIKE '%ucr.ac.cr'
-                OR @CORREO_ELECTRONICO_ACTUALIZAR LIKE '%gmail.com'
-                OR @CORREO_ELECTRONICO_ACTUALIZAR LIKE '%hotmail.com'
-                OR @CORREO_ELECTRONICO_ACTUALIZAR LIKE '%outlook.com'
+                @CORREO_ELECTRONICO_ACTUALIZAR LIKE '%@ucr.ac.cr'
+                OR @CORREO_ELECTRONICO_ACTUALIZAR LIKE '%@gmail.com'
+                OR @CORREO_ELECTRONICO_ACTUALIZAR LIKE '%@hotmail.com'
+                OR @CORREO_ELECTRONICO_ACTUALIZAR LIKE '%@outlook.com'
             )
             BEGIN
                 THROW 50101, 'El correo no es valido o dominio no permitido', 1;
@@ -55,21 +53,21 @@ BEGIN
         IF
             NOT EXISTS (
                 SELECT 1
-                FROM DBO.CLIENTE AS C
-                WHERE @ID_CLIENTE = C.ID
+                FROM DBO.CLIENTE
+                WHERE ID = @ID_CLIENTE
             )
             BEGIN
                 THROW 50102, 'El cliente no se encuentra registrado', 1;
             END;
 
-        -- Validamos que el correo a actualizar no este inscrito
+        -- Validamos que el correo a actualizar no este inscrito en otro cliente
         IF
             EXISTS (
                 SELECT 1
-                FROM DBO.CLIENTE AS CL
+                FROM DBO.CLIENTE
                 WHERE
-                    CL.CORREO_ELECTRONICO = @CORREO_ELECTRONICO_ACTUALIZAR
-                    AND CL.ID <> @ID_CLIENTE
+                    CORREO_ELECTRONICO = @CORREO_ELECTRONICO_ACTUALIZAR
+                    AND ID <> @ID_CLIENTE
             )
             BEGIN
                 THROW 50103, 'No se puede actualizar el correo, ya existe', 1;
@@ -89,11 +87,10 @@ BEGIN
                 ROLLBACK TRANSACTION;
             END;
 
-        -- Seteamos los mensajes obtenidos
+        -- Setear los mensajes obtenidos
         SET @CODIGO_ERROR = ERROR_NUMBER();
         SET @MENSAJE_ERROR = ERROR_MESSAGE();
     END CATCH;
 END;
 GO
-
 -- FIN
