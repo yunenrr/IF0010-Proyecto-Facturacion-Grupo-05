@@ -31,7 +31,7 @@ WHILE @FACTURA <= 500
         );
 
         -- Insercion del registro de trazabilidad
-        EXEC DBO.PR_INSERTARHISTORIAL
+        EXECUTE DBO.PR_INSERTARHISTORIAL
             @ID_FACTURA = @FACTURA,
             @ID_REGISTRO_AFECTADO = @FACTURA,
             @OPERACION_REALIZADA = 'INSERT',
