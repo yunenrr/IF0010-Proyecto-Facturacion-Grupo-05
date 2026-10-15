@@ -8,6 +8,7 @@ SET XACT_ABORT ON;
 DECLARE @FACTURA INT = 1;
 DECLARE @TAMBLOQUE INT = 10000;
 
+DECLARE @IDENTIFICADOR VARCHAR(30);
 DECLARE @NUMEROCONSECUTIVO INT;
 DECLARE @FECHA DATE;
 DECLARE @DESCUENTO DECIMAL(10, 2);
@@ -23,6 +24,7 @@ BEGIN TRANSACTION;
 
 WHILE @FACTURA <= 500000
     BEGIN
+        SET @IDENTIFICADOR = CONCAT('FAC-', @FACTURA);
         SET @NUMEROCONSECUTIVO = @FACTURA;
         SET @IDEMPRESA = ((@FACTURA - 1) % 100) + 1;
         SET @IDCLIENTE = ((@FACTURA - 1) % 50000) + 1;
@@ -32,8 +34,8 @@ WHILE @FACTURA <= 500000
         SET @DESCUENTO = CAST((@FACTURA % 101) AS DECIMAL(10, 2));
         SET @MONEDA = CASE WHEN (@FACTURA % 2) = 0 THEN 'USD' ELSE 'CRC' END;
 
-        -- Insercion llamando al procedimiento simplificado
-        EXEC DBO.PR_EMITIRFACTURA
+        EXECUTE DBO.PR_EMITIRFACTURA
+            @IDENTIFICADOR_FACTURA = @IDENTIFICADOR,
             @NUMERO_CONSECUTIVO = @NUMEROCONSECUTIVO,
             @FECHA_CREACION = @FECHA,
             @FECHA_MODIFICACION = @FECHA,
@@ -51,8 +53,21 @@ WHILE @FACTURA <= 500000
             @CODIGO_ERROR = @ERR OUTPUT,
             @MENSAJE_ERROR = @MSG OUTPUT;
 
+        IF
+            @ERR <> 0
+            OR XACT_STATE() = -1
+            BEGIN
+                IF XACT_STATE() <> 0
+                    BEGIN
+                        ROLLBACK TRANSACTION;
+                    END;
+
+                BREAK;
+            END;
+
         -- Control de transacciones en bloques de 10000
-        IF @FACTURA % @TAMBLOQUE = 0
+        IF
+            @FACTURA % @TAMBLOQUE = 0
             BEGIN
                 COMMIT TRANSACTION;
                 BEGIN TRANSACTION;
@@ -61,9 +76,10 @@ WHILE @FACTURA <= 500000
         SET @FACTURA += 1;
     END;
 
-IF @@TRANCOUNT > 0
+IF
+    @@TRANCOUNT > 0
     BEGIN
         COMMIT TRANSACTION;
     END;
 GO
--- FINN
+-- FIN
