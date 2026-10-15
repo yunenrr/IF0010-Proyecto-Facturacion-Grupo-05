@@ -7,7 +7,7 @@ IF
         SELECT 1
         FROM SYS.OBJECTS
         WHERE
-            NAME = 'pr_InsertarProducto'
+            NAME = 'PR_INSERTARPRODUCTO'
             AND TYPE = 'P'
     )
     BEGIN
@@ -46,7 +46,7 @@ BEGIN
             OR @PORCENTAJE_IMPUESTO IS NULL
             OR @ESTADO_ACTIVO IS NULL
             OR @FECHA_CREACION IS NULL
-            OR @FECHA_VENCIMIENTO is null
+            OR @FECHA_VENCIMIENTO IS NULL
             OR @EXISTENCIAS IS NULL
             OR @ID_TIPO_PRODUCTO IS NULL
             BEGIN
@@ -116,7 +116,7 @@ BEGIN
 
         SET @CODIGO_ERROR = ERROR_NUMBER();
         SET @MENSAJE_ERROR = ERROR_MESSAGE();
-    END CATCH
+    END CATCH;
 END;
 GO
 -- FIN
