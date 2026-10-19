@@ -140,7 +140,14 @@ BEGIN
                     V.LINEA AS NUMERO_LINEA,
                     ((@BASEPROD + V.LINEA - 1) % 1000) + 1 AS IDPROD,
                     ((@NUMERO_CONSECUTIVO + V.LINEA) % 5) + 1 AS CANT
-                FROM (VALUES (1), (2), (3), (4), (5)) AS V(LINEA)
+                FROM (
+                    VALUES
+                        (1),
+                        (2),
+                        (3),
+                        (4),
+                        (5)
+                ) AS V(LINEA)
                 WHERE
                     V.LINEA <= @LINEASTOTALES
             ) AS CD
