@@ -30,7 +30,8 @@ BEGIN
         RETURN NULL;
     END;
 
-    SET @FECHA_TXT
+    SET
+        @FECHA_TXT
         = CONVERT(VARCHAR(8), @FECHA, 112)
         + REPLACE(CONVERT(VARCHAR(8), @FECHA, 108), ':', '');
 
