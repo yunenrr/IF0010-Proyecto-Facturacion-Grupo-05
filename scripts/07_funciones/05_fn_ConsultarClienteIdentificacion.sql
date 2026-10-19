@@ -8,7 +8,7 @@ BEGIN
 END;
 GO
 
-CREATE FUNCTION DBO.FN_CONSULTAR_CLIENTE_IDENTIFICACION (
+CREATE FUNCTION DBO.FN_CONSULTAR_CLIENTE_IDENTIFICACION(
     @IDENTIFICACION VARCHAR(30)
 )
 RETURNS TABLE
@@ -19,13 +19,17 @@ RETURN (
         CEDULA AS IDENTIFICACION,
         NOMBRE,
         CASE
-            WHEN IS_ROLEMEMBER('Administrativo') = 1 OR IS_SRVROLEMEMBER('sysadmin') = 1
-                THEN TELEFONO
+            WHEN
+                IS_ROLEMEMBER('Administrativo') = 1
+                OR IS_SRVROLEMEMBER('sysadmin') = 1
+            THEN TELEFONO
             ELSE '***-****'
         END AS TELEFONO,
         CASE
-            WHEN IS_ROLEMEMBER('Administrativo') = 1 OR IS_SRVROLEMEMBER('sysadmin') = 1
-                THEN CORREO_ELECTRONICO
+            WHEN
+                IS_ROLEMEMBER('Administrativo') = 1
+                OR IS_SRVROLEMEMBER('sysadmin') = 1
+            THEN CORREO_ELECTRONICO
             ELSE '***@***.***'
         END AS CORREO_ELECTRONICO
     FROM DBO.CLIENTE
@@ -38,13 +42,17 @@ RETURN (
         CEDULA_JURIDICA AS IDENTIFICACION,
         RAZON_SOCIAL AS NOMBRE,
         CASE
-            WHEN IS_ROLEMEMBER('Administrativo') = 1 OR IS_SRVROLEMEMBER('sysadmin') = 1
-                THEN TELEFONO
+            WHEN
+                IS_ROLEMEMBER('Administrativo') = 1
+                OR IS_SRVROLEMEMBER('sysadmin') = 1
+            THEN TELEFONO
             ELSE '***-****'
         END AS TELEFONO,
         CASE
-            WHEN IS_ROLEMEMBER('Administrativo') = 1 OR IS_SRVROLEMEMBER('sysadmin') = 1
-                THEN CORREO_ELECTRONICO
+            WHEN
+                IS_ROLEMEMBER('Administrativo') = 1
+                OR IS_SRVROLEMEMBER('sysadmin') = 1
+            THEN CORREO_ELECTRONICO
             ELSE '***@***.***'
         END AS CORREO_ELECTRONICO
     FROM DBO.EMPRESA
