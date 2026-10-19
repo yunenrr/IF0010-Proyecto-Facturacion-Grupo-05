@@ -2,12 +2,14 @@ USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF EXISTS (
-    SELECT 1
-    FROM SYS.OBJECTS
-    WHERE NAME = 'PR_EMITIRFACTURA'
-      AND TYPE = 'P'
-)
+IF
+    EXISTS (
+        SELECT 1
+        FROM SYS.OBJECTS
+        WHERE
+            NAME = 'PR_EMITIRFACTURA'
+            AND TYPE = 'P'
+    )
 BEGIN
     DROP PROCEDURE DBO.PR_EMITIRFACTURA;
 END;
@@ -43,6 +45,7 @@ BEGIN
     DECLARE @BASEPROD INT = @NUMERO_CONSECUTIVO * 5;
     DECLARE @TIPO_DOC_DESC VARCHAR(30);
     DECLARE @FECHA_EMISION_EFECTIVA DATETIME2;
+
     SET @FECHA_EMISION_EFECTIVA = ISNULL(@FECHA_EMISION, GETDATE());
 
     BEGIN TRY
@@ -51,17 +54,19 @@ BEGIN
         FROM DBO.DOCUMENTO
         WHERE CODIGO_IDENTIFICADOR = @CODIGO_DOCUMENTO;
 
-      IF @IDENTIFICADOR_FACTURA IS NULL OR LTRIM(RTRIM(@IDENTIFICADOR_FACTURA)) = ''
+        IF
+            @IDENTIFICADOR_FACTURA IS NULL
+            OR LTRIM(RTRIM(@IDENTIFICADOR_FACTURA)) = ''
         BEGIN
             SET @IDENTIFICADOR_FACTURA = DBO.FN_GENERAR_CLAVE_COMPROBANTE(
-                @FECHA_EMISION_EFECTIVA, 
+                @FECHA_EMISION_EFECTIVA,
                 @TIPO_DOC_DESC
             );
         END;
 
         -- Validar la clave generada
         IF @IDENTIFICADOR_FACTURA IS NULL
-        BEGIN;
+        BEGIN
             THROW 50100, 'No se pudo generar la clave del Comprobante', 1;
         END;
 
@@ -136,7 +141,8 @@ BEGIN
                     ((@BASEPROD + V.LINEA - 1) % 1000) + 1 AS IDPROD,
                     ((@NUMERO_CONSECUTIVO + V.LINEA) % 5) + 1 AS CANT
                 FROM (VALUES (1), (2), (3), (4), (5)) AS V(LINEA)
-                WHERE V.LINEA <= @LINEASTOTALES
+                WHERE
+                    V.LINEA <= @LINEASTOTALES
             ) AS CD
             LEFT JOIN DBO.PRODUCTO AS P
                 ON CD.IDPROD = P.ID
@@ -154,8 +160,10 @@ BEGIN
                 SUM(DF.MONTO_SUBTOTAL) AS SUBTOTALSUM,
                 SUM(DF.MONTO_IMPUESTO) AS IMPUESTOSUM
             FROM DBO.DETALLE_FACTURA AS DF
-            WHERE DF.ID_FACTURA = @IDFACTURA
-            GROUP BY DF.ID_FACTURA
+            WHERE
+                DF.ID_FACTURA = @IDFACTURA
+            GROUP BY
+                DF.ID_FACTURA
         ) AS TD
             ON F.ID = TD.ID_FACTURA;
 
