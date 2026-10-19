@@ -2,11 +2,14 @@ USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF EXISTS (
-    SELECT 1
-    FROM SYS.OBJECTS
-    WHERE NAME = 'FACTURA' AND TYPE = 'U'
-)
+IF
+    EXISTS (
+        SELECT 1
+        FROM SYS.OBJECTS
+        WHERE
+            NAME = 'FACTURA'
+            AND TYPE = 'U'
+    )
 BEGIN
     DROP TABLE DBO.FACTURA;
 END;
