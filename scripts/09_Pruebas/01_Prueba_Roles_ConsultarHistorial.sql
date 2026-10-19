@@ -1,44 +1,55 @@
 USE FACTURACION_SA;
 GO
 
---verificar roles
-IF DATABASE_PRINCIPAL_ID('Auditor') IS NULL 
-    BEGIN
-        CREATE ROLE Auditor;
-    END;
+-- Verificar roles
+IF DATABASE_PRINCIPAL_ID('Auditor') IS NULL
+BEGIN
+    CREATE ROLE AUDITOR;
+END;
 
-IF DATABASE_PRINCIPAL_ID('DBA') IS NULL 
-    BEGIN
-        CREATE ROLE DBA;
-    END;
+IF DATABASE_PRINCIPAL_ID('DBA') IS NULL
+BEGIN
+    CREATE ROLE DBA;
+END;
 
---Limpiar usuarios de prueba
-IF DATABASE_PRINCIPAL_ID('TestAuditor') IS NOT NULL DROP USER TestAuditor;
-IF DATABASE_PRINCIPAL_ID('TestUsuario') IS NOT NULL DROP USER TestUsuario;
-IF DATABASE_PRINCIPAL_ID('TestSinAcceso') IS NOT NULL DROP USER TestSinAcceso;
+-- Limpiar usuarios de prueba
+IF DATABASE_PRINCIPAL_ID('TESTAUDITOR') IS NOT NULL
+BEGIN
+    DROP USER TESTAUDITOR;
+END;
 
---Crear usuarios sin loggin
-CREATE USER TestAuditor WITHOUT LOGIN;
-CREATE USER TestUsuario WITHOUT LOGIN;
-CREATE USER TestSinAcceso WITHOUT LOGIN;
+IF DATABASE_PRINCIPAL_ID('TESTUSUARIO') IS NOT NULL
+BEGIN
+    DROP USER TESTUSUARIO;
+END;
+
+IF DATABASE_PRINCIPAL_ID('TESTSINACCESO') IS NOT NULL
+BEGIN
+    DROP USER TESTSINACCESO;
+END;
+
+-- Crear usuarios sin loggin
+CREATE USER TESTAUDITOR WITHOUT LOGIN;
+CREATE USER TESTUSUARIO WITHOUT LOGIN;
+CREATE USER TESTSINACCESO WITHOUT LOGIN;
 
 -- Asignar el rol de Auditor al usuario correspondiente
-ALTER ROLE Auditor ADD MEMBER TestAuditor;
+ALTER ROLE AUDITOR ADD MEMBER TESTAUDITOR;
 
---permisos
-GRANT SELECT ON DBO.FN_CONSULTAR_HISTORIAL TO Auditor;
-GRANT SELECT ON DBO.FN_CONSULTAR_HISTORIAL TO TestUsuario;
-GRANT SELECT ON DBO.HISTORIAL TO TestAuditor;
-GRANT SELECT ON DBO.HISTORIAL TO TestUsuario;
+-- Permisos
+GRANT SELECT ON DBO.FN_CONSULTAR_HISTORIAL TO AUDITOR;
+GRANT SELECT ON DBO.FN_CONSULTAR_HISTORIAL TO TESTUSUARIO;
+GRANT SELECT ON DBO.HISTORIAL TO TESTAUDITOR;
+GRANT SELECT ON DBO.HISTORIAL TO TESTUSUARIO;
 GO
 
---Ejecutar como administrador para que demostrar que devuelve datos
-EXECUTE AS USER = 'TestAuditor';
+-- Ejecutar como administrador para que demostrar que devuelve datos
+EXECUTE AS USER = 'TESTAUDITOR';
 
 SELECT
-    USER_NAME() AS UsuarioPrueba,
-    'Auditor' AS RolEvaluado,
-    IS_ROLEMEMBER('Auditor') AS EsAuditor;
+    USER_NAME() AS USUARIO_PRUEBA,
+    'Auditor' AS ROL_EVALUADO,
+    IS_ROLEMEMBER('Auditor') AS ES_AUDITOR;
 
 SELECT TOP 5 *
 FROM DBO.FN_CONSULTAR_HISTORIAL();
@@ -46,13 +57,13 @@ FROM DBO.FN_CONSULTAR_HISTORIAL();
 REVERT;
 GO
 
---Ejecutar como usuario normal, no da error pero devulve 0
-EXECUTE AS USER = 'TestUsuario';
+-- Ejecutar como usuario normal, no da error pero devulve 0
+EXECUTE AS USER = 'TESTUSUARIO';
 
 SELECT
-    USER_NAME() AS UsuarioPrueba,
-    'UsuarioComun' AS RolEvaluado,
-    IS_ROLEMEMBER('Auditor') AS EsAuditor;
+    USER_NAME() AS USUARIO_PRUEBA,
+    'UsuarioComun' AS ROL_EVALUADO,
+    IS_ROLEMEMBER('Auditor') AS ES_AUDITOR;
 
 SELECT TOP 5 *
 FROM DBO.FN_CONSULTAR_HISTORIAL();
@@ -60,28 +71,29 @@ FROM DBO.FN_CONSULTAR_HISTORIAL();
 REVERT;
 GO
 
---Ejecutar sin usuario provoca una falla porque no se tiene permisos
-EXECUTE AS USER = 'TestSinAcceso';
+-- Ejecutar sin usuario provoca una falla porque no se tiene permisos
+EXECUTE AS USER = 'TESTSINACCESO';
 
 SELECT
-    USER_NAME() AS UsuarioPrueba,
-    'SinAcceso' AS RolEvaluado;
+    USER_NAME() AS USUARIO_PRUEBA,
+    'SinAcceso' AS ROL_EVALUADO;
 
 BEGIN TRY
-    SELECT TOP 5 * FROM DBO.FN_CONSULTAR_HISTORIAL();
+    SELECT TOP 5 *
+    FROM DBO.FN_CONSULTAR_HISTORIAL();
 END TRY
 BEGIN CATCH
     SELECT
-        ERROR_NUMBER() AS NumeroError,
-        ERROR_MESSAGE() AS MensajeErrorExclusividad;
+        ERROR_NUMBER() AS NUMERO_ERROR,
+        ERROR_MESSAGE() AS MENSAJE_ERROR_EXCLUSIVIDAD;
 END CATCH;
 
 REVERT;
 GO
 
---Limpieza de pruebas
-ALTER ROLE Auditor DROP MEMBER TestAuditor;
-DROP USER TestAuditor;
-DROP USER TestUsuario;
-DROP USER TestSinAcceso;
+-- Limpieza de pruebas
+ALTER ROLE AUDITOR DROP MEMBER TESTAUDITOR;
+DROP USER TESTAUDITOR;
+DROP USER TESTUSUARIO;
+DROP USER TESTSINACCESO;
 GO
