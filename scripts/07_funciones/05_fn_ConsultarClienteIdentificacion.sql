@@ -3,9 +3,9 @@ GO
 
 -- INICIO
 IF OBJECT_ID('DBO.FN_CONSULTAR_CLIENTE_IDENTIFICACION', 'IF') IS NOT NULL
-BEGIN
-    DROP FUNCTION DBO.FN_CONSULTAR_CLIENTE_IDENTIFICACION;
-END;
+    BEGIN
+        DROP FUNCTION DBO.FN_CONSULTAR_CLIENTE_IDENTIFICACION;
+    END;
 GO
 
 CREATE FUNCTION DBO.FN_CONSULTAR_CLIENTE_IDENTIFICACION(
@@ -22,14 +22,14 @@ RETURN (
             WHEN
                 IS_ROLEMEMBER('Administrativo') = 1
                 OR IS_SRVROLEMEMBER('sysadmin') = 1
-            THEN TELEFONO
+                THEN TELEFONO
             ELSE '***-****'
         END AS TELEFONO,
         CASE
             WHEN
                 IS_ROLEMEMBER('Administrativo') = 1
                 OR IS_SRVROLEMEMBER('sysadmin') = 1
-            THEN CORREO_ELECTRONICO
+                THEN CORREO_ELECTRONICO
             ELSE '***@***.***'
         END AS CORREO_ELECTRONICO
     FROM DBO.CLIENTE
@@ -45,14 +45,14 @@ RETURN (
             WHEN
                 IS_ROLEMEMBER('Administrativo') = 1
                 OR IS_SRVROLEMEMBER('sysadmin') = 1
-            THEN TELEFONO
+                THEN TELEFONO
             ELSE '***-****'
         END AS TELEFONO,
         CASE
             WHEN
                 IS_ROLEMEMBER('Administrativo') = 1
                 OR IS_SRVROLEMEMBER('sysadmin') = 1
-            THEN CORREO_ELECTRONICO
+                THEN CORREO_ELECTRONICO
             ELSE '***@***.***'
         END AS CORREO_ELECTRONICO
     FROM DBO.EMPRESA
