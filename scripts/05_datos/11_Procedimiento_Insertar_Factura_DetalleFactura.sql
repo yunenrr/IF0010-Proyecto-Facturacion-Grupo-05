@@ -8,9 +8,8 @@ SET XACT_ABORT ON;
 DECLARE @FACTURA INT = 1;
 DECLARE @TAMBLOQUE INT = 10000;
 
-DECLARE @IDENTIFICADOR VARCHAR(30);
-DECLARE @NUMEROCONSECUTIVO INT;
-DECLARE @FECHA DATE;
+DECLARE @NUMEROCONSECUTIVO INT; -- Declarada correctamente
+DECLARE @FECHA DATETIME2;
 DECLARE @DESCUENTO DECIMAL(10, 2);
 DECLARE @IDEMPRESA INT;
 DECLARE @IDCLIENTE INT;
@@ -24,18 +23,24 @@ BEGIN TRANSACTION;
 
 WHILE @FACTURA <= 500000
     BEGIN
-        SET @IDENTIFICADOR = CONCAT('FAC-', @FACTURA);
         SET @NUMEROCONSECUTIVO = @FACTURA;
         SET @IDEMPRESA = ((@FACTURA - 1) % 100) + 1;
         SET @IDCLIENTE = ((@FACTURA - 1) % 50000) + 1;
         SET @IDESTADO = ((@FACTURA - 1) % 4) + 1;
         SET @IDDOCUMENTO = ((@FACTURA - 1) % 2) + 1;
-        SET @FECHA = DATEADD(DAY, -(@FACTURA % 365), CAST(GETDATE() AS DATE));
+        
+        -- Asignamos la fecha/hora para la emision
+        -- Asignamos la fecha/hora para la emision
+        SET @FECHA = DATEADD(
+            SECOND, 
+            @FACTURA, 
+            DATEADD(DAY, -(@FACTURA % 365), CAST(GETDATE() AS DATETIME2))
+        );
         SET @DESCUENTO = CAST((@FACTURA % 101) AS DECIMAL(10, 2));
         SET @MONEDA = CASE WHEN (@FACTURA % 2) = 0 THEN 'USD' ELSE 'CRC' END;
 
         EXECUTE DBO.PR_EMITIRFACTURA
-            @IDENTIFICADOR_FACTURA = @IDENTIFICADOR,
+            @IDENTIFICADOR_FACTURA = NULL, -- Usa generacion interna
             @NUMERO_CONSECUTIVO = @NUMEROCONSECUTIVO,
             @FECHA_CREACION = @FECHA,
             @FECHA_MODIFICACION = @FECHA,
@@ -53,9 +58,7 @@ WHILE @FACTURA <= 500000
             @CODIGO_ERROR = @ERR OUTPUT,
             @MENSAJE_ERROR = @MSG OUTPUT;
 
-        IF
-            @ERR <> 0
-            OR XACT_STATE() = -1
+        IF @ERR <> 0 OR XACT_STATE() = -1
             BEGIN
                 IF XACT_STATE() <> 0
                     BEGIN
@@ -66,8 +69,7 @@ WHILE @FACTURA <= 500000
             END;
 
         -- Control de transacciones en bloques de 10000
-        IF
-            @FACTURA % @TAMBLOQUE = 0
+        IF @FACTURA % @TAMBLOQUE = 0
             BEGIN
                 COMMIT TRANSACTION;
                 BEGIN TRANSACTION;
@@ -76,8 +78,7 @@ WHILE @FACTURA <= 500000
         SET @FACTURA += 1;
     END;
 
-IF
-    @@TRANCOUNT > 0
+IF @@TRANCOUNT > 0
     BEGIN
         COMMIT TRANSACTION;
     END;
