@@ -10,9 +10,9 @@ IF
             NAME = 'PR_EMITIRFACTURA'
             AND TYPE = 'P'
     )
-BEGIN
-    DROP PROCEDURE DBO.PR_EMITIRFACTURA;
-END;
+    BEGIN
+        DROP PROCEDURE DBO.PR_EMITIRFACTURA;
+    END;
 GO
 
 CREATE PROCEDURE DBO.PR_EMITIRFACTURA (
@@ -57,18 +57,18 @@ BEGIN
         IF
             @IDENTIFICADOR_FACTURA IS NULL
             OR LTRIM(RTRIM(@IDENTIFICADOR_FACTURA)) = ''
-        BEGIN
-            SET @IDENTIFICADOR_FACTURA = DBO.FN_GENERAR_CLAVE_COMPROBANTE(
-                @FECHA_EMISION_EFECTIVA,
-                @TIPO_DOC_DESC
-            );
-        END;
+            BEGIN
+                SET @IDENTIFICADOR_FACTURA = DBO.FN_GENERAR_CLAVE_COMPROBANTE(
+                    @FECHA_EMISION_EFECTIVA,
+                    @TIPO_DOC_DESC
+                );
+            END;
 
         -- Validar la clave generada
         IF @IDENTIFICADOR_FACTURA IS NULL
-        BEGIN
-            THROW 50100, 'No se pudo generar la clave del Comprobante', 1;
-        END;
+            BEGIN
+                THROW 50100, 'No se pudo generar la clave del Comprobante', 1;
+            END;
 
         INSERT INTO DBO.FACTURA (
             IDENTIFICADOR_FACTURA,
@@ -142,11 +142,11 @@ BEGIN
                     ((@NUMERO_CONSECUTIVO + V.LINEA) % 5) + 1 AS CANT
                 FROM (
                     VALUES
-                        (1),
-                        (2),
-                        (3),
-                        (4),
-                        (5)
+                    (1),
+                    (2),
+                    (3),
+                    (4),
+                    (5)
                 ) AS V(LINEA)
                 WHERE
                     V.LINEA <= @LINEASTOTALES
