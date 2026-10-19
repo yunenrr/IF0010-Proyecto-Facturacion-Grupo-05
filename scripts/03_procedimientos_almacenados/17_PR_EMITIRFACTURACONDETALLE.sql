@@ -10,9 +10,9 @@ IF
             NAME = 'PR_EMITIRFACTURACONDETALLE'
             AND TYPE = 'P'
     )
-BEGIN
-    DROP PROCEDURE DBO.PR_EMITIRFACTURACONDETALLE;
-END;
+    BEGIN
+        DROP PROCEDURE DBO.PR_EMITIRFACTURACONDETALLE;
+    END;
 GO
 
 CREATE PROCEDURE DBO.PR_EMITIRFACTURACONDETALLE (
@@ -59,12 +59,12 @@ BEGIN
         IF
             @IDENTIFICADOR_FACTURA IS NULL
             OR LTRIM(RTRIM(@IDENTIFICADOR_FACTURA)) = ''
-        BEGIN
-            SET @IDENTIFICADOR_FACTURA = DBO.FN_GENERAR_CLAVE_COMPROBANTE(
-                @FECHA_EMISION_EFECTIVA,
-                @TIPO_DOC_DESC
-            );
-        END;
+            BEGIN
+                SET @IDENTIFICADOR_FACTURA = DBO.FN_GENERAR_CLAVE_COMPROBANTE(
+                    @FECHA_EMISION_EFECTIVA,
+                    @TIPO_DOC_DESC
+                );
+            END;
 
         -- Validacion de nulos
         IF
@@ -79,20 +79,18 @@ BEGIN
             OR @CANTIDAD IS NULL
             OR @PORCENTAJE_DESCUENTO IS NULL
             OR @USUARIO_RESPONSABLE IS NULL
-        BEGIN
-            THROW
-                50010,
+            BEGIN
+                THROW 50010,
                 'Los parametros obligatorios no pueden ser nulos',
                 1;
-        END;
+            END;
 
         IF @CANTIDAD <= 0
-        BEGIN
-            THROW
-                50011,
+            BEGIN
+                THROW 50011,
                 'La cantidad del producto debe ser mayor a cero',
                 1;
-        END;
+            END;
 
         -- Validar que el consecutivo de factura no exista ya
         IF
@@ -101,12 +99,11 @@ BEGIN
                 FROM DBO.FACTURA
                 WHERE NUMERO_CONSECUTIVO = @NUMERO_CONSECUTIVO
             )
-        BEGIN
-            THROW
-                50101,
+            BEGIN
+                THROW 50101,
                 'La factura ya se encuentra registrada con ese consecutivo',
                 1;
-        END;
+            END;
 
         -- Validaciones de Integridad
         IF
@@ -115,9 +112,9 @@ BEGIN
                 FROM DBO.MONEDA
                 WHERE CODIGO = @CODIGO_MONEDA
             )
-        BEGIN
-            THROW 50001, 'El codigo de la moneda no es valido', 1;
-        END;
+            BEGIN
+                THROW 50001, 'El codigo de la moneda no es valido', 1;
+            END;
 
         IF
             NOT EXISTS (
@@ -125,9 +122,9 @@ BEGIN
                 FROM DBO.ESTADO_FACTURA
                 WHERE ID = @ID_ESTADO_FACTURA
             )
-        BEGIN
-            THROW 50002, 'El estado de factura no es valido', 1;
-        END;
+            BEGIN
+                THROW 50002, 'El estado de factura no es valido', 1;
+            END;
 
         IF
             NOT EXISTS (
@@ -135,9 +132,9 @@ BEGIN
                 FROM DBO.CLIENTE
                 WHERE ID = @ID_CLIENTE
             )
-        BEGIN
-            THROW 50004, 'El cliente no se encuentra registrado', 1;
-        END;
+            BEGIN
+                THROW 50004, 'El cliente no se encuentra registrado', 1;
+            END;
 
         IF
             NOT EXISTS (
@@ -145,9 +142,9 @@ BEGIN
                 FROM DBO.PRODUCTO
                 WHERE ID = @ID_PRODUCTO
             )
-        BEGIN
-            THROW 50007, 'El producto no se encuentra registrado', 1;
-        END;
+            BEGIN
+                THROW 50007, 'El producto no se encuentra registrado', 1;
+            END;
 
         -- Extraccion de datos del producto
         DECLARE @PRECIO_UNITARIO DECIMAL(18, 2);
@@ -162,12 +159,11 @@ BEGIN
         WHERE ID = @ID_PRODUCTO;
 
         IF @CANTIDAD > @EXISTENCIAS_ACTUALES
-        BEGIN
-            THROW
-                50012,
+            BEGIN
+                THROW 50012,
                 'Existencias insuficientes para emitir factura',
                 1;
-        END;
+            END;
 
         -- Calculos de importes
         DECLARE @MONTO_SUBTOTAL DECIMAL(18, 2);
@@ -296,9 +292,9 @@ BEGIN
     END TRY
     BEGIN CATCH
         IF XACT_STATE() <> 0
-        BEGIN
-            ROLLBACK TRANSACTION;
-        END;
+            BEGIN
+                ROLLBACK TRANSACTION;
+            END;
 
         -- Setear mensaje de error
         SET @CODIGO_ERROR = ERROR_NUMBER();
