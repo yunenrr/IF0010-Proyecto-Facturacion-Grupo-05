@@ -53,6 +53,18 @@ WHILE @FACTURA <= 500000
             @CODIGO_ERROR = @ERR OUTPUT,
             @MENSAJE_ERROR = @MSG OUTPUT;
 
+        IF
+            @ERR <> 0
+            OR XACT_STATE() = -1
+            BEGIN
+                IF XACT_STATE() <> 0
+                    BEGIN
+                        ROLLBACK TRANSACTION;
+                    END;
+
+                BREAK;
+            END;
+
         -- Control de transacciones en bloques de 10000
         IF
             @FACTURA % @TAMBLOQUE = 0

@@ -35,6 +35,12 @@ BEGIN
     SET @CODIGO_ERROR = 0;
     SET @MENSAJE_ERROR = 'Exitoso';
 
+    DECLARE @M1 VARCHAR(100);
+    SET @M1 = 'Los parametros obligatorios no pueden ser nulos';
+
+    DECLARE @M2 VARCHAR(100);
+    SET @M2 = 'El registro de historial exacto ya se encuentra en la bitacora';
+
     BEGIN TRY
         BEGIN TRANSACTION;
 
@@ -46,9 +52,7 @@ BEGIN
             OR @TABLA_AFECTADA IS NULL
             OR @USUARIO_RESPONSABLE IS NULL
             BEGIN
-                THROW 50010,
-                'Los parametros obligatorios no pueden ser nulos',
-                1;
+                THROW 50010, @M1, 1;
             END;
 
         -- Validacion de duplicado
@@ -65,8 +69,7 @@ BEGIN
                     AND TABLA_AFECTADA = @TABLA_AFECTADA
             )
             BEGIN
-                THROW 50101,
-                'El registro de historial exacto ya se encuentra en la bitacora', 1;
+                THROW 50101, @M2, 1;
             END;
 
         INSERT INTO DBO.HISTORIAL (
