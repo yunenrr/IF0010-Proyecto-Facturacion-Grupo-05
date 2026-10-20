@@ -17,7 +17,7 @@ GO
 
 CREATE PROCEDURE DBO.PR_EMITIRFACTURACONDETALLE (
     -- Parametros de la Factura
-    @IDENTIFICADOR_FACTURA VARCHAR(30),
+    @IDENTIFICADOR_FACTURA VARCHAR(50) = NULL,
     @NUMERO_CONSECUTIVO INT,
     @CODIGO_MONEDA CHAR(3),
     @ID_ESTADO_FACTURA INT,
@@ -45,8 +45,26 @@ BEGIN
     SET @CODIGO_ERROR = 0;
     SET @MENSAJE_ERROR = 'Exitoso';
 
+    DECLARE @FECHA_EMISION_EFECTIVA DATETIME2 = SYSDATETIME();
+    DECLARE @TIPO_DOC_DESC VARCHAR(30);
+
     BEGIN TRY
         BEGIN TRANSACTION;
+
+        -- Obtenemos la descripcion
+        SELECT TOP 1 @TIPO_DOC_DESC = DESCRIPCION
+        FROM DBO.DOCUMENTO
+        WHERE CODIGO_IDENTIFICADOR = @CODIGO_DOCUMENTO;
+
+        IF
+            @IDENTIFICADOR_FACTURA IS NULL
+            OR LTRIM(RTRIM(@IDENTIFICADOR_FACTURA)) = ''
+            BEGIN
+                SET @IDENTIFICADOR_FACTURA = DBO.FN_GENERAR_CLAVE_COMPROBANTE(
+                    @FECHA_EMISION_EFECTIVA,
+                    @TIPO_DOC_DESC
+                );
+            END;
 
         -- Validacion de nulos
         IF
@@ -74,7 +92,7 @@ BEGIN
                 1;
             END;
 
-        --Validar que el consecutivo de factura no exista ya
+        -- Validar que el consecutivo de factura no exista ya
         IF
             EXISTS (
                 SELECT 1
@@ -157,7 +175,9 @@ BEGIN
             = @MONTO_SUBTOTAL * (@PORCENTAJE_DESCUENTO / 100.0);
 
         DECLARE @BASE_IMPONIBLE DECIMAL(18, 2);
-        SET @BASE_IMPONIBLE = @MONTO_SUBTOTAL - @MONTO_DESCUENTO_CALCULADO;
+        SET
+            @BASE_IMPONIBLE
+            = @MONTO_SUBTOTAL - @MONTO_DESCUENTO_CALCULADO;
 
         DECLARE @MONTO_IMPUESTO_CALCULADO DECIMAL(18, 2);
         SET
@@ -165,7 +185,9 @@ BEGIN
             = @BASE_IMPONIBLE * (@PORCENTAJE_IMPUESTO / 100.0);
 
         DECLARE @MONTO_TOTAL_FACTURA DECIMAL(19, 2);
-        SET @MONTO_TOTAL_FACTURA = @BASE_IMPONIBLE + @MONTO_IMPUESTO_CALCULADO;
+        SET
+            @MONTO_TOTAL_FACTURA
+            = @BASE_IMPONIBLE + @MONTO_IMPUESTO_CALCULADO;
 
         -- Insercion de Factura
         INSERT INTO DBO.FACTURA (
@@ -188,9 +210,9 @@ BEGIN
         VALUES (
             @IDENTIFICADOR_FACTURA,
             @NUMERO_CONSECUTIVO,
-            CAST(GETDATE() AS DATE),
-            CAST(GETDATE() AS DATE),
-            CAST(GETDATE() AS DATE),
+            CAST(@FECHA_EMISION_EFECTIVA AS DATE),
+            CAST(@FECHA_EMISION_EFECTIVA AS DATE),
+            CAST(@FECHA_EMISION_EFECTIVA AS DATE),
             @MONTO_SUBTOTAL,
             @MONTO_DESCUENTO_CALCULADO,
             @MONTO_IMPUESTO_CALCULADO,
@@ -233,8 +255,7 @@ BEGIN
 
         -- Actualizacion del inventario
         UPDATE DBO.PRODUCTO
-        SET
-            EXISTENCIAS = EXISTENCIAS - @CANTIDAD
+        SET EXISTENCIAS = EXISTENCIAS - @CANTIDAD
         WHERE ID = @ID_PRODUCTO;
 
         -- Registro en la tabla Historial
