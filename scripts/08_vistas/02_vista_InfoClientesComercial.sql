@@ -28,7 +28,7 @@ SELECT
                     ELSE 0
                 END
             ) > 5
-                THEN 'Sí'
+            THEN 'Sí'
         ELSE 'No'
     END AS [ClienteFrecuente]
 FROM (
