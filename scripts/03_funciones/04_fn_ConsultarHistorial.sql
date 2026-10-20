@@ -1,7 +1,7 @@
 USE FACTURACION_SA;
 GO
 
---Crear función de tabla de seguridad
+--Crear funcion de tabla de seguridad
 IF OBJECT_ID('DBO.FN_CONSULTAR_HISTORIAL', 'IF') IS NOT NULL
     BEGIN
         DROP FUNCTION DBO.FN_CONSULTAR_HISTORIAL;
