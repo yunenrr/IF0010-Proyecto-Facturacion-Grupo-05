@@ -53,7 +53,7 @@ GRANT SELECT ON DBO.HISTORIAL TO TESTUSUARIO;
 GO
 
 -- Ejecutar como Auditor para que demostrar que devuelve datos
-EXECUTE AS USER = 'TESTAUDITOR';
+EXECUTE AS USER = 'TESTAUDITOR'; -- noqa: PRS
 
 SELECT
     USER_NAME() AS USUARIO_PRUEBA,
@@ -67,7 +67,7 @@ REVERT;
 GO
 
 -- Ejecutar como DBA para demostrar que devuelve datos
-EXECUTE AS USER = 'TESTDBA';
+EXECUTE AS USER = 'TESTDBA'; -- noqa: PRS
 
 SELECT
     USER_NAME() AS USUARIO_PRUEBA,
@@ -81,7 +81,7 @@ REVERT;
 GO
 
 -- Ejecutar como usuario normal, no da error, devulve 0
-EXECUTE AS USER = 'TESTUSUARIO';
+EXECUTE AS USER = 'TESTUSUARIO'; -- noqa: PRS
 
 SELECT
     USER_NAME() AS USUARIO_PRUEBA,
@@ -95,7 +95,7 @@ FROM DBO.FN_CONSULTAR_HISTORIAL();
 REVERT;
 GO
 
-EXECUTE AS USER = 'TESTSINACCESO';
+EXECUTE AS USER = 'TESTSINACCESO'; -- noqa: PRS
 
 SELECT
     USER_NAME() AS USUARIO_PRUEBA,
