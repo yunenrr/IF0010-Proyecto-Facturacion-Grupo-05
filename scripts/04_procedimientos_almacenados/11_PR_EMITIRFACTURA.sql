@@ -16,16 +16,16 @@ IF
 GO
 
 CREATE PROCEDURE DBO.PR_EMITIRFACTURA (
-    @IDENTIFICADOR_FACTURA VARCHAR(30),
+    @IDENTIFICADOR_FACTURA VARCHAR(50) = NULL,
     @NUMERO_CONSECUTIVO INT,
-    @FECHA_CREACION DATE,
-    @FECHA_MODIFICACION DATE,
-    @FECHA_EMISION DATE,
-    @SUBTOTAL DECIMAL(18, 2),
-    @TOTAL_DESCUENTO DECIMAL(10, 2),
-    @TOTAL_IMPUESTOS DECIMAL(19, 2),
-    @MONTO_TOTAL DECIMAL(19, 2),
-    @OBSERVACIONES VARCHAR(100),
+    @FECHA_CREACION DATE = NULL,
+    @FECHA_MODIFICACION DATE = NULL,
+    @FECHA_EMISION DATETIME2 = NULL,
+    @SUBTOTAL DECIMAL(18, 2) = 0.00,
+    @TOTAL_DESCUENTO DECIMAL(10, 2) = 0.00,
+    @TOTAL_IMPUESTOS DECIMAL(19, 2) = 0.00,
+    @MONTO_TOTAL DECIMAL(19, 2) = 0.00,
+    @OBSERVACIONES VARCHAR(100) = NULL,
     @CODIGO_MONEDA CHAR(3),
     @ID_ESTADO_FACTURA INT,
     @ID_EMPRESA INT,
@@ -43,15 +43,31 @@ BEGIN
     DECLARE @IDFACTURA INT;
     DECLARE @LINEASTOTALES INT = ((@NUMERO_CONSECUTIVO % 3) + 3);
     DECLARE @BASEPROD INT = @NUMERO_CONSECUTIVO * 5;
+    DECLARE @TIPO_DOC_DESC VARCHAR(30);
+    DECLARE @FECHA_EMISION_EFECTIVA DATETIME2;
+
+    SET @FECHA_EMISION_EFECTIVA = ISNULL(@FECHA_EMISION, GETDATE());
 
     BEGIN TRY
-        -- Validar identificador de factura
+        -- Obtener la descripción del tipo de documento
+        SELECT TOP 1 @TIPO_DOC_DESC = DESCRIPCION
+        FROM DBO.DOCUMENTO
+        WHERE CODIGO_IDENTIFICADOR = @CODIGO_DOCUMENTO;
+
         IF
             @IDENTIFICADOR_FACTURA IS NULL
+            OR LTRIM(RTRIM(@IDENTIFICADOR_FACTURA)) = ''
             BEGIN
-                THROW 50100,
-                'El Identificador de la Factura no puede ser nulo',
-                1;
+                SET @IDENTIFICADOR_FACTURA = DBO.FN_GENERAR_CLAVE_COMPROBANTE(
+                    @FECHA_EMISION_EFECTIVA,
+                    @TIPO_DOC_DESC
+                );
+            END;
+
+        -- Validar la clave generada
+        IF @IDENTIFICADOR_FACTURA IS NULL
+            BEGIN
+                THROW 50100, 'No se pudo generar la clave del Comprobante', 1;
             END;
 
         INSERT INTO DBO.FACTURA (
@@ -76,7 +92,7 @@ BEGIN
             @NUMERO_CONSECUTIVO,
             ISNULL(@FECHA_CREACION, CAST(GETDATE() AS DATE)),
             ISNULL(@FECHA_MODIFICACION, CAST(GETDATE() AS DATE)),
-            ISNULL(@FECHA_EMISION, CAST(GETDATE() AS DATE)),
+            CAST(@FECHA_EMISION_EFECTIVA AS DATE),
             0.00,
             @TOTAL_DESCUENTO,
             0.00,
@@ -124,7 +140,14 @@ BEGIN
                     V.LINEA AS NUMERO_LINEA,
                     ((@BASEPROD + V.LINEA - 1) % 1000) + 1 AS IDPROD,
                     ((@NUMERO_CONSECUTIVO + V.LINEA) % 5) + 1 AS CANT
-                FROM (VALUES (1), (2), (3), (4), (5)) AS V(LINEA)
+                FROM (
+                    VALUES
+                    (1),
+                    (2),
+                    (3),
+                    (4),
+                    (5)
+                ) AS V(LINEA)
                 WHERE
                     V.LINEA <= @LINEASTOTALES
             ) AS CD
