@@ -60,7 +60,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         DECLARE @ERRORMSG VARCHAR(250) = ERROR_MESSAGE();
-        
+
         RAISERROR (
             'Error al consultar totales del cliente por año: %s',
             16,
