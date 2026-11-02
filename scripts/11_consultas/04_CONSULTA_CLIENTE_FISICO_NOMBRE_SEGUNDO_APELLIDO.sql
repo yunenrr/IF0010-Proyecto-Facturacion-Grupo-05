@@ -1,0 +1,50 @@
+USE FACTURACION_SA;
+GO
+
+-- INICIO
+IF
+    EXISTS (
+        SELECT 1
+        FROM SYS.OBJECTS
+        WHERE
+            NAME = 'CONSULTA_CLIENTE_FISICO_NOMBRE_SEGUNDO_APELLIDO'
+            AND TYPE = 'P'
+    )
+    BEGIN
+        DROP PROCEDURE DBO.CONSULTA_CLIENTE_FISICO_NOMBRE_SEGUNDO_APELLIDO;
+    END;
+GO
+
+CREATE PROCEDURE DBO.CONSULTA_CLIENTE_FISICO_NOMBRE_SEGUNDO_APELLIDO(
+    @NOMBRE VARCHAR(70),
+    @SEGUNDO_APELLIDO VARCHAR(70)
+)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SET @NOMBRE = TRIM(@NOMBRE);
+    SET @SEGUNDO_APELLIDO = TRIM(@SEGUNDO_APELLIDO);
+
+    BEGIN TRY
+        SELECT
+            ID,
+            CEDULA,
+            NOMBRE,
+            PRIMER_APELLIDO,
+            SEGUNDO_APELLIDO,
+            CORREO_ELECTRONICO,
+            TELEFONO,
+            FECHA_CREACION
+        FROM DBO.CLIENTE
+        WHERE
+            NOMBRE LIKE @NOMBRE + '%'
+            AND SEGUNDO_APELLIDO LIKE @SEGUNDO_APELLIDO + '%';
+    END TRY
+    BEGIN CATCH
+        DECLARE @ErrorMsg VARCHAR(250) = ERROR_MESSAGE();
+        RAISERROR('Error al consultar cliente físico por nombre y segundo apellido: %s', 16, 1, @ErrorMsg);
+    END CATCH;
+END;
+GO
+-- FIN
