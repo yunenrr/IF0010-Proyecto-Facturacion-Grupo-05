@@ -48,7 +48,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         DECLARE @ERRORMSG VARCHAR(250) = ERROR_MESSAGE();
-        
+
         RAISERROR (
             'Error al consultar historial de producto por fechas: %s',
             16,
