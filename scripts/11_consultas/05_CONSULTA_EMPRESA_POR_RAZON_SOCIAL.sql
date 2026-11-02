@@ -2,16 +2,17 @@ USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF EXISTS (
-    SELECT 1
-    FROM SYS.OBJECTS
-    WHERE
-        NAME = 'CONSULTA_EMPRESA_POR_RAZON_SOCIAL'
-        AND TYPE = 'P'
-)
-BEGIN
-    DROP PROCEDURE DBO.CONSULTA_EMPRESA_POR_RAZON_SOCIAL;
-END;
+IF
+    EXISTS (
+        SELECT 1
+        FROM SYS.OBJECTS
+        WHERE
+            NAME = 'CONSULTA_EMPRESA_POR_RAZON_SOCIAL'
+            AND TYPE = 'P'
+    )
+    BEGIN
+        DROP PROCEDURE DBO.CONSULTA_EMPRESA_POR_RAZON_SOCIAL;
+    END;
 GO
 
 CREATE PROCEDURE DBO.CONSULTA_EMPRESA_POR_RAZON_SOCIAL (
@@ -38,8 +39,14 @@ BEGIN
             RAZON_SOCIAL LIKE @RAZON_SOCIAL + '%';
     END TRY
     BEGIN CATCH
-        DECLARE @ErrorMsg VARCHAR(250) = ERROR_MESSAGE();
-        RAISERROR('Error al consultar empresa por razón social: %s', 16, 1, @ErrorMsg);
+        DECLARE @ERRORMSG VARCHAR(250) = ERROR_MESSAGE();
+        
+        RAISERROR (
+            'Error al consultar empresa por razón social: %s',
+            16,
+            1,
+            @ERRORMSG
+        );
     END CATCH;
 END;
 GO
