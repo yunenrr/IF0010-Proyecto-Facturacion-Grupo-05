@@ -1,14 +1,17 @@
 USE FACTURACION_SA;
 GO
 
-IF EXISTS (
-    SELECT 1
-    FROM SYS.OBJECTS
-    WHERE NAME = 'CONSULTA_FACTURAS_CLIENTE_FISICO' AND TYPE = 'P'
-)
-BEGIN
-    DROP PROCEDURE DBO.CONSULTA_FACTURAS_CLIENTE_FISICO;
-END;
+IF
+    EXISTS (
+        SELECT 1
+        FROM SYS.OBJECTS
+        WHERE
+            NAME = 'CONSULTA_FACTURAS_CLIENTE_FISICO'
+            AND TYPE = 'P'
+    )
+    BEGIN
+        DROP PROCEDURE DBO.CONSULTA_FACTURAS_CLIENTE_FISICO;
+    END;
 GO
 
 CREATE PROCEDURE DBO.CONSULTA_FACTURAS_CLIENTE_FISICO (
@@ -23,10 +26,16 @@ BEGIN
             F.IDENTIFICADOR_FACTURA,
             F.NUMERO_CONSECUTIVO,
             F.FECHA_EMISION,
-            CONCAT(C.NOMBRE, ' ', C.PRIMER_APELLIDO, ' ', ISNULL(C.SEGUNDO_APELLIDO, '')) AS NOMBRE_CLIENTE,
             C.CEDULA,
             F.MONTO_TOTAL,
-            EF.ESTADO_FACTURA
+            EF.ESTADO_FACTURA,
+            CONCAT(
+                C.NOMBRE,
+                ' ',
+                C.PRIMER_APELLIDO,
+                ' ',
+                ISNULL(C.SEGUNDO_APELLIDO, '')
+            ) AS NOMBRE_CLIENTE
         FROM DBO.FACTURA AS F
         INNER JOIN DBO.CLIENTE AS C
             ON F.ID_CLIENTE = C.ID
@@ -36,8 +45,14 @@ BEGIN
             C.CEDULA = @CEDULA_CLIENTE;
     END TRY
     BEGIN CATCH
-        DECLARE @ErrorMsg VARCHAR(250) = ERROR_MESSAGE();
-        RAISERROR('Error al consultar facturas de cliente físico: %s', 16, 1, @ErrorMsg);
+        DECLARE @ERRORMSG VARCHAR(250) = ERROR_MESSAGE();
+        
+        RAISERROR (
+            'Error al consultar facturas de cliente físico: %s',
+            16,
+            1,
+            @ERRORMSG
+        );
     END CATCH;
 END;
 GO
