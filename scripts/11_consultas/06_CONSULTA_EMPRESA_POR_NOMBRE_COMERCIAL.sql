@@ -2,16 +2,17 @@ USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF EXISTS (
-    SELECT 1
-    FROM SYS.OBJECTS
-    WHERE
-        NAME = 'CONSULTA_EMPRESA_POR_NOMBRE_COMERCIAL'
-        AND TYPE = 'P'
-)
-BEGIN
-    DROP PROCEDURE DBO.CONSULTA_EMPRESA_POR_NOMBRE_COMERCIAL;
-END;
+IF
+    EXISTS (
+        SELECT 1
+        FROM SYS.OBJECTS
+        WHERE
+            NAME = 'CONSULTA_EMPRESA_POR_NOMBRE_COMERCIAL'
+            AND TYPE = 'P'
+    )
+    BEGIN
+        DROP PROCEDURE DBO.CONSULTA_EMPRESA_POR_NOMBRE_COMERCIAL;
+    END;
 GO
 
 CREATE PROCEDURE DBO.CONSULTA_EMPRESA_POR_NOMBRE_COMERCIAL (
@@ -38,8 +39,14 @@ BEGIN
             NOMBRE LIKE @NOMBRE_COMERCIAL + '%';
     END TRY
     BEGIN CATCH
-        DECLARE @ErrorMsg VARCHAR(250) = ERROR_MESSAGE();
-        RAISERROR('Error al consultar empresa por nombre comercial: %s', 16, 1, @ErrorMsg);
+        DECLARE @ERRORMSG VARCHAR(250) = ERROR_MESSAGE();
+        
+        RAISERROR (
+            'Error al consultar empresa por nombre comercial: %s',
+            16,
+            1,
+            @ERRORMSG
+        );
     END CATCH;
 END;
 GO
