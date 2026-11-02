@@ -40,7 +40,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         DECLARE @ERRORMSG VARCHAR(250) = ERROR_MESSAGE();
-        
+
         RAISERROR (
             'Error al consultar empresa por nombre comercial: %s',
             16,
