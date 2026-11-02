@@ -2,16 +2,17 @@ USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF EXISTS (
-    SELECT 1
-    FROM SYS.OBJECTS
-    WHERE
-        NAME = 'CONSULTA_HISTORIAL_PRODUCTO_FECHAS'
-        AND TYPE = 'P'
-)
-BEGIN
-    DROP PROCEDURE DBO.CONSULTA_HISTORIAL_PRODUCTO_FECHAS;
-END;
+IF
+    EXISTS (
+        SELECT 1
+        FROM SYS.OBJECTS
+        WHERE
+            NAME = 'CONSULTA_HISTORIAL_PRODUCTO_FECHAS'
+            AND TYPE = 'P'
+    )
+    BEGIN
+        DROP PROCEDURE DBO.CONSULTA_HISTORIAL_PRODUCTO_FECHAS;
+    END;
 GO
 
 CREATE PROCEDURE DBO.CONSULTA_HISTORIAL_PRODUCTO_FECHAS (
@@ -46,8 +47,14 @@ BEGIN
             AND F.FECHA_EMISION < @FECHA_FIN_AJUSTADA;
     END TRY
     BEGIN CATCH
-        DECLARE @ErrorMsg VARCHAR(250) = ERROR_MESSAGE();
-        RAISERROR('Error al consultar historial de producto por fechas: %s', 16, 1, @ErrorMsg);
+        DECLARE @ERRORMSG VARCHAR(250) = ERROR_MESSAGE();
+        
+        RAISERROR (
+            'Error al consultar historial de producto por fechas: %s',
+            16,
+            1,
+            @ERRORMSG
+        );
     END CATCH;
 END;
 GO
