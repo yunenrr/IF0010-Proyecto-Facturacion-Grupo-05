@@ -1,24 +1,24 @@
 USE FACTURACION_SA;
 GO
 
-DECLARE @IdCat1 INT, @IdCat2 INT, @IdCat3 INT, @IdCat4 INT;
+DECLARE @IDCAT1 INT, @IDCAT2 INT, @IDCAT3 INT, @IDCAT4 INT;
 
-EXEC dbo.sp_InsertarTipoServicio 
-    @Nombre = 'Mantenimiento', 
-    @Descripcion = 'Servicios de mantenimiento preventivo y correctivo', 
-    @IdTipoServicioGenerado = @IdCat1 OUTPUT;
+EXEC DBO.SP_INSERTARTIPOSERVICIO
+    @NOMBRE = 'Mantenimiento',
+    @DESCRIPCION = 'Servicios de mantenimiento preventivo y correctivo',
+    @IDTIPOSERVICIOGENERADO = @IDCAT1 OUTPUT;
 
-EXEC dbo.sp_InsertarTipoServicio 
-    @Nombre = 'Consultoria', 
-    @Descripcion = 'Asesoría técnica, legal y especializada', 
-    @IdTipoServicioGenerado = @IdCat2 OUTPUT;
+EXEC DBO.SP_INSERTARTIPOSERVICIO
+    @NOMBRE = 'Consultoria',
+    @DESCRIPCION = 'Asesoría técnica, legal y especializada',
+    @IDTIPOSERVICIOGENERADO = @IDCAT2 OUTPUT;
 
-EXEC dbo.sp_InsertarTipoServicio 
-    @Nombre = 'Soporte Tecnico', 
-    @Descripcion = 'Atención a incidencias y asistencia técnica', 
-    @IdTipoServicioGenerado = @IdCat3 OUTPUT;
+EXEC DBO.SP_INSERTARTIPOSERVICIO
+    @NOMBRE = 'Soporte Tecnico',
+    @DESCRIPCION = 'Atención a incidencias y asistencia técnica',
+    @IDTIPOSERVICIOGENERADO = @IDCAT3 OUTPUT;
 
-EXEC dbo.sp_InsertarTipoServicio 
-    @Nombre = 'Instalacion', 
-    @Descripcion = 'Servicios de instalación y configuración en sitio', 
-    @IdTipoServicioGenerado = @IdCat4 OUTPUT;
+EXEC DBO.SP_INSERTARTIPOSERVICIO
+    @NOMBRE = 'Instalacion',
+    @DESCRIPCION = 'Servicios de instalación y configuración en sitio',
+    @IDTIPOSERVICIOGENERADO = @IDCAT4 OUTPUT;
