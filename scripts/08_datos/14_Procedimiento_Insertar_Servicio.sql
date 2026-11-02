@@ -1,43 +1,60 @@
 USE FACTURACION_SA;
 GO
 
-DECLARE @IdMantenimiento INT, @IdConsultoria INT, @IdSoporte INT, @IdInstalacion INT;
-DECLARE @IdGenerado INT;
+DECLARE @IDMANTENIMIENTO INT;
+DECLARE @IDCONSULTORIA INT;
+DECLARE @IDSOPORTE INT;
+DECLARE @IDINSTALACION INT;
+DECLARE @IDGENERADO INT;
 
-SELECT @IdMantenimiento = ID FROM dbo.TIPO_SERVICIO WHERE NOMBRE = 'Mantenimiento';
-SELECT @IdConsultoria   = ID FROM dbo.TIPO_SERVICIO WHERE NOMBRE = 'Consultoria';
-SELECT @IdSoporte       = ID FROM dbo.TIPO_SERVICIO WHERE NOMBRE = 'Soporte Tecnico';
-SELECT @IdInstalacion   = ID FROM dbo.TIPO_SERVICIO WHERE NOMBRE = 'Instalacion';
+SELECT @IDMANTENIMIENTO = ID
+FROM DBO.TIPO_SERVICIO
+WHERE
+    NOMBRE = 'Mantenimiento';
 
-EXEC dbo.sp_InsertarServicio
-    @Codigo = 'SERV-001',
-    @Descripcion = 'Mantenimiento preventivo de servidores y centro de datos',
-    @PrecioUnitario = 45000.00,
-    @PorcentajeImpuesto = 13.00,
-    @IdTipoServicio = @IdMantenimiento,
-    @IdServicioGenerado = @IdGenerado OUTPUT;
+SELECT @IDCONSULTORIA = ID
+FROM DBO.TIPO_SERVICIO
+WHERE
+    NOMBRE = 'Consultoria';
 
-EXEC dbo.sp_InsertarServicio
-    @Codigo = 'SERV-002',
-    @Descripcion = 'Consultoria en diseño y optimizacion de bases de datos',
-    @PrecioUnitario = 75000.00,
-    @PorcentajeImpuesto = 13.00,
-    @IdTipoServicio = @IdConsultoria,
-    @IdServicioGenerado = @IdGenerado OUTPUT;
+SELECT @IDSOPORTE = ID
+FROM DBO.TIPO_SERVICIO
+WHERE
+    NOMBRE = 'Soporte Tecnico';
 
+SELECT @IDINSTALACION = ID
+FROM DBO.TIPO_SERVICIO
+WHERE
+    NOMBRE = 'Instalacion';
 
-EXEC dbo.sp_InsertarServicio
-    @Codigo = 'SERV-003',
-    @Descripcion = 'Soporte tecnico remoto 24/7 mensual',
-    @PrecioUnitario = 30000.00,
-    @PorcentajeImpuesto = 13.00,
-    @IdTipoServicio = @IdSoporte,
-    @IdServicioGenerado = @IdGenerado OUTPUT;
+EXEC DBO.SP_INSERTARSERVICIO
+    @CODIGO = 'SERV-001',
+    @DESCRIPCION = 'Mantenimiento preventivo de servidores y centro de datos',
+    @PRECIOUNITARIO = 45000.00,
+    @PORCENTAJEIMPUESTO = 13.00,
+    @IDTIPOSERVICIO = @IDMANTENIMIENTO,
+    @IDSERVICIOGENERADO = @IDGENERADO OUTPUT;
 
-EXEC dbo.sp_InsertarServicio
-    @Codigo = 'SERV-004',
-    @Descripcion = 'Instalacion de switches, routers y segmentacion VLAN',
-    @PrecioUnitario = 60000.00,
-    @PorcentajeImpuesto = 13.00,
-    @IdTipoServicio = @IdInstalacion,
-    @IdServicioGenerado = @IdGenerado OUTPUT;
+EXEC DBO.SP_INSERTARSERVICIO
+    @CODIGO = 'SERV-002',
+    @DESCRIPCION = 'Consultoria en diseño y optimizacion de bases de datos',
+    @PRECIOUNITARIO = 75000.00,
+    @PORCENTAJEIMPUESTO = 13.00,
+    @IDTIPOSERVICIO = @IDCONSULTORIA,
+    @IDSERVICIOGENERADO = @IDGENERADO OUTPUT;
+
+EXEC DBO.SP_INSERTARSERVICIO
+    @CODIGO = 'SERV-003',
+    @DESCRIPCION = 'Soporte tecnico remoto 24/7 mensual',
+    @PRECIOUNITARIO = 30000.00,
+    @PORCENTAJEIMPUESTO = 13.00,
+    @IDTIPOSERVICIO = @IDSOPORTE,
+    @IDSERVICIOGENERADO = @IDGENERADO OUTPUT;
+
+EXEC DBO.SP_INSERTARSERVICIO
+    @CODIGO = 'SERV-004',
+    @DESCRIPCION = 'Instalacion de switches, routers y segmentacion VLAN',
+    @PRECIOUNITARIO = 60000.00,
+    @PORCENTAJEIMPUESTO = 13.00,
+    @IDTIPOSERVICIO = @IDINSTALACION,
+    @IDSERVICIOGENERADO = @IDGENERADO OUTPUT;
