@@ -1,10 +1,10 @@
 USE FACTURACION_SA;
 GO
 
-CREATE OR ALTER TRIGGER trg_auditarCambiosDatosEmpresa
-ON EMPRESA 
-AFTER UPDATE 
-AS 
+CREATE OR ALTER TRIGGER TRG_AUDITARCAMBIOSDATOSEMPRESA
+ON EMPRESA
+AFTER UPDATE
+AS
 BEGIN
     SET NOCOUNT ON;
 
@@ -13,44 +13,64 @@ BEGIN
         DECLARE @IdRegistro INT;
         DECLARE @Descripcion VARCHAR(250);
 
-        DECLARE curEmpresa CURSOR LOCAL FAST_FORWARD FOR
-            SELECT 
-                i.ID,
-                LEFT(
-                    'Ced: ' + ISNULL(d.CEDULA_JURIDICA, '') + ' -> ' + ISNULL(i.CEDULA_JURIDICA, '') +
-                    ' | Nom: ' + ISNULL(d.NOMBRE, '') + ' -> ' + ISNULL(i.NOMBRE, '') +
-                    ' | Tel: ' + ISNULL(d.TELEFONO, '') + ' -> ' + ISNULL(i.TELEFONO, '') +
-                    ' | Correo: ' + ISNULL(d.CORREO_ELECTRONICO, '') + ' -> ' + ISNULL(i.CORREO_ELECTRONICO, '') +
-                    ' | Permiso: ' + ISNULL(CAST(d.PERMISO_OPERAR AS VARCHAR), '') + ' -> ' + ISNULL(CAST(i.PERMISO_OPERAR AS VARCHAR), ''),
-                    250
-                )
-            FROM deleted d
-            INNER JOIN inserted i ON d.ID = i.ID;
+        DECLARE CUREMPRESA CURSOR LOCAL FAST_FORWARD FOR
+        SELECT
+            I.ID,
+            LEFT(
+                'Ced: '
+                + ISNULL(D.CEDULA_JURIDICA, '')
+                + ' -> '
+                + ISNULL(I.CEDULA_JURIDICA, '')
+                + ' | Nom: '
+                + ISNULL(D.NOMBRE, '')
+                + ' -> '
+                + ISNULL(I.NOMBRE, '')
+                + ' | Tel: '
+                + ISNULL(D.TELEFONO, '')
+                + ' -> '
+                + ISNULL(I.TELEFONO, '')
+                + ' | Correo: '
+                + ISNULL(D.CORREO_ELECTRONICO, '')
+                + ' -> '
+                + ISNULL(I.CORREO_ELECTRONICO, '')
+                + ' | Permiso: '
+                + ISNULL(CAST(D.PERMISO_OPERAR AS VARCHAR), '')
+                + ' -> '
+                + ISNULL(CAST(I.PERMISO_OPERAR AS VARCHAR), ''),
+                250
+            ) AS DESCRIPCION
+        FROM DELETED AS D
+        INNER JOIN INSERTED AS I ON D.ID = I.ID;
 
-        OPEN curEmpresa;
-        FETCH NEXT FROM curEmpresa INTO @IdRegistro, @Descripcion;
+        OPEN CUREMPRESA;
+        FETCH NEXT FROM CUREMPRESA INTO @IdRegistro, @Descripcion;
 
         WHILE @@FETCH_STATUS = 0
-        BEGIN
-            EXEC dbo.sp_InsertarHistorialDatos
-                @NombreTabla = 'EMPRESA',
-                @NombreOperacion = 'UPDATE',
-                @IdRegistro = @IdRegistro,
-                @Descripcion = @Descripcion;
+            BEGIN
+                EXEC DBO.SP_INSERTARHISTORIALDATOS
+                    @NombreTabla = 'EMPRESA',
+                    @NombreOperacion = 'UPDATE',
+                    @IdRegistro = @IdRegistro,
+                    @Descripcion = @Descripcion;
 
-            FETCH NEXT FROM curEmpresa INTO @IdRegistro, @Descripcion;
-        END;
+                FETCH NEXT FROM CUREMPRESA INTO @IdRegistro, @Descripcion;
+            END;
 
-        CLOSE curEmpresa;
-        DEALLOCATE curEmpresa;
+        CLOSE CUREMPRESA;
+        DEALLOCATE CUREMPRESA;
 
     END TRY
     BEGIN CATCH
-        IF @@TRANCOUNT > 0 
+        IF @@TRANCOUNT > 0
             ROLLBACK TRANSACTION;
-            
+
         DECLARE @ErrorMsg2 VARCHAR(250) = ERROR_MESSAGE();
-        RAISERROR('Error en trg_auditarCambiosDatosEmpresa: %s', 16, 1, @ErrorMsg2);
+        RAISERROR (
+            'Error en trg_auditarCambiosDatosEmpresa: %s',
+            16,
+            1,
+            @ErrorMsg2
+        );
     END CATCH
 END;
 GO
