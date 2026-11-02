@@ -15,7 +15,7 @@ IF
     END;
 GO
 
-CREATE PROCEDURE DBO.CONSULTA_CLIENTE_FISICO_NOMBRE_SEGUNDO_APELLIDO(
+CREATE PROCEDURE DBO.CONSULTA_CLIENTE_FISICO_NOMBRE_SEGUNDO_APELLIDO (
     @NOMBRE VARCHAR(70),
     @SEGUNDO_APELLIDO VARCHAR(70)
 )
@@ -42,8 +42,14 @@ BEGIN
             AND SEGUNDO_APELLIDO LIKE @SEGUNDO_APELLIDO + '%';
     END TRY
     BEGIN CATCH
-        DECLARE @ErrorMsg VARCHAR(250) = ERROR_MESSAGE();
-        RAISERROR('Error al consultar cliente físico por nombre y segundo apellido: %s', 16, 1, @ErrorMsg);
+        DECLARE @ERRORMSG VARCHAR(250) = ERROR_MESSAGE();
+        
+        RAISERROR (
+            'Error al consultar cliente físico por nombre y segundo apellido: %s',
+            16,
+            1,
+            @ERRORMSG
+        );
     END CATCH;
 END;
 GO
