@@ -2,16 +2,17 @@ USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF EXISTS (
-    SELECT 1
-    FROM SYS.OBJECTS
-    WHERE
-        NAME = 'CONSULTA_CLIENTE_FISICO_NOMBRE_PRIMER_APELLIDO'
-        AND TYPE = 'P'
-)
-BEGIN
-    DROP PROCEDURE DBO.CONSULTA_CLIENTE_FISICO_NOMBRE_PRIMER_APELLIDO;
-END;
+IF
+    EXISTS (
+        SELECT 1
+        FROM SYS.OBJECTS
+        WHERE
+            NAME = 'CONSULTA_CLIENTE_FISICO_NOMBRE_PRIMER_APELLIDO'
+            AND TYPE = 'P'
+    )
+    BEGIN
+        DROP PROCEDURE DBO.CONSULTA_CLIENTE_FISICO_NOMBRE_PRIMER_APELLIDO;
+    END;
 GO
 
 CREATE PROCEDURE DBO.CONSULTA_CLIENTE_FISICO_NOMBRE_PRIMER_APELLIDO (
@@ -41,8 +42,14 @@ BEGIN
             AND PRIMER_APELLIDO LIKE @PRIMER_APELLIDO + '%';
     END TRY
     BEGIN CATCH
-        DECLARE @ErrorMsg VARCHAR(250) = ERROR_MESSAGE();
-        RAISERROR('Error al consultar cliente físico por nombre y apellido: %s', 16, 1, @ErrorMsg);
+        DECLARE @ERRORMSG VARCHAR(250) = ERROR_MESSAGE();
+
+        RAISERROR (
+            'Error al consultar cliente físico por nombre y apellido: %s',
+            16,
+            1,
+            @ERRORMSG
+        );
     END CATCH;
 END;
 GO
