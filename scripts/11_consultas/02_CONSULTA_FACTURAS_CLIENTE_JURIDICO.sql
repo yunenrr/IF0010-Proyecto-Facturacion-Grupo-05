@@ -2,14 +2,17 @@ USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF EXISTS (
-    SELECT 1
-    FROM SYS.OBJECTS
-    WHERE NAME = 'CONSULTA_FACTURAS_CLIENTE_JURIDICO' AND TYPE = 'P'
-)
-BEGIN
-    DROP PROCEDURE DBO.CONSULTA_FACTURAS_CLIENTE_JURIDICO;
-END;
+IF
+    EXISTS (
+        SELECT 1
+        FROM SYS.OBJECTS
+        WHERE
+            NAME = 'CONSULTA_FACTURAS_CLIENTE_JURIDICO'
+            AND TYPE = 'P'
+    )
+    BEGIN
+        DROP PROCEDURE DBO.CONSULTA_FACTURAS_CLIENTE_JURIDICO;
+    END;
 GO
 
 CREATE PROCEDURE DBO.CONSULTA_FACTURAS_CLIENTE_JURIDICO (
@@ -40,8 +43,14 @@ BEGIN
             E.CEDULA_JURIDICA = @CEDULA_EMPRESA;
     END TRY
     BEGIN CATCH
-        DECLARE @ErrorMsg VARCHAR(250) = ERROR_MESSAGE();
-        RAISERROR('Error al consultar facturas de cliente jurídico: %s', 16, 1, @ErrorMsg);
+        DECLARE @ERRORMSG VARCHAR(250) = ERROR_MESSAGE();
+        
+        RAISERROR (
+            'Error al consultar facturas de cliente jurídico: %s',
+            16,
+            1,
+            @ERRORMSG
+        );
     END CATCH;
 END;
 GO
