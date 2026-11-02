@@ -39,14 +39,16 @@ BEGIN
                     + ISNULL(CAST(I.ID_PRODUCTO AS VARCHAR), ''),
                     200
                 ) AS DESCRIPCION_CAMBIO
-            FROM DELETED AS D
-            INNER JOIN INSERTED AS I
+            FROM
+                DELETED AS D
+            INNER JOIN
+                INSERTED AS I
                 ON D.ID_FACTURA = I.ID_FACTURA
                 AND D.NUMERO_LINEA = I.NUMERO_LINEA;
 
         OPEN CURDETALLE;
-        
-        FETCH NEXT FROM CURDETALLE 
+
+        FETCH NEXT FROM CURDETALLE
             INTO @IDFACTURA, @NUMEROLINEA, @DESCRIPCION;
 
         WHILE @@FETCH_STATUS = 0
@@ -63,7 +65,7 @@ BEGIN
                 @CODIGO_ERROR = @CODIGOERROR OUTPUT,
                 @MENSAJE_ERROR = @MENSAJEERROR OUTPUT;
 
-            FETCH NEXT FROM CURDETALLE 
+            FETCH NEXT FROM CURDETALLE
                 INTO @IDFACTURA, @NUMEROLINEA, @DESCRIPCION;
         END;
 
@@ -76,7 +78,7 @@ BEGIN
             ROLLBACK TRANSACTION;
 
         DECLARE @ERRORMSG7 VARCHAR(250) = ERROR_MESSAGE();
-        
+
         RAISERROR (
             'Error en TRG_AUDITARCAMBIOSDETALLEFACTURA: %s',
             16,
