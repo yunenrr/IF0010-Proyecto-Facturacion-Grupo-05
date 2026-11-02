@@ -28,12 +28,11 @@ WHILE @FACTURA <= 500000
         SET @IDCLIENTE = ((@FACTURA - 1) % 50000) + 1;
         SET @IDESTADO = ((@FACTURA - 1) % 4) + 1;
         SET @IDDOCUMENTO = ((@FACTURA - 1) % 2) + 1;
-        
-        -- Asignamos la fecha/hora para la emision
+
         -- Asignamos la fecha/hora para la emision
         SET @FECHA = DATEADD(
-            SECOND, 
-            @FACTURA, 
+            SECOND,
+            @FACTURA,
             DATEADD(DAY, -(@FACTURA % 365), CAST(GETDATE() AS DATETIME2))
         );
         SET @DESCUENTO = CAST((@FACTURA % 101) AS DECIMAL(10, 2));
