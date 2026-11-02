@@ -44,7 +44,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         DECLARE @ERRORMSG VARCHAR(250) = ERROR_MESSAGE();
-        
+
         RAISERROR (
             'Error al consultar facturas de cliente jurídico: %s',
             16,
