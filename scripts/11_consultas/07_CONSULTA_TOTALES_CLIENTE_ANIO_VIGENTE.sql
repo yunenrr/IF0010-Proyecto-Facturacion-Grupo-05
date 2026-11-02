@@ -2,21 +2,23 @@ USE FACTURACION_SA;
 GO
 
 -- INICIO
-IF EXISTS (
-    SELECT 1
-    FROM SYS.OBJECTS
-    WHERE
-        NAME = 'CONSULTA_TOTALES_CLIENTE_ANIO_VIGENTE'
-        AND TYPE = 'P'
-)
-BEGIN
-    DROP PROCEDURE DBO.CONSULTA_TOTALES_CLIENTE_ANIO_VIGENTE;
-END;
+IF
+    EXISTS (
+        SELECT 1
+        FROM SYS.OBJECTS
+        WHERE
+            NAME = 'CONSULTA_TOTALES_CLIENTE_ANIO_VIGENTE'
+            AND TYPE = 'P'
+    )
+    BEGIN
+        DROP PROCEDURE DBO.CONSULTA_TOTALES_CLIENTE_ANIO_VIGENTE;
+    END;
 GO
 
 CREATE PROCEDURE DBO.CONSULTA_TOTALES_CLIENTE_ANIO_VIGENTE (
     @CEDULA VARCHAR(30),
-    @ANIO INT = NULL -- Si es NULL, consulta el acumulado histórico de todos los años
+    -- Si es NULL, consulta el acumulado histórico de todos los años
+    @ANIO INT = NULL
 )
 AS
 BEGIN
@@ -30,10 +32,10 @@ BEGIN
 
         -- Si se especifica un año, definimos el rango de ese año
         IF @ANIO IS NOT NULL
-        BEGIN
-            SET @FECHA_INICIO = DATEFROMPARTS(@ANIO, 1, 1);
-            SET @FECHA_FIN = DATEFROMPARTS(@ANIO + 1, 1, 1);
-        END;
+            BEGIN
+                SET @FECHA_INICIO = DATEFROMPARTS(@ANIO, 1, 1);
+                SET @FECHA_FIN = DATEFROMPARTS(@ANIO + 1, 1, 1);
+            END;
 
         SELECT
             @CEDULA AS CEDULA_CONSULTADA,
@@ -49,13 +51,22 @@ BEGIN
         WHERE
             (C.CEDULA = @CEDULA OR E.CEDULA_JURIDICA = @CEDULA)
             AND (
-                @ANIO IS NULL 
-                OR (F.FECHA_EMISION >= @FECHA_INICIO AND F.FECHA_EMISION < @FECHA_FIN)
+                @ANIO IS NULL
+                OR (
+                    F.FECHA_EMISION >= @FECHA_INICIO
+                    AND F.FECHA_EMISION < @FECHA_FIN
+                )
             );
     END TRY
     BEGIN CATCH
-        DECLARE @ErrorMsg VARCHAR(250) = ERROR_MESSAGE();
-        RAISERROR('Error al consultar totales del cliente por año: %s', 16, 1, @ErrorMsg);
+        DECLARE @ERRORMSG VARCHAR(250) = ERROR_MESSAGE();
+        
+        RAISERROR (
+            'Error al consultar totales del cliente por año: %s',
+            16,
+            1,
+            @ERRORMSG
+        );
     END CATCH;
 END;
 GO
