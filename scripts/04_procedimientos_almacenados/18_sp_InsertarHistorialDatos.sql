@@ -1,7 +1,7 @@
 USE FACTURACION_SA;
 GO
 
-CREATE OR ALTER PROCEDURE dbo.sp_InsertarHistorialDatos
+CREATE OR ALTER PROCEDURE DBO.SP_INSERTARHISTORIALDATOS -- noqa: TQ01
     @NombreTabla VARCHAR(50),
     @NombreOperacion VARCHAR(20),
     @IdRegistro INT,
@@ -16,28 +16,38 @@ BEGIN
     SET @NombreOperacion = UPPER(TRIM(@NombreOperacion));
 
     -- Obtener las llaves
-    SELECT @IdTabla = ID 
-    FROM dbo.TABLA_AUDITADA 
+    SELECT @IdTabla = ID
+    FROM DBO.TABLA_AUDITADA
     WHERE NOMBRE_TABLA = @NombreTabla;
 
-    SELECT @IdOperacion = ID 
-    FROM dbo.TIPO_OPERACION 
+    SELECT @IdOperacion = ID
+    FROM DBO.TIPO_OPERACION
     WHERE NOMBRE_OPERACION = @NombreOperacion;
 
-    -- Validar existencia en los catálogos 
+    -- Validar existencia en los catálogos
     IF @IdTabla IS NULL
-    BEGIN
-        RAISERROR('Error: La tabla %s no existe en el catálogo', 16, 1, @NombreTabla);
-        RETURN;
-    END
+        BEGIN
+            RAISERROR (
+                'Error: La tabla %s no existe en el catálogo',
+                16,
+                1,
+                @NombreTabla
+            );
+            RETURN;
+        END
 
     IF @IdOperacion IS NULL
-    BEGIN
-        RAISERROR('Error: La operación %s no existe en el catálogo', 16, 1, @NombreOperacion);
-        RETURN;
-    END
+        BEGIN
+            RAISERROR (
+                'Error: La operación %s no existe en el catálogo',
+                16,
+                1,
+                @NombreOperacion
+            );
+            RETURN;
+        END
 
-    INSERT INTO dbo.HISTORIAL_DATOS (
+    INSERT INTO DBO.HISTORIAL_DATOS (
         ID_TABLA,
         ID_OPERACION,
         ID_REGISTRO,
