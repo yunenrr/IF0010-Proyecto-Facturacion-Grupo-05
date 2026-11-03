@@ -6,9 +6,8 @@ SET NOCOUNT ON;
 SET XACT_ABORT ON;
 
 DECLARE @FACTURA INT = 1;
-DECLARE @TAMBLOQUE INT = 10000;
 
-DECLARE @NUMEROCONSECUTIVO INT; -- Declarada correctamente
+DECLARE @NUMEROCONSECUTIVO INT;
 DECLARE @FECHA DATETIME2;
 DECLARE @DESCUENTO DECIMAL(10, 2);
 DECLARE @IDEMPRESA INT;
@@ -65,13 +64,6 @@ WHILE @FACTURA <= 500000
                     END;
 
                 BREAK;
-            END;
-
-        -- Control de transacciones en bloques de 10000
-        IF @FACTURA % @TAMBLOQUE = 0
-            BEGIN
-                COMMIT TRANSACTION;
-                BEGIN TRANSACTION;
             END;
 
         SET @FACTURA += 1;
