@@ -13,7 +13,6 @@ BEGIN
 
         -- Se registra el cambio
         INSERT INTO DBO.HISTORIAL (
-            ID_FACTURA,
             ID_REGISTRO_AFECTADO,
             OPERACION_REALIZADA,
             ESTADO_PREVIO,
@@ -24,7 +23,6 @@ BEGIN
             USUARIO_RESPONSABLE
         )
         SELECT
-            0 AS ID_FACTURA,
             COALESCE(I.ID, D.ID) AS ID_REGISTRO_AFECTADO,
             CASE
                 WHEN D.ID IS NULL
