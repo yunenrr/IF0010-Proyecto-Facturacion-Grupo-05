@@ -21,7 +21,8 @@ BEGIN
 
         DECLARE @Usuario VARCHAR(100) = SUSER_SNAME();
 
-        -- Se inserta masivamente en la tabla HISTORIAL usando Set-Based (sin cursores)
+        -- Se inserta masivamente en la tabla HISTORIAL
+        -- usando Set-Based (sin cursores)
         INSERT INTO DBO.HISTORIAL (
             ID_FACTURA,
             ID_REGISTRO_AFECTADO,
