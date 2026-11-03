@@ -16,46 +16,34 @@ BEGIN
         UPDATE F
         SET F.FECHA_MODIFICACION = GETDATE()
         FROM DBO.FACTURA AS F
-        INNER JOIN INSERTED AS I ON F.ID = I.ID;
+        INNER JOIN INSERTED AS I
+            ON F.ID = I.ID;
 
-        DECLARE @IdFactura INT;
-        DECLARE @EstadoPrevio VARCHAR(25);
-        DECLARE @EstadoNuevo VARCHAR(25);
         DECLARE @Usuario VARCHAR(100) = SUSER_SNAME();
-        DECLARE @CodigoError INT;
-        DECLARE @MensajeError VARCHAR(100);
 
-        DECLARE CURFACTURA CURSOR LOCAL FAST_FORWARD FOR
+        -- Se inserta masivamente en la tabla HISTORIAL usando Set-Based (sin cursores)
+        INSERT INTO DBO.HISTORIAL (
+            ID_FACTURA,
+            ID_REGISTRO_AFECTADO,
+            OPERACION_REALIZADA,
+            ESTADO_PREVIO,
+            ESTADO_NUEVO,
+            TABLA_AFECTADA,
+            DESCRIPCION,
+            USUARIO_RESPONSABLE
+        )
         SELECT
-            I.ID,
+            I.ID AS ID_FACTURA,
+            I.ID AS ID_REGISTRO_AFECTADO,
+            'UPDATE' AS OPERACION_REALIZADA,
             CAST(D.ID_ESTADO_FACTURA AS VARCHAR) AS ESTADO_PREVIO,
-            CAST(I.ID_ESTADO_FACTURA AS VARCHAR) AS ESTADO_NUEVO
+            CAST(I.ID_ESTADO_FACTURA AS VARCHAR) AS ESTADO_NUEVO,
+            'FACTURA' AS TABLA_AFECTADA,
+            'Actualización en el encabezado de factura' AS DESCRIPCION,
+            @Usuario AS USUARIO_RESPONSABLE
         FROM DELETED AS D
-        INNER JOIN INSERTED AS I ON D.ID = I.ID;
-
-        OPEN CURFACTURA;
-        FETCH NEXT FROM CURFACTURA INTO @IdFactura, @EstadoPrevio, @EstadoNuevo;
-
-        WHILE @@FETCH_STATUS = 0
-            BEGIN
-                -- Se invoca el procedimiento dedicado para la tabla HISTORIAL
-                EXEC DBO.PR_INSERTARHISTORIAL
-                    @ID_FACTURA = @IdFactura,
-                    @ID_REGISTRO_AFECTADO = @IdFactura,
-                    @OPERACION_REALIZADA = 'UPDATE',
-                    @ESTADO_PREVIO = @EstadoPrevio,
-                    @ESTADO_NUEVO = @EstadoNuevo,
-                    @TABLA_AFECTADA = 'FACTURA',
-                    @DESCRIPCION = 'Actualización en el encabezado de factura',
-                    @USUARIO_RESPONSABLE = @Usuario,
-                    @CODIGO_ERROR = @CodigoError OUTPUT,
-                    @MENSAJE_ERROR = @MensajeError OUTPUT;
-
-                FETCH NEXT FROM CURFACTURA INTO @IdFactura, @EstadoPrevio, @EstadoNuevo; -- noqa: LT05
-            END;
-
-        CLOSE CURFACTURA;
-        DEALLOCATE CURFACTURA;
+        INNER JOIN INSERTED AS I
+            ON D.ID = I.ID;
 
     END TRY
     BEGIN CATCH
@@ -63,12 +51,13 @@ BEGIN
             ROLLBACK TRANSACTION;
 
         DECLARE @ErrorMsg6 VARCHAR(250) = ERROR_MESSAGE();
+
         RAISERROR (
             'Error en trg_auditarCambiosFactura: %s',
             16,
             1,
             @ErrorMsg6
         );
-    END CATCH
+    END CATCH;
 END;
 GO
