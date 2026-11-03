@@ -3,7 +3,7 @@ GO
 
 CREATE OR ALTER TRIGGER DBO.TRG_AUDITARCAMBIOSFACTURA
 ON DBO.FACTURA
-AFTER UPDATE
+AFTER INSERT, UPDATE, DELETE
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -12,14 +12,17 @@ BEGIN
         RETURN;
 
     BEGIN TRY
-        -- Actualizar la fecha de modificación de la factura
-        UPDATE F
-        SET F.FECHA_MODIFICACION = GETDATE()
-        FROM DBO.FACTURA AS F
-        INNER JOIN INSERTED AS I
-            ON F.ID = I.ID;
+        -- Actualizar la fecha de modificación de la factura (Solo INSERT o UPDATE)
+        IF EXISTS (SELECT 1 FROM INSERTED)
+            BEGIN
+                UPDATE F
+                SET F.FECHA_MODIFICACION = GETDATE()
+                FROM DBO.FACTURA AS F
+                INNER JOIN INSERTED AS I
+                    ON F.ID = I.ID;
+            END;
 
-        DECLARE @Usuario VARCHAR(100) = SUSER_SNAME();
+        DECLARE @USUARIO VARCHAR(100) = SUSER_SNAME();
 
         -- Se inserta masivamente en la tabla HISTORIAL
         -- usando Set-Based (sin cursores)
@@ -35,31 +38,41 @@ BEGIN
             USUARIO_RESPONSABLE
         )
         SELECT
-            I.ID AS ID_FACTURA,
-            I.ID AS ID_REGISTRO_AFECTADO,
-            'UPDATE' AS OPERACION_REALIZADA,
-            CAST(D.ID_ESTADO_FACTURA AS VARCHAR) AS ESTADO_PREVIO,
-            CAST(I.ID_ESTADO_FACTURA AS VARCHAR) AS ESTADO_NUEVO,
+            COALESCE(I.ID, D.ID) AS ID_FACTURA,
+            COALESCE(I.ID, D.ID) AS ID_REGISTRO_AFECTADO,
+            CASE
+                WHEN D.ID IS NULL THEN 'INSERT'
+                WHEN I.ID IS NULL THEN 'DELETE'
+                ELSE 'UPDATE'
+            END AS OPERACION_REALIZADA,
+            ISNULL(CAST(D.ID_ESTADO_FACTURA AS VARCHAR), 'N/A') AS ESTADO_PREVIO,
+            ISNULL(CAST(I.ID_ESTADO_FACTURA AS VARCHAR), 'N/A') AS ESTADO_NUEVO,
             SYSDATETIME() AS FECHA_HORA,
             'FACTURA' AS TABLA_AFECTADA,
-            'Actualización en el encabezado de factura' AS DESCRIPCION,
-            @Usuario AS USUARIO_RESPONSABLE
+            CASE
+                WHEN D.ID IS NULL THEN 'Factura creada'
+                WHEN I.ID IS NULL THEN 'Factura eliminada'
+                ELSE 'Actualización en el encabezado de factura'
+            END AS DESCRIPCION,
+            @USUARIO AS USUARIO_RESPONSABLE
         FROM DELETED AS D
-        INNER JOIN INSERTED AS I
+        FULL OUTER JOIN INSERTED AS I
             ON D.ID = I.ID;
 
     END TRY
     BEGIN CATCH
         IF @@TRANCOUNT > 0
-            ROLLBACK TRANSACTION;
+            BEGIN
+                ROLLBACK TRANSACTION;
+            END;
 
-        DECLARE @ErrorMsg6 VARCHAR(250) = ERROR_MESSAGE();
+        DECLARE @ERRORMSG6 VARCHAR(250) = ERROR_MESSAGE();
 
         RAISERROR (
-            'Error en trg_auditarCambiosFactura: %s',
+            'Error en TRG_AUDITARCAMBIOSFACTURA: %s',
             16,
             1,
-            @ErrorMsg6
+            @ERRORMSG6
         );
     END CATCH;
 END;
