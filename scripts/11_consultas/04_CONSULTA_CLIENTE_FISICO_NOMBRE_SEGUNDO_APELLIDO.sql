@@ -43,8 +43,11 @@ BEGIN
     END TRY
     BEGIN CATCH
         DECLARE @ERRORMSG VARCHAR(250) = ERROR_MESSAGE();
-        DECLARE @MSG_RAISERROR VARCHAR(100) = 'Error al consultar cliente '
-            + 'físico por nombre y segundo apellido: %s';
+        DECLARE @MSG_RAISERROR VARCHAR(100);
+        
+        SET @MSG_RAISERROR =
+            'Error al consultar cliente físico por nombre y '
+            + 'segundo apellido: %s';
 
         RAISERROR (
             @MSG_RAISERROR,
