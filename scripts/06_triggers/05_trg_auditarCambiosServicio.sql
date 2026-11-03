@@ -3,69 +3,91 @@ GO
 
 CREATE OR ALTER TRIGGER DBO.TRG_AUDITARCAMBIOSSERVICIO
 ON DBO.SERVICIO
-AFTER UPDATE
+AFTER INSERT, UPDATE, DELETE
 AS
 BEGIN
     SET NOCOUNT ON;
 
     BEGIN TRY
-        DECLARE @IdRegistro INT;
-        DECLARE @Descripcion VARCHAR(250);
+        DECLARE @USUARIO VARCHAR(100) = SUSER_SNAME();
 
-        DECLARE CURSERVICIO CURSOR LOCAL FAST_FORWARD FOR
+        -- Se registra el cambio
+        INSERT INTO DBO.HISTORIAL (
+            ID_FACTURA,
+            ID_REGISTRO_AFECTADO,
+            OPERACION_REALIZADA,
+            ESTADO_PREVIO,
+            ESTADO_NUEVO,
+            FECHA_HORA,
+            TABLA_AFECTADA,
+            DESCRIPCION,
+            USUARIO_RESPONSABLE
+        )
         SELECT
-            I.ID,
-            LEFT(
-                'Cod: '
-                + ISNULL(D.CODIGO, '')
-                + ' -> '
-                + ISNULL(I.CODIGO, '')
-                + ' | Desc: '
-                + ISNULL(D.DESCRIPCION, '')
-                + ' -> '
-                + ISNULL(I.DESCRIPCION, '')
-                + ' | Precio: '
-                + ISNULL(CAST(D.PRECIO_UNITARIO AS VARCHAR), '')
-                + ' -> '
-                + ISNULL(CAST(I.PRECIO_UNITARIO AS VARCHAR), '')
-                + ' | Activo: '
-                + ISNULL(CAST(D.ESTADO_ACTIVO AS VARCHAR), '')
-                + ' -> '
-                + ISNULL(CAST(I.ESTADO_ACTIVO AS VARCHAR), ''),
-                250
-            ) AS DESCRIPCION
+            CAST(NULL AS INT) AS ID_FACTURA,
+            COALESCE(I.ID, D.ID) AS ID_REGISTRO_AFECTADO,
+            CASE
+                WHEN D.ID IS NULL THEN 'INSERT'
+                WHEN I.ID IS NULL THEN 'DELETE'
+                ELSE 'UPDATE'
+            END AS OPERACION_REALIZADA,
+            'N/A' AS ESTADO_PREVIO,
+            'N/A' AS ESTADO_NUEVO,
+            SYSDATETIME() AS FECHA_HORA,
+            'SERVICIO' AS TABLA_AFECTADA,
+            CASE
+                WHEN D.ID IS NULL THEN
+                    LEFT(
+                        'Registro creado. Cod: '
+                        + ISNULL(I.CODIGO, ''),
+                        250
+                    )
+                WHEN I.ID IS NULL THEN
+                    LEFT(
+                        'Registro eliminado. Cod: '
+                        + ISNULL(D.CODIGO, ''),
+                        250
+                    )
+                ELSE
+                    LEFT(
+                        'Cod: '
+                        + ISNULL(D.CODIGO, '')
+                        + ' -> '
+                        + ISNULL(I.CODIGO, '')
+                        + ' | Desc: '
+                        + ISNULL(D.DESCRIPCION, '')
+                        + ' -> '
+                        + ISNULL(I.DESCRIPCION, '')
+                        + ' | Precio: '
+                        + ISNULL(CAST(D.PRECIO_UNITARIO AS VARCHAR), '')
+                        + ' -> '
+                        + ISNULL(CAST(I.PRECIO_UNITARIO AS VARCHAR), '')
+                        + ' | Activo: '
+                        + ISNULL(CAST(D.ESTADO_ACTIVO AS VARCHAR), '')
+                        + ' -> '
+                        + ISNULL(CAST(I.ESTADO_ACTIVO AS VARCHAR), ''),
+                        250
+                    )
+            END AS DESCRIPCION,
+            @USUARIO AS USUARIO_RESPONSABLE
         FROM DELETED AS D
-        INNER JOIN INSERTED AS I ON D.ID = I.ID;
-
-        OPEN CURSERVICIO;
-        FETCH NEXT FROM CURSERVICIO INTO @IdRegistro, @Descripcion;
-
-        WHILE @@FETCH_STATUS = 0
-            BEGIN
-                EXEC DBO.SP_INSERTARHISTORIALDATOS
-                    @NombreTabla = 'SERVICIO',
-                    @NombreOperacion = 'UPDATE',
-                    @IdRegistro = @IdRegistro,
-                    @Descripcion = @Descripcion;
-
-                FETCH NEXT FROM CURSERVICIO INTO @IdRegistro, @Descripcion;
-            END;
-
-        CLOSE CURSERVICIO;
-        DEALLOCATE CURSERVICIO;
+        FULL OUTER JOIN INSERTED AS I
+            ON D.ID = I.ID;
 
     END TRY
     BEGIN CATCH
         IF @@TRANCOUNT > 0
-            ROLLBACK TRANSACTION;
+            BEGIN
+                ROLLBACK TRANSACTION;
+            END;
 
-        DECLARE @ErrorMsg5 VARCHAR(250) = ERROR_MESSAGE();
+        DECLARE @ERRORMSG5 VARCHAR(250) = ERROR_MESSAGE();
         RAISERROR (
-            'Error en trg_auditarCambiosServicio: %s',
+            'Error en TRG_AUDITARCAMBIOSSERVICIO: %s',
             16,
             1,
-            @ErrorMsg5
+            @ERRORMSG5
         );
-    END CATCH
+    END CATCH;
 END;
 GO
