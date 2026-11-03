@@ -24,7 +24,7 @@ BEGIN
             USUARIO_RESPONSABLE
         )
         SELECT
-            CAST(NULL AS INT) AS ID_FACTURA,
+            0 AS ID_FACTURA,
             COALESCE(I.ID_DIRECCION, D.ID_DIRECCION) AS ID_REGISTRO_AFECTADO,
             CASE
                 WHEN D.ID_DIRECCION IS NULL
