@@ -36,10 +36,10 @@ BEGIN
                 200
             ) AS DESCRIPCION_CAMBIO
         FROM
-            DELETED AS D
+                DELETED AS D
         INNER JOIN
-            INSERTED AS I
-            ON
+                INSERTED AS I
+        ON
                 D.ID_FACTURA = I.ID_FACTURA
                 AND D.NUMERO_LINEA = I.NUMERO_LINEA;
 
