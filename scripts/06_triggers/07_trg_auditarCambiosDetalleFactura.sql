@@ -44,25 +44,25 @@ BEGIN
         OPEN CURDETALLE;
 
         FETCH NEXT FROM CURDETALLE
-            INTO @IDFACTURA, @NUMEROLINEA, @DESCRIPCION;
+        INTO @IDFACTURA, @NUMEROLINEA, @DESCRIPCION;
 
         WHILE @@FETCH_STATUS = 0
-        BEGIN
-            EXEC DBO.PR_INSERTARHISTORIAL
-                @ID_FACTURA = @IDFACTURA,
-                @ID_REGISTRO_AFECTADO = @NUMEROLINEA,
-                @OPERACION_REALIZADA = 'UPDATE',
-                @ESTADO_PREVIO = 'N/A',
-                @ESTADO_NUEVO = 'N/A',
-                @TABLA_AFECTADA = 'DETALLE_FACTURA',
-                @DESCRIPCION = @DESCRIPCION,
-                @USUARIO_RESPONSABLE = @USUARIO,
-                @CODIGO_ERROR = @CODIGOERROR OUTPUT,
-                @MENSAJE_ERROR = @MENSAJEERROR OUTPUT;
+            BEGIN
+                EXEC DBO.PR_INSERTARHISTORIAL
+                    @ID_FACTURA = @IDFACTURA,
+                    @ID_REGISTRO_AFECTADO = @NUMEROLINEA,
+                    @OPERACION_REALIZADA = 'UPDATE',
+                    @ESTADO_PREVIO = 'N/A',
+                    @ESTADO_NUEVO = 'N/A',
+                    @TABLA_AFECTADA = 'DETALLE_FACTURA',
+                    @DESCRIPCION = @DESCRIPCION,
+                    @USUARIO_RESPONSABLE = @USUARIO,
+                    @CODIGO_ERROR = @CODIGOERROR OUTPUT,
+                    @MENSAJE_ERROR = @MENSAJEERROR OUTPUT;
 
-            FETCH NEXT FROM CURDETALLE
+                FETCH NEXT FROM CURDETALLE
                 INTO @IDFACTURA, @NUMEROLINEA, @DESCRIPCION;
-        END;
+            END;
 
         CLOSE CURDETALLE;
         DEALLOCATE CURDETALLE;
