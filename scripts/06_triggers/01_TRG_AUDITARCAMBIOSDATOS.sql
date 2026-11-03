@@ -53,8 +53,10 @@ BEGIN
             CAST(NULL AS INT) AS ID_FACTURA,
             COALESCE(I.ID, D.ID) AS ID_REGISTRO_AFECTADO,
             CASE
-                WHEN D.ID IS NULL THEN 'INSERT'
-                WHEN I.ID IS NULL THEN 'DELETE'
+                WHEN D.ID IS NULL
+                THEN 'INSERT'
+                WHEN I.ID IS NULL
+                THEN 'DELETE'
                 ELSE 'UPDATE'
             END AS OPERACION_REALIZADA,
             'N/A' AS ESTADO_PREVIO,
@@ -62,10 +64,20 @@ BEGIN
             SYSDATETIME() AS FECHA_HORA,
             'CLIENTE' AS TABLA_AFECTADA,
             CASE
-                WHEN D.ID IS NULL THEN
-                    LEFT('Registro creado. Ced: ' + ISNULL(I.CEDULA, ''), 250)
-                WHEN I.ID IS NULL THEN
-                    LEFT('Registro eliminado. Ced: ' + ISNULL(D.CEDULA, ''), 250)
+                WHEN D.ID IS NULL
+                THEN
+                    LEFT(
+                        'Registro creado. Ced: '
+                        + ISNULL(I.CEDULA, ''),
+                        250
+                    )
+                WHEN I.ID IS NULL
+                THEN
+                    LEFT(
+                        'Registro eliminado. Ced: '
+                        + ISNULL(D.CEDULA, ''),
+                        250
+                    )
                 ELSE
                     LEFT(
                         'Ced: '
