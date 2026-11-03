@@ -50,7 +50,7 @@ BEGIN
             USUARIO_RESPONSABLE
         )
         SELECT
-            CAST(NULL AS INT) AS ID_FACTURA,
+            0 AS ID_FACTURA,
             COALESCE(I.ID, D.ID) AS ID_REGISTRO_AFECTADO,
             CASE
                 WHEN D.ID IS NULL
