@@ -24,10 +24,10 @@ BEGIN
         SELECT
             I.ID_FACTURA,
             I.NUMERO_LINEA,
-            'UPDATE',
-            'N/A',
-            'N/A',
-            'DETALLE_FACTURA',
+            'UPDATE' AS OPERACION_REALIZADA,
+            'N/A' AS ESTADO_PREVIO,
+            'N/A' AS ESTADO_NUEVO,
+            'DETALLE_FACTURA' AS TABLA_AFECTADA,
             LEFT(
                 'Cant: '
                 + ISNULL(CAST(D.CANTIDAD AS VARCHAR), '')
@@ -42,8 +42,8 @@ BEGIN
                 + ' -> '
                 + ISNULL(CAST(I.ID_PRODUCTO AS VARCHAR), ''),
                 200
-            ),
-            @USUARIO
+            ) AS DESCRIPCION,
+            @USUARIO AS USUARIO_RESPONSABLE
         FROM DELETED AS D
         INNER JOIN INSERTED AS I
             ON
