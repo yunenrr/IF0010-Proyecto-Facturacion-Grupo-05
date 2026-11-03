@@ -1,80 +1,101 @@
 USE FACTURACION_SA;
 GO
 
-CREATE OR ALTER TRIGGER TRG_AUDITARCAMBIOSPRODUCTO
-ON PRODUCTO
-AFTER UPDATE
+CREATE OR ALTER TRIGGER DBO.TRG_AUDITARCAMBIOSPRODUCTO
+ON DBO.PRODUCTO
+AFTER INSERT, UPDATE, DELETE
 AS
 BEGIN
     SET NOCOUNT ON;
 
     BEGIN TRY
-        -- Se registra el cambio en la tabla historial
-        DECLARE @IdRegistro INT;
-        DECLARE @Descripcion VARCHAR(250);
+        DECLARE @USUARIO VARCHAR(100) = SUSER_SNAME();
 
-        DECLARE CURPRODUCTO CURSOR LOCAL FAST_FORWARD FOR
+        -- Se registra el cambio
+        INSERT INTO DBO.HISTORIAL (
+            ID_FACTURA,
+            ID_REGISTRO_AFECTADO,
+            OPERACION_REALIZADA,
+            ESTADO_PREVIO,
+            ESTADO_NUEVO,
+            FECHA_HORA,
+            TABLA_AFECTADA,
+            DESCRIPCION,
+            USUARIO_RESPONSABLE
+        )
         SELECT
-            I.ID,
-            LEFT(
-                'Desc: '
-                + ISNULL(D.DESCRIPCION, '')
-                + ' -> '
-                + ISNULL(I.DESCRIPCION, '')
-                + ' | Precio: '
-                + ISNULL(CAST(D.PRECIO_UNITARIO AS VARCHAR), '')
-                + ' -> '
-                + ISNULL(CAST(I.PRECIO_UNITARIO AS VARCHAR), '')
-                + ' | Imp: '
-                + ISNULL(CAST(D.PORCENTAJE_IMPUESTO AS VARCHAR), '')
-                + ' -> '
-                + ISNULL(CAST(I.PORCENTAJE_IMPUESTO AS VARCHAR), '')
-                + ' | Est: '
-                + ISNULL(CAST(D.ESTADO_ACTIVO AS VARCHAR), '')
-                + ' -> '
-                + ISNULL(CAST(I.ESTADO_ACTIVO AS VARCHAR), '')
-                + ' | Venc: '
-                + ISNULL(CAST(D.FECHA_VENCIMIENTO AS VARCHAR), '')
-                + ' -> '
-                + ISNULL(CAST(I.FECHA_VENCIMIENTO AS VARCHAR), '')
-                + ' | Exist: '
-                + ISNULL(CAST(D.EXISTENCIAS AS VARCHAR), '')
-                + ' -> '
-                + ISNULL(CAST(I.EXISTENCIAS AS VARCHAR), ''),
-                250
-            ) AS DESCRIPCION
+            CAST(NULL AS INT) AS ID_FACTURA,
+            COALESCE(I.ID, D.ID) AS ID_REGISTRO_AFECTADO,
+            CASE
+                WHEN D.ID IS NULL THEN 'INSERT'
+                WHEN I.ID IS NULL THEN 'DELETE'
+                ELSE 'UPDATE'
+            END AS OPERACION_REALIZADA,
+            'N/A' AS ESTADO_PREVIO,
+            'N/A' AS ESTADO_NUEVO,
+            SYSDATETIME() AS FECHA_HORA,
+            'PRODUCTO' AS TABLA_AFECTADA,
+            CASE
+                WHEN D.ID IS NULL THEN
+                    LEFT(
+                        'Registro creado. Desc: '
+                        + ISNULL(I.DESCRIPCION, ''),
+                        250
+                    )
+                WHEN I.ID IS NULL THEN
+                    LEFT(
+                        'Registro eliminado. Desc: '
+                        + ISNULL(D.DESCRIPCION, ''),
+                        250
+                    )
+                ELSE
+                    LEFT(
+                        'Desc: '
+                        + ISNULL(D.DESCRIPCION, '')
+                        + ' -> '
+                        + ISNULL(I.DESCRIPCION, '')
+                        + ' | Precio: '
+                        + ISNULL(CAST(D.PRECIO_UNITARIO AS VARCHAR), '')
+                        + ' -> '
+                        + ISNULL(CAST(I.PRECIO_UNITARIO AS VARCHAR), '')
+                        + ' | Imp: '
+                        + ISNULL(CAST(D.PORCENTAJE_IMPUESTO AS VARCHAR), '')
+                        + ' -> '
+                        + ISNULL(CAST(I.PORCENTAJE_IMPUESTO AS VARCHAR), '')
+                        + ' | Est: '
+                        + ISNULL(CAST(D.ESTADO_ACTIVO AS VARCHAR), '')
+                        + ' -> '
+                        + ISNULL(CAST(I.ESTADO_ACTIVO AS VARCHAR), '')
+                        + ' | Venc: '
+                        + ISNULL(CAST(D.FECHA_VENCIMIENTO AS VARCHAR), '')
+                        + ' -> '
+                        + ISNULL(CAST(I.FECHA_VENCIMIENTO AS VARCHAR), '')
+                        + ' | Exist: '
+                        + ISNULL(CAST(D.EXISTENCIAS AS VARCHAR), '')
+                        + ' -> '
+                        + ISNULL(CAST(I.EXISTENCIAS AS VARCHAR), ''),
+                        250
+                    )
+            END AS DESCRIPCION,
+            @USUARIO AS USUARIO_RESPONSABLE
         FROM DELETED AS D
-        INNER JOIN INSERTED AS I ON D.ID = I.ID;
-
-        OPEN CURPRODUCTO;
-        FETCH NEXT FROM CURPRODUCTO INTO @IdRegistro, @Descripcion;
-
-        WHILE @@FETCH_STATUS = 0
-            BEGIN
-                EXEC DBO.SP_INSERTARHISTORIALDATOS
-                    @NombreTabla = 'PRODUCTO',
-                    @NombreOperacion = 'UPDATE',
-                    @IdRegistro = @IdRegistro,
-                    @Descripcion = @Descripcion;
-
-                FETCH NEXT FROM CURPRODUCTO INTO @IdRegistro, @Descripcion;
-            END;
-
-        CLOSE CURPRODUCTO;
-        DEALLOCATE CURPRODUCTO;
+        FULL OUTER JOIN INSERTED AS I
+            ON D.ID = I.ID;
 
     END TRY
     BEGIN CATCH
         IF @@TRANCOUNT > 0
-            ROLLBACK TRANSACTION;
+            BEGIN
+                ROLLBACK TRANSACTION;
+            END;
 
-        DECLARE @ErrorMsg4 VARCHAR(250) = ERROR_MESSAGE();
+        DECLARE @ERRORMSG4 VARCHAR(250) = ERROR_MESSAGE();
         RAISERROR (
-            'Error en trg_auditarCambiosProducto: %s',
+            'Error en TRG_AUDITARCAMBIOSPRODUCTO: %s',
             16,
             1,
-            @ErrorMsg4
+            @ERRORMSG4
         );
-    END CATCH
+    END CATCH;
 END;
 GO
