@@ -27,9 +27,9 @@ BEGIN
             COALESCE(I.NUMERO_LINEA, D.NUMERO_LINEA) AS ID_REGISTRO_AFECTADO,
             CASE
                 WHEN D.ID_FACTURA IS NULL
-                THEN 'INSERT'
+                    THEN 'INSERT'
                 WHEN I.ID_FACTURA IS NULL
-                THEN 'DELETE'
+                    THEN 'DELETE'
                 ELSE 'UPDATE'
             END AS OPERACION_REALIZADA,
             'N/A' AS ESTADO_PREVIO,
@@ -38,39 +38,39 @@ BEGIN
             'DETALLE_FACTURA' AS TABLA_AFECTADA,
             CASE
                 WHEN D.ID_FACTURA IS NULL
-                THEN
-                    LEFT(
-                        'Registro creado. Prod: '
+                    THEN
+                        LEFT(
+                            'Registro creado. Prod: '
                             + ISNULL(CAST(I.ID_PRODUCTO AS VARCHAR), ''),
-                        200
-                    )
+                            200
+                        )
                 WHEN I.ID_FACTURA IS NULL
-                THEN
-                    LEFT(
-                        'Registro eliminado. Prod: '
+                    THEN
+                        LEFT(
+                            'Registro eliminado. Prod: '
                             + ISNULL(CAST(D.ID_PRODUCTO AS VARCHAR), ''),
-                        200
-                    )
+                            200
+                        )
                 ELSE
                     LEFT(
                         'Cant: '
-                            + ISNULL(CAST(D.CANTIDAD AS VARCHAR), '')
-                            + ' -> '
-                            + ISNULL(CAST(I.CANTIDAD AS VARCHAR), '')
-                            + ' | Precio: '
-                            + ISNULL(
-                                CAST(D.PRECIO_UNITARIO_VENTA AS VARCHAR),
-                                ''
-                            )
-                            + ' -> '
-                            + ISNULL(
-                                CAST(I.PRECIO_UNITARIO_VENTA AS VARCHAR),
-                                ''
-                            )
-                            + ' | Prod: '
-                            + ISNULL(CAST(D.ID_PRODUCTO AS VARCHAR), '')
-                            + ' -> '
-                            + ISNULL(CAST(I.ID_PRODUCTO AS VARCHAR), ''),
+                        + ISNULL(CAST(D.CANTIDAD AS VARCHAR), '')
+                        + ' -> '
+                        + ISNULL(CAST(I.CANTIDAD AS VARCHAR), '')
+                        + ' | Precio: '
+                        + ISNULL(
+                            CAST(D.PRECIO_UNITARIO_VENTA AS VARCHAR),
+                            ''
+                        )
+                        + ' -> '
+                        + ISNULL(
+                            CAST(I.PRECIO_UNITARIO_VENTA AS VARCHAR),
+                            ''
+                        )
+                        + ' | Prod: '
+                        + ISNULL(CAST(D.ID_PRODUCTO AS VARCHAR), '')
+                        + ' -> '
+                        + ISNULL(CAST(I.ID_PRODUCTO AS VARCHAR), ''),
                         200
                     )
             END AS DESCRIPCION,
