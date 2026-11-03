@@ -12,31 +12,19 @@ BEGIN
         DECLARE @USUARIO VARCHAR(100) = SUSER_SNAME();
 
         -- Se registra el cambio
-        INSERT INTO DBO.HISTORIAL (
-            ID_FACTURA,
-            ID_REGISTRO_AFECTADO,
-            OPERACION_REALIZADA,
-            ESTADO_PREVIO,
-            ESTADO_NUEVO,
+        INSERT INTO DBO.HISTORIAL_DATOS (
+            ID_TABLA,
+            ID_OPERACION,
+            ID_REGISTRO,
             FECHA_HORA,
-            TABLA_AFECTADA,
             DESCRIPCION,
             USUARIO_RESPONSABLE
         )
         SELECT
-            0 AS ID_FACTURA,
-            COALESCE(I.ID_DIRECCION, D.ID_DIRECCION) AS ID_REGISTRO_AFECTADO,
-            CASE
-                WHEN D.ID_DIRECCION IS NULL
-                    THEN 'INSERT'
-                WHEN I.ID_DIRECCION IS NULL
-                    THEN 'DELETE'
-                ELSE 'UPDATE'
-            END AS OPERACION_REALIZADA,
-            'N/A' AS ESTADO_PREVIO,
-            'N/A' AS ESTADO_NUEVO,
+            TA.ID AS ID_TABLA,
+            TIPO.ID AS ID_OPERACION,
+            COALESCE(I.ID_DIRECCION, D.ID_DIRECCION) AS ID_REGISTRO,
             SYSDATETIME() AS FECHA_HORA,
-            'DIRECCION' AS TABLA_AFECTADA,
             CASE
                 WHEN D.ID_DIRECCION IS NULL
                     THEN
@@ -76,7 +64,21 @@ BEGIN
             @USUARIO AS USUARIO_RESPONSABLE
         FROM DELETED AS D
         FULL OUTER JOIN INSERTED AS I
-            ON D.ID_DIRECCION = I.ID_DIRECCION;
+            ON D.ID_DIRECCION = I.ID_DIRECCION
+        CROSS APPLY (
+            SELECT
+                CASE
+                    WHEN D.ID_DIRECCION IS NULL
+                        THEN 'INSERT'
+                    WHEN I.ID_DIRECCION IS NULL
+                        THEN 'DELETE'
+                    ELSE 'UPDATE'
+                END AS OPERACION
+        ) AS OP
+        INNER JOIN DBO.TIPO_OPERACION AS TIPO
+            ON OP.OPERACION = TIPO.NOMBRE_OPERACION
+        INNER JOIN DBO.TABLA_AUDITADA AS TA
+            ON TA.NOMBRE_TABLA = 'DIRECCION';
 
     END TRY
     BEGIN CATCH
