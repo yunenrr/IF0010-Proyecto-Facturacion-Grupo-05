@@ -44,9 +44,9 @@ BEGIN
     BEGIN CATCH
         DECLARE @ERRORMSG VARCHAR(250) = ERROR_MESSAGE();
         DECLARE @MSG_RAISERROR VARCHAR(100);
-        
-        SET @MSG_RAISERROR =
-            'Error al consultar cliente físico por nombre y '
+
+        SET
+            @MSG_RAISERROR = 'Error al consultar cliente físico por nombre y '
             + 'segundo apellido: %s';
 
         RAISERROR (
