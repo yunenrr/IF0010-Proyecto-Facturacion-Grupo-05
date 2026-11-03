@@ -17,28 +17,27 @@ BEGIN
         DECLARE @MENSAJEERROR VARCHAR(100);
 
         DECLARE CURDETALLE CURSOR LOCAL FAST_FORWARD FOR
-        SELECT
-            I.ID_FACTURA,
-            I.NUMERO_LINEA,
-            LEFT(
-                'Cant: '
-                + ISNULL(CAST(D.CANTIDAD AS VARCHAR), '')
-                + ' -> '
-                + ISNULL(CAST(I.CANTIDAD AS VARCHAR), '')
-                + ' | Precio: '
-                + ISNULL(CAST(D.PRECIO_UNITARIO_VENTA AS VARCHAR), '')
-                + ' -> '
-                + ISNULL(CAST(I.PRECIO_UNITARIO_VENTA AS VARCHAR), '')
-                + ' | Prod: '
-                + ISNULL(CAST(D.ID_PRODUCTO AS VARCHAR), '')
-                + ' -> '
-                + ISNULL(CAST(I.ID_PRODUCTO AS VARCHAR), ''),
-                200
-            ) AS DESCRIPCION_CAMBIO
-        FROM DELETED AS D
-        INNER JOIN INSERTED AS I
-            ON
-                D.ID_FACTURA = I.ID_FACTURA
+            SELECT
+                I.ID_FACTURA,
+                I.NUMERO_LINEA,
+                LEFT(
+                    'Cant: '
+                    + ISNULL(CAST(D.CANTIDAD AS VARCHAR), '')
+                    + ' -> '
+                    + ISNULL(CAST(I.CANTIDAD AS VARCHAR), '')
+                    + ' | Precio: '
+                    + ISNULL(CAST(D.PRECIO_UNITARIO_VENTA AS VARCHAR), '')
+                    + ' -> '
+                    + ISNULL(CAST(I.PRECIO_UNITARIO_VENTA AS VARCHAR), '')
+                    + ' | Prod: '
+                    + ISNULL(CAST(D.ID_PRODUCTO AS VARCHAR), '')
+                    + ' -> '
+                    + ISNULL(CAST(I.ID_PRODUCTO AS VARCHAR), ''),
+                    200
+                ) AS DESCRIPCION_CAMBIO
+            FROM DELETED AS D
+            INNER JOIN INSERTED AS I
+                ON D.ID_FACTURA = I.ID_FACTURA
                 AND D.NUMERO_LINEA = I.NUMERO_LINEA;
 
         OPEN CURDETALLE;
@@ -47,22 +46,22 @@ BEGIN
             INTO @IDFACTURA, @NUMEROLINEA, @DESCRIPCION;
 
         WHILE @@FETCH_STATUS = 0
-            BEGIN
-                EXEC DBO.PR_INSERTARHISTORIAL
-                    @ID_FACTURA = @IDFACTURA,
-                    @ID_REGISTRO_AFECTADO = @NUMEROLINEA,
-                    @OPERACION_REALIZADA = 'UPDATE',
-                    @ESTADO_PREVIO = 'N/A',
-                    @ESTADO_NUEVO = 'N/A',
-                    @TABLA_AFECTADA = 'DETALLE_FACTURA',
-                    @DESCRIPCION = @DESCRIPCION,
-                    @USUARIO_RESPONSABLE = @USUARIO,
-                    @CODIGO_ERROR = @CODIGOERROR OUTPUT,
-                    @MENSAJE_ERROR = @MENSAJEERROR OUTPUT;
+        BEGIN
+            EXEC DBO.PR_INSERTARHISTORIAL
+                @ID_FACTURA = @IDFACTURA,
+                @ID_REGISTRO_AFECTADO = @NUMEROLINEA,
+                @OPERACION_REALIZADA = 'UPDATE',
+                @ESTADO_PREVIO = 'N/A',
+                @ESTADO_NUEVO = 'N/A',
+                @TABLA_AFECTADA = 'DETALLE_FACTURA',
+                @DESCRIPCION = @DESCRIPCION,
+                @USUARIO_RESPONSABLE = @USUARIO,
+                @CODIGO_ERROR = @CODIGOERROR OUTPUT,
+                @MENSAJE_ERROR = @MENSAJEERROR OUTPUT;
 
-                FETCH NEXT FROM CURDETALLE
-                    INTO @IDFACTURA, @NUMEROLINEA, @DESCRIPCION;
-            END;
+            FETCH NEXT FROM CURDETALLE
+                INTO @IDFACTURA, @NUMEROLINEA, @DESCRIPCION;
+        END;
 
         CLOSE CURDETALLE;
         DEALLOCATE CURDETALLE;
