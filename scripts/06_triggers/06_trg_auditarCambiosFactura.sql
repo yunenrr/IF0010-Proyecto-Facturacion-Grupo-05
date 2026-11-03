@@ -43,9 +43,9 @@ BEGIN
             COALESCE(I.ID, D.ID) AS ID_REGISTRO_AFECTADO,
             CASE
                 WHEN D.ID IS NULL
-                THEN 'INSERT'
+                    THEN 'INSERT'
                 WHEN I.ID IS NULL
-                THEN 'DELETE'
+                    THEN 'DELETE'
                 ELSE 'UPDATE'
             END AS OPERACION_REALIZADA,
             ISNULL(CAST(D.ID_ESTADO_FACTURA AS VARCHAR), 'N/A')
@@ -56,9 +56,9 @@ BEGIN
             'FACTURA' AS TABLA_AFECTADA,
             CASE
                 WHEN D.ID IS NULL
-                THEN 'Factura creada'
+                    THEN 'Factura creada'
                 WHEN I.ID IS NULL
-                THEN 'Factura eliminada'
+                    THEN 'Factura eliminada'
                 ELSE 'Actualización en el encabezado de factura'
             END AS DESCRIPCION,
             @USUARIO AS USUARIO_RESPONSABLE
