@@ -66,7 +66,12 @@ WHILE @FACTURA <= 500000
                 BREAK;
             END;
 
-        -- Cambio de rendimiento: Asignación directa más rápida en bucles largos
+        IF @FACTURA % 50000 = 0
+            BEGIN
+                COMMIT TRANSACTION;
+                BEGIN TRANSACTION;
+            END;
+
         SET @FACTURA = @FACTURA + 1;
     END;
 
