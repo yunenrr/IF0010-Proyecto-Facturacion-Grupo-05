@@ -16,7 +16,7 @@ GO
 
 CREATE TRIGGER DBO.TRG_AUDITARCAMBIOSDATOS
 ON DBO.CLIENTE
-AFTER UPDATE
+AFTER INSERT, UPDATE, DELETE
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -26,66 +26,79 @@ BEGIN
 
     BEGIN TRY
         -- Actualizar la fecha de la última actualización
-        UPDATE C
-        SET C.FECHA_ULTIMA_ACTUALIZACION = GETDATE()
-        FROM DBO.CLIENTE AS C
-        INNER JOIN INSERTED AS I
-            ON C.ID = I.ID;
-
-        -- Registrar el cambio en la tabla de historial
-        DECLARE @IDREGISTRO INT;
-        DECLARE @DESCRIPCION VARCHAR(250);
-
-        DECLARE CURCLIENTE CURSOR LOCAL FAST_FORWARD FOR
-        SELECT
-            I.ID,
-            LEFT(
-                'Ced: '
-                + ISNULL(D.CEDULA, '')
-                + ' -> '
-                + ISNULL(I.CEDULA, '')
-                + ' | Nom: '
-                + ISNULL(D.NOMBRE, '')
-                + ' -> '
-                + ISNULL(I.NOMBRE, '')
-                + ' | Ap1: '
-                + ISNULL(D.PRIMER_APELLIDO, '')
-                + ' -> '
-                + ISNULL(I.PRIMER_APELLIDO, '')
-                + ' | Ap2: '
-                + ISNULL(D.SEGUNDO_APELLIDO, '')
-                + ' -> '
-                + ISNULL(I.SEGUNDO_APELLIDO, '')
-                + ' | Tel: '
-                + ISNULL(D.TELEFONO, '')
-                + ' -> '
-                + ISNULL(I.TELEFONO, '')
-                + ' | Correo: '
-                + ISNULL(D.CORREO_ELECTRONICO, '')
-                + ' -> '
-                + ISNULL(I.CORREO_ELECTRONICO, ''),
-                250
-            ) AS DESCRIPCION
-        FROM DELETED AS D
-        INNER JOIN INSERTED AS I
-            ON D.ID = I.ID;
-
-        OPEN CURCLIENTE;
-        FETCH NEXT FROM CURCLIENTE INTO @IDREGISTRO, @DESCRIPCION;
-
-        WHILE @@FETCH_STATUS = 0
+        IF EXISTS (SELECT 1 FROM INSERTED)
             BEGIN
-                EXEC DBO.SP_INSERTARHISTORIALDATOS
-                    @NOMBRETABLA = 'CLIENTE',
-                    @NOMBREOPERACION = 'UPDATE',
-                    @IDREGISTRO = @IDREGISTRO,
-                    @DESCRIPCION = @DESCRIPCION;
-
-                FETCH NEXT FROM CURCLIENTE INTO @IDREGISTRO, @DESCRIPCION;
+                UPDATE C
+                SET C.FECHA_ULTIMA_ACTUALIZACION = GETDATE()
+                FROM DBO.CLIENTE AS C
+                INNER JOIN INSERTED AS I
+                    ON C.ID = I.ID;
             END;
 
-        CLOSE CURCLIENTE;
-        DEALLOCATE CURCLIENTE;
+        DECLARE @USUARIO VARCHAR(100) = SUSER_SNAME();
+
+        -- Registrar el cambio en la tabla de historial
+        INSERT INTO DBO.HISTORIAL (
+            ID_FACTURA,
+            ID_REGISTRO_AFECTADO,
+            OPERACION_REALIZADA,
+            ESTADO_PREVIO,
+            ESTADO_NUEVO,
+            FECHA_HORA,
+            TABLA_AFECTADA,
+            DESCRIPCION,
+            USUARIO_RESPONSABLE
+        )
+        SELECT
+            CAST(NULL AS INT) AS ID_FACTURA,
+            COALESCE(I.ID, D.ID) AS ID_REGISTRO_AFECTADO,
+            CASE
+                WHEN D.ID IS NULL THEN 'INSERT'
+                WHEN I.ID IS NULL THEN 'DELETE'
+                ELSE 'UPDATE'
+            END AS OPERACION_REALIZADA,
+            'N/A' AS ESTADO_PREVIO,
+            'N/A' AS ESTADO_NUEVO,
+            SYSDATETIME() AS FECHA_HORA,
+            'CLIENTE' AS TABLA_AFECTADA,
+            CASE
+                WHEN D.ID IS NULL THEN
+                    LEFT('Registro creado. Ced: ' + ISNULL(I.CEDULA, ''), 250)
+                WHEN I.ID IS NULL THEN
+                    LEFT('Registro eliminado. Ced: ' + ISNULL(D.CEDULA, ''), 250)
+                ELSE
+                    LEFT(
+                        'Ced: '
+                        + ISNULL(D.CEDULA, '')
+                        + ' -> '
+                        + ISNULL(I.CEDULA, '')
+                        + ' | Nom: '
+                        + ISNULL(D.NOMBRE, '')
+                        + ' -> '
+                        + ISNULL(I.NOMBRE, '')
+                        + ' | Ap1: '
+                        + ISNULL(D.PRIMER_APELLIDO, '')
+                        + ' -> '
+                        + ISNULL(I.PRIMER_APELLIDO, '')
+                        + ' | Ap2: '
+                        + ISNULL(D.SEGUNDO_APELLIDO, '')
+                        + ' -> '
+                        + ISNULL(I.SEGUNDO_APELLIDO, '')
+                        + ' | Tel: '
+                        + ISNULL(D.TELEFONO, '')
+                        + ' -> '
+                        + ISNULL(I.TELEFONO, '')
+                        + ' | Correo: '
+                        + ISNULL(D.CORREO_ELECTRONICO, '')
+                        + ' -> '
+                        + ISNULL(I.CORREO_ELECTRONICO, ''),
+                        250
+                    )
+            END AS DESCRIPCION,
+            @USUARIO AS USUARIO_RESPONSABLE
+        FROM DELETED AS D
+        FULL OUTER JOIN INSERTED AS I
+            ON D.ID = I.ID;
 
     END TRY
     BEGIN CATCH
@@ -95,7 +108,12 @@ BEGIN
             END;
 
         DECLARE @ERRORMSG1 VARCHAR(250) = ERROR_MESSAGE();
-        RAISERROR ('Error en TRG_AUDITARCAMBIOSDATOS: %s', 16, 1, @ERRORMSG1);
+        RAISERROR (
+            'Error en TRG_AUDITARCAMBIOSDATOS: %s',
+            16,
+            1,
+            @ERRORMSG1
+        );
     END CATCH;
 END;
 GO
