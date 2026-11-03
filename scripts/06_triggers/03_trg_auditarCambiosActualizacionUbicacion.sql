@@ -28,9 +28,9 @@ BEGIN
             COALESCE(I.ID_DIRECCION, D.ID_DIRECCION) AS ID_REGISTRO_AFECTADO,
             CASE
                 WHEN D.ID_DIRECCION IS NULL
-                THEN 'INSERT'
+                    THEN 'INSERT'
                 WHEN I.ID_DIRECCION IS NULL
-                THEN 'DELETE'
+                    THEN 'DELETE'
                 ELSE 'UPDATE'
             END AS OPERACION_REALIZADA,
             'N/A' AS ESTADO_PREVIO,
@@ -39,37 +39,37 @@ BEGIN
             'DIRECCION' AS TABLA_AFECTADA,
             CASE
                 WHEN D.ID_DIRECCION IS NULL
-                THEN
-                    LEFT(
-                        'Registro creado. Detalle: '
+                    THEN
+                        LEFT(
+                            'Registro creado. Detalle: '
                             + ISNULL(I.DETALLE_DIRECCION, ''),
-                        250
-                    )
+                            250
+                        )
                 WHEN I.ID_DIRECCION IS NULL
-                THEN
-                    LEFT(
-                        'Registro eliminado. Detalle: '
+                    THEN
+                        LEFT(
+                            'Registro eliminado. Detalle: '
                             + ISNULL(D.DETALLE_DIRECCION, ''),
-                        250
-                    )
+                            250
+                        )
                 ELSE
                     LEFT(
                         'Detalle: '
-                            + ISNULL(D.DETALLE_DIRECCION, '')
-                            + ' -> '
-                            + ISNULL(I.DETALLE_DIRECCION, '')
-                            + ' | Prov: '
-                            + ISNULL(CAST(D.ID_PROVINCIA AS VARCHAR), '')
-                            + ' -> '
-                            + ISNULL(CAST(I.ID_PROVINCIA AS VARCHAR), '')
-                            + ' | Cant: '
-                            + ISNULL(CAST(D.ID_CANTON AS VARCHAR), '')
-                            + ' -> '
-                            + ISNULL(CAST(I.ID_CANTON AS VARCHAR), '')
-                            + ' | Dist: '
-                            + ISNULL(CAST(D.ID_DISTRITO AS VARCHAR), '')
-                            + ' -> '
-                            + ISNULL(CAST(I.ID_DISTRITO AS VARCHAR), ''),
+                        + ISNULL(D.DETALLE_DIRECCION, '')
+                        + ' -> '
+                        + ISNULL(I.DETALLE_DIRECCION, '')
+                        + ' | Prov: '
+                        + ISNULL(CAST(D.ID_PROVINCIA AS VARCHAR), '')
+                        + ' -> '
+                        + ISNULL(CAST(I.ID_PROVINCIA AS VARCHAR), '')
+                        + ' | Cant: '
+                        + ISNULL(CAST(D.ID_CANTON AS VARCHAR), '')
+                        + ' -> '
+                        + ISNULL(CAST(I.ID_CANTON AS VARCHAR), '')
+                        + ' | Dist: '
+                        + ISNULL(CAST(D.ID_DISTRITO AS VARCHAR), '')
+                        + ' -> '
+                        + ISNULL(CAST(I.ID_DISTRITO AS VARCHAR), ''),
                         250
                     )
             END AS DESCRIPCION,
