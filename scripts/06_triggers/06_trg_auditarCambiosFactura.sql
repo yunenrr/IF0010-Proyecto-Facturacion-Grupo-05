@@ -29,6 +29,7 @@ BEGIN
             OPERACION_REALIZADA,
             ESTADO_PREVIO,
             ESTADO_NUEVO,
+            FECHA_HORA,
             TABLA_AFECTADA,
             DESCRIPCION,
             USUARIO_RESPONSABLE
@@ -39,6 +40,7 @@ BEGIN
             'UPDATE' AS OPERACION_REALIZADA,
             CAST(D.ID_ESTADO_FACTURA AS VARCHAR) AS ESTADO_PREVIO,
             CAST(I.ID_ESTADO_FACTURA AS VARCHAR) AS ESTADO_NUEVO,
+            SYSDATETIME() AS FECHA_HORA,
             'FACTURA' AS TABLA_AFECTADA,
             'Actualización en el encabezado de factura' AS DESCRIPCION,
             @Usuario AS USUARIO_RESPONSABLE
