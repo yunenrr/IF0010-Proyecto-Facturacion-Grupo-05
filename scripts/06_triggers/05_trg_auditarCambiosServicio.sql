@@ -27,8 +27,10 @@ BEGIN
             CAST(NULL AS INT) AS ID_FACTURA,
             COALESCE(I.ID, D.ID) AS ID_REGISTRO_AFECTADO,
             CASE
-                WHEN D.ID IS NULL THEN 'INSERT'
-                WHEN I.ID IS NULL THEN 'DELETE'
+                WHEN D.ID IS NULL
+                THEN 'INSERT'
+                WHEN I.ID IS NULL
+                THEN 'DELETE'
                 ELSE 'UPDATE'
             END AS OPERACION_REALIZADA,
             'N/A' AS ESTADO_PREVIO,
@@ -36,36 +38,38 @@ BEGIN
             SYSDATETIME() AS FECHA_HORA,
             'SERVICIO' AS TABLA_AFECTADA,
             CASE
-                WHEN D.ID IS NULL THEN
+                WHEN D.ID IS NULL
+                THEN
                     LEFT(
                         'Registro creado. Cod: '
-                        + ISNULL(I.CODIGO, ''),
+                            + ISNULL(I.CODIGO, ''),
                         250
                     )
-                WHEN I.ID IS NULL THEN
+                WHEN I.ID IS NULL
+                THEN
                     LEFT(
                         'Registro eliminado. Cod: '
-                        + ISNULL(D.CODIGO, ''),
+                            + ISNULL(D.CODIGO, ''),
                         250
                     )
                 ELSE
                     LEFT(
                         'Cod: '
-                        + ISNULL(D.CODIGO, '')
-                        + ' -> '
-                        + ISNULL(I.CODIGO, '')
-                        + ' | Desc: '
-                        + ISNULL(D.DESCRIPCION, '')
-                        + ' -> '
-                        + ISNULL(I.DESCRIPCION, '')
-                        + ' | Precio: '
-                        + ISNULL(CAST(D.PRECIO_UNITARIO AS VARCHAR), '')
-                        + ' -> '
-                        + ISNULL(CAST(I.PRECIO_UNITARIO AS VARCHAR), '')
-                        + ' | Activo: '
-                        + ISNULL(CAST(D.ESTADO_ACTIVO AS VARCHAR), '')
-                        + ' -> '
-                        + ISNULL(CAST(I.ESTADO_ACTIVO AS VARCHAR), ''),
+                            + ISNULL(D.CODIGO, '')
+                            + ' -> '
+                            + ISNULL(I.CODIGO, '')
+                            + ' | Desc: '
+                            + ISNULL(D.DESCRIPCION, '')
+                            + ' -> '
+                            + ISNULL(I.DESCRIPCION, '')
+                            + ' | Precio: '
+                            + ISNULL(CAST(D.PRECIO_UNITARIO AS VARCHAR), '')
+                            + ' -> '
+                            + ISNULL(CAST(I.PRECIO_UNITARIO AS VARCHAR), '')
+                            + ' | Activo: '
+                            + ISNULL(CAST(D.ESTADO_ACTIVO AS VARCHAR), '')
+                            + ' -> '
+                            + ISNULL(CAST(I.ESTADO_ACTIVO AS VARCHAR), ''),
                         250
                     )
             END AS DESCRIPCION,
