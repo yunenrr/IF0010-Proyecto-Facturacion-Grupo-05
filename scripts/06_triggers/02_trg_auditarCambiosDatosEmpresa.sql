@@ -69,18 +69,14 @@ BEGIN
         FROM DELETED AS D
         FULL OUTER JOIN INSERTED AS I
             ON D.ID = I.ID
-        CROSS APPLY (
-            SELECT
-                CASE
-                    WHEN D.ID IS NULL
-                        THEN 'INSERT'
-                    WHEN I.ID IS NULL
-                        THEN 'DELETE'
-                    ELSE 'UPDATE'
-                END AS OPERACION
-        ) AS OP
         INNER JOIN DBO.TIPO_OPERACION AS TIPO
-            ON OP.OPERACION = TIPO.NOMBRE_OPERACION
+            ON TIPO.NOMBRE_OPERACION = CASE
+                WHEN D.ID IS NULL
+                    THEN 'INSERT'
+                WHEN I.ID IS NULL
+                    THEN 'DELETE'
+                ELSE 'UPDATE'
+            END
         INNER JOIN DBO.TABLA_AUDITADA AS TA
             ON TA.NOMBRE_TABLA = 'EMPRESA';
 
