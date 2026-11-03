@@ -12,7 +12,8 @@ BEGIN
         RETURN;
 
     BEGIN TRY
-        -- Actualizar la fecha de modificación de la factura (Solo INSERT o UPDATE)
+        -- Actualizar la fecha de modificación de la factura
+        -- (Solo INSERT o UPDATE)
         IF EXISTS (SELECT 1 FROM INSERTED)
             BEGIN
                 UPDATE F
@@ -41,17 +42,23 @@ BEGIN
             COALESCE(I.ID, D.ID) AS ID_FACTURA,
             COALESCE(I.ID, D.ID) AS ID_REGISTRO_AFECTADO,
             CASE
-                WHEN D.ID IS NULL THEN 'INSERT'
-                WHEN I.ID IS NULL THEN 'DELETE'
+                WHEN D.ID IS NULL
+                THEN 'INSERT'
+                WHEN I.ID IS NULL
+                THEN 'DELETE'
                 ELSE 'UPDATE'
             END AS OPERACION_REALIZADA,
-            ISNULL(CAST(D.ID_ESTADO_FACTURA AS VARCHAR), 'N/A') AS ESTADO_PREVIO,
-            ISNULL(CAST(I.ID_ESTADO_FACTURA AS VARCHAR), 'N/A') AS ESTADO_NUEVO,
+            ISNULL(CAST(D.ID_ESTADO_FACTURA AS VARCHAR), 'N/A')
+                AS ESTADO_PREVIO,
+            ISNULL(CAST(I.ID_ESTADO_FACTURA AS VARCHAR), 'N/A')
+                AS ESTADO_NUEVO,
             SYSDATETIME() AS FECHA_HORA,
             'FACTURA' AS TABLA_AFECTADA,
             CASE
-                WHEN D.ID IS NULL THEN 'Factura creada'
-                WHEN I.ID IS NULL THEN 'Factura eliminada'
+                WHEN D.ID IS NULL
+                THEN 'Factura creada'
+                WHEN I.ID IS NULL
+                THEN 'Factura eliminada'
                 ELSE 'Actualización en el encabezado de factura'
             END AS DESCRIPCION,
             @USUARIO AS USUARIO_RESPONSABLE
