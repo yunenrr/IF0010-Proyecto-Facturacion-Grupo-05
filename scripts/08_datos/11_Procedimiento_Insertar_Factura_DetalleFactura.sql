@@ -36,11 +36,14 @@ BEGIN TRY
                 DATEADD(DAY, -(@FACTURA % 365), CAST(GETDATE() AS DATETIME2))
             );
             SET @DESCUENTO = CAST((@FACTURA % 101) AS DECIMAL(10, 2));
-            SET @MONEDA =
-                CASE
-                    WHEN (@FACTURA % 2) = 0
-                        THEN 'USD'
-                    ELSE 'CRC'
+
+            IF (@FACTURA % 2) = 0
+                BEGIN
+                    SET @MONEDA = 'USD';
+                END;
+            ELSE
+                BEGIN
+                    SET @MONEDA = 'CRC';
                 END;
 
             EXECUTE DBO.PR_EMITIRFACTURA
