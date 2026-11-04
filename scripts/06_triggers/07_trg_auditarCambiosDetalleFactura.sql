@@ -11,6 +11,53 @@ BEGIN
     BEGIN TRY
         DECLARE @USUARIO VARCHAR(100) = SUSER_SNAME();
 
+        -- Solo INSERT: un unico registro de historial por factura
+        IF NOT EXISTS (SELECT 1 FROM DELETED)
+            BEGIN
+                INSERT INTO DBO.HISTORIAL (
+                    ID_FACTURA,
+                    ID_REGISTRO_AFECTADO,
+                    OPERACION_REALIZADA,
+                    ESTADO_PREVIO,
+                    ESTADO_NUEVO,
+                    FECHA_HORA,
+                    TABLA_AFECTADA,
+                    DESCRIPCION,
+                    USUARIO_RESPONSABLE
+                )
+                SELECT
+                    I.ID_FACTURA,
+                    MIN(I.NUMERO_LINEA) AS ID_REGISTRO_AFECTADO,
+                    'INSERT' AS OPERACION_REALIZADA,
+                    'N/A' AS ESTADO_PREVIO,
+                    'N/A' AS ESTADO_NUEVO,
+                    SYSDATETIME() AS FECHA_HORA,
+                    'DETALLE_FACTURA' AS TABLA_AFECTADA,
+                    LEFT(
+                        CONCAT(
+                            'Registro creado. Lineas: ',
+                            COUNT(*),
+                            ' | ',
+                            STRING_AGG(
+                                CONCAT(
+                                    'L',
+                                    I.NUMERO_LINEA,
+                                    ' Prod: ',
+                                    I.ID_PRODUCTO
+                                ),
+                                ' ; '
+                            )
+                        ),
+                        200
+                    ) AS DESCRIPCION,
+                    @USUARIO AS USUARIO_RESPONSABLE
+                FROM INSERTED AS I
+                GROUP BY I.ID_FACTURA;
+
+                RETURN;
+            END;
+
+        -- UPDATE y DELETE: se conserva un registro por linea
         INSERT INTO DBO.HISTORIAL (
             ID_FACTURA,
             ID_REGISTRO_AFECTADO,
