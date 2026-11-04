@@ -12,9 +12,8 @@ BEGIN
         RETURN;
 
     BEGIN TRY
-        -- Actualizar la fecha de modificación de la factura
-        -- (Solo INSERT o UPDATE)
-        IF EXISTS (SELECT 1 FROM INSERTED)
+        -- Actualizar la fecha de modificación de la factura (solo UPDATE)
+        IF EXISTS (SELECT 1 FROM INSERTED) AND EXISTS (SELECT 1 FROM DELETED)
             BEGIN
                 UPDATE F
                 SET F.FECHA_MODIFICACION = GETDATE()
@@ -26,7 +25,6 @@ BEGIN
         DECLARE @USUARIO VARCHAR(100) = SUSER_SNAME();
 
         -- Se inserta masivamente en la tabla HISTORIAL
-        -- usando Set-Based (sin cursores)
         INSERT INTO DBO.HISTORIAL (
             ID_FACTURA,
             ID_REGISTRO_AFECTADO,
