@@ -45,6 +45,9 @@ BEGIN
     DECLARE @BASEPROD INT = @NUMERO_CONSECUTIVO * 5;
     DECLARE @TIPO_DOC_DESC VARCHAR(30);
     DECLARE @FECHA_EMISION_EFECTIVA DATETIME2;
+    DECLARE @SUBTOTAL_CALCULADO DECIMAL(18, 2);
+    DECLARE @IMPUESTO_CALCULADO DECIMAL(18, 2);
+    DECLARE @TOTAL_CALCULADO DECIMAL(19, 2);
 
     SET @FECHA_EMISION_EFECTIVA = ISNULL(@FECHA_EMISION, GETDATE());
 
@@ -70,6 +73,46 @@ BEGIN
                 THROW 50100, 'No se pudo generar la clave del Comprobante', 1;
             END;
 
+        -- Calcular los totales antes de insertar (evita un UPDATE posterior)
+        WITH LINEAS AS (
+            SELECT
+                ((@BASEPROD + V.LINEA - 1) % 1000) + 1 AS IDPROD,
+                ((@NUMERO_CONSECUTIVO + V.LINEA) % 5) + 1 AS CANT
+            FROM (
+                VALUES
+                (1),
+                (2),
+                (3),
+                (4),
+                (5)
+            ) AS V(LINEA)
+            WHERE
+                V.LINEA <= @LINEASTOTALES
+        ),
+
+        PRECIOS AS (
+            SELECT
+                L.CANT,
+                ISNULL(P.PRECIO_UNITARIO, 1000.00) AS PRECIO,
+                ISNULL(P.PORCENTAJE_IMPUESTO, 13.00) AS PORC
+            FROM LINEAS AS L
+            LEFT JOIN DBO.PRODUCTO AS P
+                ON L.IDPROD = P.ID
+        )
+
+        SELECT
+            @SUBTOTAL_CALCULADO = SUM(
+                CAST(PC.PRECIO * PC.CANT AS DECIMAL(18, 2))
+            ),
+            @IMPUESTO_CALCULADO = SUM(
+                CAST(PC.PRECIO * PC.CANT * (PC.PORC / 100.0) AS DECIMAL(18, 2))
+            )
+        FROM PRECIOS AS PC;
+
+        SET
+            @TOTAL_CALCULADO
+            = @SUBTOTAL_CALCULADO - @TOTAL_DESCUENTO + @IMPUESTO_CALCULADO;
+
         INSERT INTO DBO.FACTURA (
             IDENTIFICADOR_FACTURA,
             NUMERO_CONSECUTIVO,
@@ -93,10 +136,10 @@ BEGIN
             ISNULL(@FECHA_CREACION, CAST(GETDATE() AS DATE)),
             ISNULL(@FECHA_MODIFICACION, CAST(GETDATE() AS DATE)),
             CAST(@FECHA_EMISION_EFECTIVA AS DATE),
-            0.00,
+            @SUBTOTAL_CALCULADO,
             @TOTAL_DESCUENTO,
-            0.00,
-            0.00,
+            @IMPUESTO_CALCULADO,
+            @TOTAL_CALCULADO,
             ISNULL(@OBSERVACIONES, 'N/A'),
             @CODIGO_MONEDA,
             @ID_ESTADO_FACTURA,
@@ -154,25 +197,6 @@ BEGIN
             LEFT JOIN DBO.PRODUCTO AS P
                 ON CD.IDPROD = P.ID
         ) AS LP;
-
-        UPDATE F
-        SET
-            SUBTOTAL = TD.SUBTOTALSUM,
-            TOTAL_IMPUESTO = TD.IMPUESTOSUM,
-            MONTO_TOTAL = TD.SUBTOTALSUM - F.TOTAL_DESCUENTO + TD.IMPUESTOSUM
-        FROM DBO.FACTURA AS F
-        INNER JOIN (
-            SELECT
-                DF.ID_FACTURA,
-                SUM(DF.MONTO_SUBTOTAL) AS SUBTOTALSUM,
-                SUM(DF.MONTO_IMPUESTO) AS IMPUESTOSUM
-            FROM DBO.DETALLE_FACTURA AS DF
-            WHERE
-                DF.ID_FACTURA = @IDFACTURA
-            GROUP BY
-                DF.ID_FACTURA
-        ) AS TD
-            ON F.ID = TD.ID_FACTURA;
 
     END TRY
     BEGIN CATCH
