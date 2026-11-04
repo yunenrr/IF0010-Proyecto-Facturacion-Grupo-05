@@ -36,7 +36,12 @@ BEGIN TRY
                 DATEADD(DAY, -(@FACTURA % 365), CAST(GETDATE() AS DATETIME2))
             );
             SET @DESCUENTO = CAST((@FACTURA % 101) AS DECIMAL(10, 2));
-            SET @MONEDA = CASE WHEN (@FACTURA % 2) = 0 THEN 'USD' ELSE 'CRC' END;
+            SET @MONEDA =
+                CASE
+                    WHEN (@FACTURA % 2) = 0
+                        THEN 'USD'
+                    ELSE 'CRC'
+                END;
 
             EXECUTE DBO.PR_EMITIRFACTURA
                 @IDENTIFICADOR_FACTURA = NULL, -- Usa generacion interna
@@ -67,7 +72,8 @@ BEGIN TRY
                     BREAK;
                 END;
 
-            -- Commit mas frecuente (5,000 en vez de 50,000) para evitar Table Lock
+            -- Commit mas frecuente (5,000 en vez de 50,000)
+            -- para evitar Table Lock
             IF @FACTURA % 5000 = 0
                 BEGIN
                     COMMIT TRANSACTION;
