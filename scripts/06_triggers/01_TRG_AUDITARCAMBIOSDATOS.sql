@@ -26,7 +26,7 @@ BEGIN
 
     BEGIN TRY
         -- Actualizar la fecha de la última actualización
-        IF EXISTS (SELECT 1 FROM INSERTED)
+        IF EXISTS (SELECT 1 FROM INSERTED) AND EXISTS (SELECT 1 FROM DELETED)
             BEGIN
                 UPDATE C
                 SET C.FECHA_ULTIMA_ACTUALIZACION = GETDATE()
