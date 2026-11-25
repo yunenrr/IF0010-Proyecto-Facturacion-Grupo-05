@@ -1,0 +1,57 @@
+USE FACTURACION_SA;
+GO
+
+-- INICIO
+IF
+    EXISTS (
+        SELECT 1
+        FROM SYS.OBJECTS
+        WHERE
+            NAME = 'CONSULTA_FACTURAS_CLIENTE_JURIDICO'
+            AND TYPE = 'P'
+    )
+    BEGIN
+        DROP PROCEDURE DBO.CONSULTA_FACTURAS_CLIENTE_JURIDICO;
+    END;
+GO
+
+CREATE PROCEDURE DBO.CONSULTA_FACTURAS_CLIENTE_JURIDICO (
+    @CEDULA_EMPRESA VARCHAR(30)
+)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SET @CEDULA_EMPRESA = TRIM(@CEDULA_EMPRESA);
+
+    BEGIN TRY
+        SELECT
+            F.IDENTIFICADOR_FACTURA,
+            F.NUMERO_CONSECUTIVO,
+            F.FECHA_EMISION,
+            E.RAZON_SOCIAL,
+            E.NOMBRE AS NOMBRE_COMERCIAL,
+            E.CEDULA_JURIDICA,
+            F.MONTO_TOTAL,
+            EF.ESTADO_FACTURA
+        FROM DBO.FACTURA AS F
+        INNER JOIN DBO.EMPRESA AS E
+            ON F.ID_EMPRESA = E.ID
+        INNER JOIN DBO.ESTADO_FACTURA AS EF
+            ON F.ID_ESTADO_FACTURA = EF.ID
+        WHERE
+            E.CEDULA_JURIDICA = @CEDULA_EMPRESA;
+    END TRY
+    BEGIN CATCH
+        DECLARE @ERRORMSG VARCHAR(250) = ERROR_MESSAGE();
+
+        RAISERROR (
+            'Error al consultar facturas de cliente jurídico: %s',
+            16,
+            1,
+            @ERRORMSG
+        );
+    END CATCH;
+END;
+GO
+-- FIN
